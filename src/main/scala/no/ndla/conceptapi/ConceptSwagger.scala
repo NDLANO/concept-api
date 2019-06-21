@@ -4,7 +4,7 @@
  *
  * See LICENSE
  */
-
+/*
 package no.ndla.draftapi
 
 import org.scalatra.ScalatraServlet
@@ -40,3 +40,4 @@ class DraftSwagger extends Swagger("2.0", "1.0", DraftApiInfo.apiInfo) {
   addAuthorization(
     OAuth(writeRolesInTest, List(ImplicitGrant(LoginEndpoint(DraftApiProperties.Auth0LoginEndpoint), "access_token"))))
 }
+ */
