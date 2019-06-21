@@ -20,7 +20,7 @@ object ConceptApiProperties extends LazyLogging {
   val IsKubernetes: Boolean = envOrNone("NDLA_IS_KUBERNETES").isDefined
 
   val Environment = propOrElse("NDLA_ENVIRONMENT", "local")
-  val ApplicationName = "draft-api"
+  val ApplicationName = "concept-api"
   val Auth0LoginEndpoint = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
   val DraftRoleWithWriteAccess = "drafts:write"
   val DraftRoleWithPublishAccess = "drafts:set_to_publish"
