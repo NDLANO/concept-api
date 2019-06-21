@@ -17,7 +17,7 @@ trait ConceptController
   {
     get("/")
     {
-      Ok("Hellow World")
+      Ok("Hello World")
     }
   }
 
