@@ -37,6 +37,6 @@ class DraftSwagger extends Swagger("2.0", "1.0", DraftApiInfo.apiInfo) {
   }
 
   addAuthorization(
-    OAuth(writeRolesInTest, List(ImplicitGrant(LoginEndpoint(DraftApiProperties.Auth0LoginEndpoint), "access_token"))))
+    OAuth(writeRolesInTest, List(ImplicitGrant(LoginEndpoint(ConceptApiProperties.Auth0LoginEndpoint), "access_token"))))
 }
  */
