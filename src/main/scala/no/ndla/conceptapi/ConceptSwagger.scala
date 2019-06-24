@@ -31,7 +31,7 @@ object DraftApiInfo {
 class ConceptSwagger extends Swagger("2.0", "1.0", ConceptApiInfo.apiInfo) {
 
   private def writeRolesInTest: List[String] = {
-    val writeRoles = List(DraftApiProperties.DraftRoleWithWriteAccess,
+    val writeRoles = List(ConceptApiProperties.ConceptRoleWithWriteAccess)
                           DraftApiProperties.DraftRoleWithPublishAccess,
                           DraftApiProperties.ArticleRoleWithPublishAccess)
   }
