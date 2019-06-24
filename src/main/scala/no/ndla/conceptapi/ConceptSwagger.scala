@@ -34,7 +34,6 @@ class DraftSwagger extends Swagger("2.0", "1.0", DraftApiInfo.apiInfo) {
     val writeRoles = List(DraftApiProperties.DraftRoleWithWriteAccess,
                           DraftApiProperties.DraftRoleWithPublishAccess,
                           DraftApiProperties.ArticleRoleWithPublishAccess)
-    writeRoles.map(_.replace(":", "-test:"))
   }
 
   addAuthorization(
