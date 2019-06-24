@@ -4,8 +4,8 @@
  *
  * See LICENSE
  */
-/*
-package no.ndla.draftapi
+
+package no.ndla.conceptapi
 
 import org.scalatra.ScalatraServlet
 import org.scalatra.swagger._
@@ -16,7 +16,7 @@ class ResourcesApp(implicit val swagger: Swagger) extends ScalatraServlet with N
   }
 }
 
-object DraftApiInfo {
+object ConceptApiInfo {
 
   val apiInfo = ApiInfo(
     "Concept API",
@@ -31,10 +31,10 @@ object DraftApiInfo {
 class ConceptSwagger extends Swagger("2.0", "1.0", ConceptApiInfo.apiInfo) {
 
   private def writeRolesInTest: List[String] = {
-    val writeRoles = List(ConceptApiProperties.ConceptRoleWithWriteAccess)
+    List(ConceptApiProperties.ConceptRoleWithWriteAccess)
   }
 
   addAuthorization(
     OAuth(writeRolesInTest, List(ImplicitGrant(LoginEndpoint(ConceptApiProperties.Auth0LoginEndpoint), "access_token"))))
 }
- */
+

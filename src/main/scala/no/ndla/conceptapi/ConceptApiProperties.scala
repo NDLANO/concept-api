@@ -23,8 +23,6 @@ object ConceptApiProperties extends LazyLogging {
   val ApplicationName = "concept-api"
   val Auth0LoginEndpoint = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
   val ConceptRoleWithWriteAccess = "concept:write"
-  val DraftRoleWithPublishAccess = "drafts:set_to_publish"
-  val ArticleRoleWithPublishAccess = "articles:publish"
 
   val ApplicationPort = propOrElse("APPLICATION_PORT", "80").toInt
   val ContactEmail = "support+api@ndla.no"
