@@ -1,6 +1,6 @@
 /*
- * Part of NDLA draft_api.
- * Copyright (C) 2017 NDLA
+ * Part of NDLA concept-api.
+ * Copyright (C) 2019 NDLA
  *
  * See LICENSE
  */
@@ -50,11 +50,7 @@ object ConceptApiProperties extends LazyLogging {
   val SearchServer: String = propOrElse("SEARCH_SERVER", "http://search-draft-api.ndla-local")
   val SearchRegion: String = propOrElse("SEARCH_REGION", "eu-central-1")
   val RunWithSignedSearchRequests: Boolean = propOrElse("RUN_WITH_SIGNED_SEARCH_REQUESTS", "true").toBoolean
-  val DraftSearchIndex: String = propOrElse("SEARCH_INDEX_NAME", "draft-articles")
   val ConceptSearchIndex: String = propOrElse("CONCEPT_SEARCH_INDEX_NAME", "draft-concepts")
-  val AgreementSearchIndex: String = propOrElse("AGREEMENT_SEARCH_INDEX_NAME", "draft-agreements")
-  val DraftSearchDocument = "article-drafts"
-  val AgreementSearchDocument = "agreement-drafts"
   val ConceptSearchDocument = "concept-drafts"
   val DefaultPageSize = 10
   val MaxPageSize = 100
@@ -75,28 +71,6 @@ object ConceptApiProperties extends LazyLogging {
         throw new RuntimeException(s"Unable to load remote secrets from $SecretsFile", exception)
     }
   }
-
-  lazy val supportedUploadExtensions = Set(
-    ".csv",
-    ".doc",
-    ".docx",
-    ".ggb",
-    ".json",
-    ".odp",
-    ".ods",
-    ".odt",
-    ".pdf",
-    ".ppt",
-    ".pptx",
-    ".pub",
-    ".rtf",
-    ".tex",
-    ".tsv",
-    ".txt",
-    ".xls",
-    ".xlsx",
-    ".xml"
-  )
 
   def booleanProp(key: String): Boolean = prop(key).toBoolean
 
