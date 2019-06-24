@@ -22,7 +22,7 @@ object DraftApiInfo {
     "Concept API",
     "Services for accessing concepts",
     "http://ndla.no",
-    DraftApiProperties.ContactEmail,
+    ConceptApiProperties.ContactEmail,
     "GPL v3.0",
     "http://www.gnu.org/licenses/gpl-3.0.en.html"
   )
