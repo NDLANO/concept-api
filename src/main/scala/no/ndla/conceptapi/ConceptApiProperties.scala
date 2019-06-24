@@ -22,7 +22,7 @@ object ConceptApiProperties extends LazyLogging {
   val Environment = propOrElse("NDLA_ENVIRONMENT", "local")
   val ApplicationName = "concept-api"
   val Auth0LoginEndpoint = s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
-  val DraftRoleWithWriteAccess = "drafts:write"
+  val ConceptRoleWithWriteAccess = "concept:write"
   val DraftRoleWithPublishAccess = "drafts:set_to_publish"
   val ArticleRoleWithPublishAccess = "articles:publish"
 
