@@ -45,7 +45,7 @@ object ConceptApiProperties extends LazyLogging {
   val ImageApiHost: String = propOrElse("IMAGE_API_HOST", "image-api.ndla-local")
   val SearchApiHost: String = propOrElse("SEARCH_API_HOST", "search-api.ndla-local")
 
-  val SearchServer: String = propOrElse("SEARCH_SERVER", "http://search-draft-api.ndla-local")
+  val SearchServer: String = propOrElse("SEARCH_SERVER", "http://search-concept-api.ndla-local")
   val SearchRegion: String = propOrElse("SEARCH_REGION", "eu-central-1")
   val RunWithSignedSearchRequests: Boolean = propOrElse("RUN_WITH_SIGNED_SEARCH_REQUESTS", "true").toBoolean
   val ConceptSearchIndex: String = propOrElse("CONCEPT_SEARCH_INDEX_NAME", "concepts")
