@@ -1,6 +1,6 @@
 /*
- * Part of NDLA draft_api.
- * Copyright (C) 2017 NDLA
+ * Part of NDLA concept-api.
+ * Copyright (C) 2019 NDLA
  *
  * See LICENSE
  */
@@ -9,6 +9,7 @@ package no.ndla.conceptapi.model.domain
 
 import com.sksamuel.elastic4s.analyzers._
 import no.ndla.mapping.ISO639
+
 import scala.language.reflectiveCalls
 
 object Language {
