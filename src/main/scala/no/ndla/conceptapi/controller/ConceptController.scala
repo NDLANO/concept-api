@@ -13,7 +13,7 @@ import org.scalatra.Ok
 import scalikejdbc._
 
 import scala.util.{Failure, Success, Try}
-import no.ndla.conceptapi.model.api.{Concept, NewConcept}
+import no.ndla.conceptapi.model.api.{Concept, NewConcept, UpdatedConcept}
 import no.ndla.conceptapi.service.WriteService
 import no.ndla.conceptapi.auth.User
 import org.json4s.{DefaultFormats, Formats}
@@ -27,6 +27,8 @@ trait ConceptController
   class ConceptController(implicit val swagger: Swagger) extends NdlaController with LazyLogging
   {
     protected implicit override val jsonFormats: Formats = DefaultFormats
+
+    private val conceptId = Param[Long]("concept_id", "Id of the concept that is to be returned")
 
     get("/"){
       Ok("Hello World")
@@ -55,6 +57,19 @@ trait ConceptController
             case Failure(ex) => errorHandler(ex)
           }
         //}
+    }
+
+    patch("/:concept_id")
+       {
+      //doOrAccessDenied(user.getUser.canWrite) {
+        val externalId = paramOrNone("externalId")
+
+        extract[UpdatedConcept](request.body)
+          .flatMap(writeService.updateConcept(long(this.conceptId.paramName), _, externalId)) match {
+          case Success(c)  => c
+          case Failure(ex) => errorHandler(ex)
+        }
+      //}
     }
 
   }
