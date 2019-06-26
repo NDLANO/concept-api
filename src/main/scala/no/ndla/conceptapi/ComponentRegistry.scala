@@ -12,13 +12,21 @@ import com.typesafe.scalalogging.LazyLogging
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.conceptapi.controller.ConceptController
 import no.ndla.conceptapi.ConceptSwagger
+import no.ndla.conceptapi.auth.User
 import no.ndla.conceptapi.integration.DataSource
+import no.ndla.conceptapi.repository.ConceptRepository
+import no.ndla.conceptapi.service.{Clock, ConverterService, WriteService}
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
 
-object ComponentRegistry extends ConceptController with DataSource with LazyLogging {
+object ComponentRegistry extends ConceptController with Clock with User with WriteService with ConverterService with ConceptRepository with DataSource with LazyLogging {
 
-  lazy val conceptController = new ConceptController()
+  lazy val conceptController = new ConceptController
+  lazy val conceptRepository = new ConceptRepository
+  lazy val writeService = new WriteService
+  lazy val converterService = new ConverterService
+  lazy val user = new User
+  lazy val clock = new SystemClock
 
   def connectToDatabase(): Unit = ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
 
