@@ -6,6 +6,7 @@ import no.ndla.conceptapi.repository.ConceptRepository
 import no.ndla.conceptapi.model.domain
 import no.ndla.conceptapi.model.domain.Language._
 import no.ndla.conceptapi.model.api
+import no.ndla.conceptapi.model.domain.LanguageField
 import no.ndla.mapping.License.getLicense
 import org.joda.time.format.ISODateTimeFormat
 
@@ -79,6 +80,32 @@ trait ConverterService {
             ))
     }
 
+    def toDomainConcept(toMergeInto: domain.Concept, updateConcept: api.UpdatedConcept): domain.Concept = {
+      val domainTitle = updateConcept.title.map(t => domain.ConceptTitle(t, updateConcept.language)).toSeq
+      val domainContent = updateConcept.content.map(c => domain.ConceptContent(c, updateConcept.language)).toSeq
+
+      toMergeInto.copy(
+        title = mergeLanguageFields(toMergeInto.title, domainTitle),
+        content = mergeLanguageFields(toMergeInto.content, domainContent),
+        copyright = updateConcept.copyright.map(toDomainCopyright).orElse(toMergeInto.copyright),
+        created = toMergeInto.created,
+        updated = clock.now()
+      )
+    }
+
+    def toDomainConcept(id: Long, article: api.UpdatedConcept): domain.Concept = {
+      val lang = article.language
+
+      domain.Concept(
+        id = Some(id),
+        title = article.title.map(t => domain.ConceptTitle(t, lang)).toSeq,
+        content = article.content.map(c => domain.ConceptContent(c, lang)).toSeq,
+        copyright = article.copyright.map(toDomainCopyright),
+        created = clock.now(),
+        updated = clock.now()
+      )
+    }
+
     def toDomainCopyright(newCopyright: api.NewAgreementCopyright): domain.Copyright = {
       val parser = ISODateTimeFormat.dateOptionalTimeParser()
       val validFrom = newCopyright.validFrom.flatMap(date => allCatch.opt(parser.parseDateTime(date).toDate))
@@ -112,23 +139,10 @@ trait ConverterService {
 
     def toDomainAuthor(author: api.Author): domain.Author = domain.Author(author.`type`, author.name)
 
-//    def toDomainConcept(toMergeInto: domain.Concept, updateConcept: api.UpdatedConcept): domain.Concept = {
-//      val domainTitle = updateConcept.title.map(t => domain.ConceptTitle(t, updateConcept.language)).toSeq
-//      val domainContent = updateConcept.content.map(c => domain.ConceptContent(c, updateConcept.language)).toSeq
-//
-//      toMergeInto.copy(
-//        title = mergeLanguageFields(toMergeInto.title, domainTitle),
-//        content = mergeLanguageFields(toMergeInto.content, domainContent),
-//        copyright = updateConcept.copyright.map(toDomainCopyright).orElse(toMergeInto.copyright),
-//        created = toMergeInto.created,
-//        updated = clock.now()
-//      )
-//    }
-//
-
-
-
-
+    private[service] def mergeLanguageFields[A <: LanguageField](existing: Seq[A], updated: Seq[A]): Seq[A] = {
+      val toKeep = existing.filterNot(item => updated.map(_.language).contains(item.language))
+      (toKeep ++ updated).filterNot(_.isEmpty)
+    }
 
   }
 
