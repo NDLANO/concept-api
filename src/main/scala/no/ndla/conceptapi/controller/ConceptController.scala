@@ -13,6 +13,10 @@ import org.scalatra.Ok
 import scalikejdbc._
 
 import scala.util.{Failure, Success, Try}
+import no.ndla.conceptapi.model.api.{
+  Concept,
+  NewConcept
+}
 
 trait ConceptController
 {
@@ -35,6 +39,17 @@ trait ConceptController
     newEmptyConcept(5,List.empty)
 
 
+    }
+
+    post("/a")
+      {
+      doOrAccessDenied(user.getUser.canWrite) {
+        val nid = params("externalId")
+        extract[NewConcept](request.body).flatMap(writeService.newConcept(_, nid)) match {
+          case Success(c)  => c
+          case Failure(ex) => errorHandler(ex)
+        }
+      }
     }
 
   }
