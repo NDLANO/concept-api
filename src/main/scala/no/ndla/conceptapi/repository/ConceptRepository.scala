@@ -124,12 +124,12 @@ trait ConceptRepository {
       conceptsWhere(sqls"co.id between $min and $max")
 
     private def conceptWhere(whereClause: SQLSyntax)(
-      implicit session: DBSession = ReadOnlyAutoSession): Option[Concept] = {
-      val co = Concept.syntax("co")
-      sql"select ${co.result.*} from ${Concept.as(co)} where co.document is not NULL and $whereClause"
-        .map(Concept(co))
-        .single
-        .apply()
+        implicit session: DBSession = ReadOnlyAutoSession): Option[Concept] = {
+        val co = Concept.syntax("co")
+        sql"select ${co.result.*} from ${Concept.as(co)} where co.document is not NULL and $whereClause"
+          .map(Concept(co))
+          .single
+          .apply()
     }
 
     private def conceptsWhere(whereClause: SQLSyntax)(
@@ -140,6 +140,13 @@ trait ConceptRepository {
         .list
         .apply()
     }
-
+//    private def conceptsWhereA(whereClause: SQLSyntax)(
+//      implicit session: DBSession = ReadOnlyAutoSession): Seq[Concept] = {
+//      val ar = Concept.syntax("ar")
+//      sql"select ${ar.result.*} from ${Concept.as(ar)} where ar.document is not NULL and $whereClause"
+//        .map(Concept(ar))
+//        .list
+//        .apply()
+//    }
   }
 }

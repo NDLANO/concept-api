@@ -112,6 +112,12 @@ trait ConverterService {
 
     def toDomainAuthor(author: api.Author): domain.Author = domain.Author(author.`type`, author.name)
 
+
+
+
+
+
+
 //    def toDomainConcept(toMergeInto: domain.Concept, updateConcept: api.UpdatedConcept): domain.Concept = {
 //      val domainTitle = updateConcept.title.map(t => domain.ConceptTitle(t, updateConcept.language)).toSeq
 //      val domainContent = updateConcept.content.map(c => domain.ConceptContent(c, updateConcept.language)).toSeq
