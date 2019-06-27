@@ -20,18 +20,18 @@ case class Concept(id: Option[Long],
                    content: Seq[ConceptContent],
                    copyright: Option[Copyright],
                    created: Date,
-                   updated: Date)
-  {
-  lazy val supportedLanguages: Set[String] = (content union title).map(_.language).toSet
+                   updated: Date) {
+  lazy val supportedLanguages: Set[String] =
+    (content union title).map(_.language).toSet
 }
-
 
 object Concept extends SQLSyntaxSupport[Concept] {
   implicit val formats = org.json4s.DefaultFormats
   override val tableName = "conceptdata"
   override val schemaName = Some(ConceptApiProperties.MetaSchema)
 
-  def apply(lp: SyntaxProvider[Concept])(rs: WrappedResultSet): Concept = apply(lp.resultName)(rs)
+  def apply(lp: SyntaxProvider[Concept])(rs: WrappedResultSet): Concept =
+    apply(lp.resultName)(rs)
 
   def apply(lp: ResultName[Concept])(rs: WrappedResultSet): Concept = {
     val meta = read[Concept](rs.string(lp.c("document")))

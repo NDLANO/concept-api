@@ -1,6 +1,5 @@
 package no.ndla.conceptapi.service
 
-
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.repository.ConceptRepository
 import no.ndla.conceptapi.model.domain
@@ -14,7 +13,7 @@ import scala.util.control.Exception.allCatch
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
-  this: Clock with ConceptRepository  =>
+  this: Clock with ConceptRepository =>
   val converterService: ConverterService
 
   class ConverterService extends LazyLogging {
@@ -51,49 +50,58 @@ trait ConverterService {
       )
     }
 
-
     def toApiLicense(shortLicense: String): api.License = {
       getLicense(shortLicense)
         .map(l => api.License(l.license.toString, Option(l.description), l.url))
         .getOrElse(api.License("unknown", None, None))
     }
 
-    def toApiAuthor(author: domain.Author): api.Author = api.Author(author.`type`, author.name)
+    def toApiAuthor(author: domain.Author): api.Author =
+      api.Author(author.`type`, author.name)
 
-
-    def toApiConceptTitle(title: domain.ConceptTitle): api.ConceptTitle = api.ConceptTitle(title.title, title.language)
+    def toApiConceptTitle(title: domain.ConceptTitle): api.ConceptTitle =
+      api.ConceptTitle(title.title, title.language)
 
     def toApiConceptContent(title: domain.ConceptContent): api.ConceptContent =
       api.ConceptContent(title.content, title.language)
 
     def toDomainConcept(concept: api.NewConcept): Try[domain.Concept] = {
-          Success(
-            domain.Concept(
-              None,
-              Seq(domain.ConceptTitle(concept.title, concept.language)),
-              concept.content
-                .map(content => Seq(domain.ConceptContent(content, concept.language)))
-                .getOrElse(Seq.empty),
-              concept.copyright.map(toDomainCopyright),
-              clock.now(),
-              clock.now()
-            ))
+      Success(
+        domain.Concept(
+          None,
+          Seq(domain.ConceptTitle(concept.title, concept.language)),
+          concept.content
+            .map(content =>
+              Seq(domain.ConceptContent(content, concept.language)))
+            .getOrElse(Seq.empty),
+          concept.copyright.map(toDomainCopyright),
+          clock.now(),
+          clock.now()
+        ))
     }
 
-    def toDomainConcept(toMergeInto: domain.Concept, updateConcept: api.UpdatedConcept): domain.Concept = {
-      val domainTitle = updateConcept.title.map(t => domain.ConceptTitle(t, updateConcept.language)).toSeq
-      val domainContent = updateConcept.content.map(c => domain.ConceptContent(c, updateConcept.language)).toSeq
+    def toDomainConcept(toMergeInto: domain.Concept,
+                        updateConcept: api.UpdatedConcept): domain.Concept = {
+      val domainTitle = updateConcept.title
+        .map(t => domain.ConceptTitle(t, updateConcept.language))
+        .toSeq
+      val domainContent = updateConcept.content
+        .map(c => domain.ConceptContent(c, updateConcept.language))
+        .toSeq
 
       toMergeInto.copy(
         title = mergeLanguageFields(toMergeInto.title, domainTitle),
         content = mergeLanguageFields(toMergeInto.content, domainContent),
-        copyright = updateConcept.copyright.map(toDomainCopyright).orElse(toMergeInto.copyright),
+        copyright = updateConcept.copyright
+          .map(toDomainCopyright)
+          .orElse(toMergeInto.copyright),
         created = toMergeInto.created,
         updated = clock.now()
       )
     }
 
-    def toDomainConcept(id: Long, article: api.UpdatedConcept): domain.Concept = {
+    def toDomainConcept(id: Long,
+                        article: api.UpdatedConcept): domain.Concept = {
       val lang = article.language
 
       domain.Concept(
@@ -106,10 +114,13 @@ trait ConverterService {
       )
     }
 
-    def toDomainCopyright(newCopyright: api.NewAgreementCopyright): domain.Copyright = {
+    def toDomainCopyright(
+        newCopyright: api.NewAgreementCopyright): domain.Copyright = {
       val parser = ISODateTimeFormat.dateOptionalTimeParser()
-      val validFrom = newCopyright.validFrom.flatMap(date => allCatch.opt(parser.parseDateTime(date).toDate))
-      val validTo = newCopyright.validTo.flatMap(date => allCatch.opt(parser.parseDateTime(date).toDate))
+      val validFrom = newCopyright.validFrom.flatMap(date =>
+        allCatch.opt(parser.parseDateTime(date).toDate))
+      val validTo = newCopyright.validTo.flatMap(date =>
+        allCatch.opt(parser.parseDateTime(date).toDate))
 
       val apiCopyright = api.Copyright(
         newCopyright.license,
@@ -137,10 +148,14 @@ trait ConverterService {
       )
     }
 
-    def toDomainAuthor(author: api.Author): domain.Author = domain.Author(author.`type`, author.name)
+    def toDomainAuthor(author: api.Author): domain.Author =
+      domain.Author(author.`type`, author.name)
 
-    private[service] def mergeLanguageFields[A <: LanguageField](existing: Seq[A], updated: Seq[A]): Seq[A] = {
-      val toKeep = existing.filterNot(item => updated.map(_.language).contains(item.language))
+    private[service] def mergeLanguageFields[A <: LanguageField](
+        existing: Seq[A],
+        updated: Seq[A]): Seq[A] = {
+      val toKeep = existing.filterNot(item =>
+        updated.map(_.language).contains(item.language))
       (toKeep ++ updated).filterNot(_.isEmpty)
     }
 

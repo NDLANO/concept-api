@@ -8,11 +8,10 @@ import no.ndla.conceptapi.model.api.NotFoundException
 import scala.util.{Failure, Success, Try}
 
 trait WriteService {
-  this: ConceptRepository
-  with ConverterService =>
+  this: ConceptRepository with ConverterService =>
   val writeService: WriteService
 
-  class WriteService{
+  class WriteService {
 
 //    def publishConcept(id: Long): Try[domain.Concept] = {
 //      conceptRepository.withId(id) match {
@@ -32,15 +31,20 @@ trait WriteService {
 //        .map(api.ContentId)
 //    }
 
-    def newConcept(newConcept: api.NewConcept, externalId: String): Try[api.Concept] = {
+    def newConcept(newConcept: api.NewConcept,
+                   externalId: String): Try[api.Concept] = {
       for {
         concept <- converterService.toDomainConcept(newConcept)
         //_ <- importValidator.validate(concept)
-        persistedConcept <- Try(conceptRepository.insertWithExternalId(concept, externalId))
+        persistedConcept <- Try(
+          conceptRepository.insertWithExternalId(concept, externalId))
         //_ <- conceptIndexService.indexDocument(concept)
-      } yield converterService.toApiConcept(persistedConcept, newConcept.language)
+      } yield
+        converterService.toApiConcept(persistedConcept, newConcept.language)
     }
-    private def updateConcept(toUpdate: domain.Concept, externalId: Option[String] = None): Try[domain.Concept] = {
+    private def updateConcept(
+        toUpdate: domain.Concept,
+        externalId: Option[String] = None): Try[domain.Concept] = {
       val updateFunc = externalId match {
         case None => conceptRepository.update _
         case Some(nid) =>
@@ -55,17 +59,22 @@ trait WriteService {
       } yield domainConcept
     }
 
-    def updateConcept(id: Long, updatedConcept: api.UpdatedConcept, externalId: Option[String]): Try[api.Concept] = {
+    def updateConcept(id: Long,
+                      updatedConcept: api.UpdatedConcept,
+                      externalId: Option[String]): Try[api.Concept] = {
       conceptRepository.withId(id) match {
         case Some(concept) =>
-          val domainConcept = converterService.toDomainConcept(concept, updatedConcept)
+          val domainConcept =
+            converterService.toDomainConcept(concept, updatedConcept)
           updateConcept(domainConcept, externalId)
             .map(x => converterService.toApiConcept(x, updatedConcept.language))
         case None if conceptRepository.exists(id) =>
           val concept = converterService.toDomainConcept(id, updatedConcept)
           updateConcept(concept, externalId)
-            .map(concept => converterService.toApiConcept(concept, updatedConcept.language))
-        case None => Failure(NotFoundException(s"Concept with id $id does not exist"))
+            .map(concept =>
+              converterService.toApiConcept(concept, updatedConcept.language))
+        case None =>
+          Failure(NotFoundException(s"Concept with id $id does not exist"))
       }
     }
 

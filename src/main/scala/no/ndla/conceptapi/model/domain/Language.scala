@@ -33,10 +33,15 @@ object Language {
 
   val supportedLanguages = languageAnalyzers.map(_.lang)
 
-  def findByLanguageOrBestEffort[P <: LanguageField](sequence: Seq[P], language: String): Option[P] = {
+  def findByLanguageOrBestEffort[P <: LanguageField](
+      sequence: Seq[P],
+      language: String): Option[P] = {
     sequence
       .find(_.language == language)
-      .orElse(sequence.sortBy(lf => ISO639.languagePriority.reverse.indexOf(lf.language)).lastOption)
+      .orElse(
+        sequence
+          .sortBy(lf => ISO639.languagePriority.reverse.indexOf(lf.language))
+          .lastOption)
   }
 
   def getSupportedLanguages(sequences: Seq[Seq[LanguageField]]): Seq[String] = {
@@ -45,8 +50,10 @@ object Language {
     }
   }
 
-  def getSearchLanguage(languageParam: String, supportedLanguages: Seq[String]): String = {
-    val l = if (languageParam == AllLanguages) DefaultLanguage else languageParam
+  def getSearchLanguage(languageParam: String,
+                        supportedLanguages: Seq[String]): String = {
+    val l =
+      if (languageParam == AllLanguages) DefaultLanguage else languageParam
     if (supportedLanguages.contains(l))
       l
     else

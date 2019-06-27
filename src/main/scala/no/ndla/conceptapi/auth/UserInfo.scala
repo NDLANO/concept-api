@@ -13,7 +13,8 @@ case class UserInfo(id: String, roles: Set[Role.Value]) {
   def canWrite: Boolean = hasRoles(UserInfo.WriteRoles)
   def canRead: Boolean = hasRoles(UserInfo.ReadRoles)
 
-  def hasRoles(rolesToCheck: Set[Role.Value]): Boolean = rolesToCheck.subsetOf(roles)
+  def hasRoles(rolesToCheck: Set[Role.Value]): Boolean =
+    rolesToCheck.subsetOf(roles)
 }
 
 object UserInfo {
@@ -22,9 +23,11 @@ object UserInfo {
   val WriteRoles = Set(Role.WRITE)
   val ReadRoles = Set(Role.WRITE)
 
-  def apply(name: String): UserInfo = UserInfo(name, AuthUser.getRoles.flatMap(Role.valueOf).toSet)
+  def apply(name: String): UserInfo =
+    UserInfo(name, AuthUser.getRoles.flatMap(Role.valueOf).toSet)
 
-  def get: Option[UserInfo] = (AuthUser.get orElse AuthUser.getClientId).map(UserInfo.apply)
+  def get: Option[UserInfo] =
+    (AuthUser.get orElse AuthUser.getClientId).map(UserInfo.apply)
 }
 
 trait User {

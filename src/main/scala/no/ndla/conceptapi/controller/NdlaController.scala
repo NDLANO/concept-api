@@ -5,7 +5,6 @@
  * See LICENSE
  */
 
-
 package no.ndla.conceptapi.controller
 
 import java.nio.file.AccessDeniedException
@@ -13,7 +12,13 @@ import java.nio.file.AccessDeniedException
 import com.typesafe.scalalogging.LazyLogging
 import javax.servlet.http.HttpServletRequest
 import no.ndla.conceptapi.ComponentRegistry
-import no.ndla.conceptapi.model.api.{Error, NotFoundException, OptimisticLockException, ResultWindowTooLargeException, ValidationError}
+import no.ndla.conceptapi.model.api.{
+  Error,
+  NotFoundException,
+  OptimisticLockException,
+  ResultWindowTooLargeException,
+  ValidationError
+}
 import no.ndla.network.model.HttpRequestException
 import no.ndla.validation.{ValidationException, ValidationMessage}
 import org.elasticsearch.index.IndexNotFoundException
@@ -25,19 +30,29 @@ import org.scalatra.json.NativeJsonSupport
 
 import scala.util.{Failure, Success, Try}
 
-abstract class NdlaController() extends ScalatraServlet with NativeJsonSupport with LazyLogging {
+abstract class NdlaController()
+    extends ScalatraServlet
+    with NativeJsonSupport
+    with LazyLogging {
   protected implicit val jsonFormats: Formats = DefaultFormats
 
-  case class Param[T](paramName: String, description: String)(implicit mf: Manifest[T])
+  case class Param[T](paramName: String, description: String)(
+      implicit mf: Manifest[T])
 
   error {
-    case a: AccessDeniedException          => Forbidden(body = Error(Error.ACCESS_DENIED, a.getMessage))
-    case v: ValidationException            => BadRequest(body = ValidationError(messages = v.errors))
-    case n: NotFoundException              => NotFound(body = Error(Error.NOT_FOUND, n.getMessage))
-    case o: OptimisticLockException        => Conflict(body = Error(Error.RESOURCE_OUTDATED, o.getMessage))
+    case a: AccessDeniedException =>
+      Forbidden(body = Error(Error.ACCESS_DENIED, a.getMessage))
+    case v: ValidationException =>
+      BadRequest(body = ValidationError(messages = v.errors))
+    case n: NotFoundException =>
+      NotFound(body = Error(Error.NOT_FOUND, n.getMessage))
+    case o: OptimisticLockException =>
+      Conflict(body = Error(Error.RESOURCE_OUTDATED, o.getMessage))
     case _: PSQLException =>
       ComponentRegistry.connectToDatabase()
-      InternalServerError(Error(Error.DATABASE_UNAVAILABLE, Error.DATABASE_UNAVAILABLE_DESCRIPTION))
+      InternalServerError(
+        Error(Error.DATABASE_UNAVAILABLE,
+              Error.DATABASE_UNAVAILABLE_DESCRIPTION))
     case h: HttpRequestException =>
       h.httpResponse match {
         case Some(resp) if resp.is4xx => BadRequest(body = resp.body)
@@ -50,9 +65,13 @@ abstract class NdlaController() extends ScalatraServlet with NativeJsonSupport w
       InternalServerError(body = Error.GenericError)
   }
 
-  def extract[T](json: String)(implicit mf: scala.reflect.Manifest[T]): Try[T] = {
+  def extract[T](json: String)(
+      implicit mf: scala.reflect.Manifest[T]): Try[T] = {
     Try { read[T](json) } match {
-      case Failure(e)    => Failure(new ValidationException(errors = Seq(ValidationMessage("body", e.getMessage))))
+      case Failure(e) =>
+        Failure(
+          new ValidationException(
+            errors = Seq(ValidationMessage("body", e.getMessage))))
       case Success(data) => Success(data)
     }
   }
@@ -71,16 +90,20 @@ abstract class NdlaController() extends ScalatraServlet with NativeJsonSupport w
       case true => paramValue.toLong
       case false =>
         throw new ValidationException(
-          errors = Seq(ValidationMessage(paramName, s"Invalid value for $paramName. Only digits are allowed.")))
+          errors = Seq(
+            ValidationMessage(
+              paramName,
+              s"Invalid value for $paramName. Only digits are allowed.")))
     }
   }
 
-  def paramOrNone(paramName: String)(implicit request: HttpServletRequest): Option[String] = {
+  def paramOrNone(paramName: String)(
+      implicit request: HttpServletRequest): Option[String] = {
     params.get(paramName).map(_.trim).filterNot(_.isEmpty())
   }
-  def paramOrDefault(paramName: String, default: String)(implicit request: HttpServletRequest): String = {
+  def paramOrDefault(paramName: String, default: String)(
+      implicit request: HttpServletRequest): String = {
     paramOrNone(paramName).getOrElse(default)
   }
 
 }
-
