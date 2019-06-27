@@ -12,15 +12,12 @@ import java.nio.file.AccessDeniedException
 import com.typesafe.scalalogging.LazyLogging
 import javax.servlet.http.HttpServletRequest
 import no.ndla.conceptapi.ComponentRegistry
-import no.ndla.conceptapi.model.api.{
-  Error,
-  NotFoundException,
-  OptimisticLockException,
-  ResultWindowTooLargeException,
-  ValidationError
-}
+import no.ndla.conceptapi.ConceptApiProperties.{CorrelationIdHeader, CorrelationIdKey}
+import no.ndla.conceptapi.model.api.{Error, NotFoundException, OptimisticLockException, ResultWindowTooLargeException, ValidationError}
+import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
 import no.ndla.network.model.HttpRequestException
 import no.ndla.validation.{ValidationException, ValidationMessage}
+import org.apache.logging.log4j.ThreadContext
 import org.elasticsearch.index.IndexNotFoundException
 import org.json4s.{DefaultFormats, Formats}
 import org.json4s.native.Serialization.read
@@ -36,6 +33,28 @@ abstract class NdlaController()
     with LazyLogging {
   protected implicit val jsonFormats: Formats = DefaultFormats
 
+
+  before() {
+    contentType = formats("json")
+    CorrelationID.set(Option(request.getHeader(CorrelationIdHeader)))
+    ThreadContext.put(CorrelationIdKey, CorrelationID.get.getOrElse(""))
+    ApplicationUrl.set(request)
+    AuthUser.set(request)
+    logger.info("{} {}{}",
+      request.getMethod,
+      request.getRequestURI,
+      Option(request.getQueryString).map(s => s"?$s").getOrElse(""))
+  }
+
+  after() {
+    CorrelationID.clear()
+    ThreadContext.remove(CorrelationIdKey)
+    AuthUser.clear()
+    ApplicationUrl.clear
+  }
+
+
+
   case class Param[T](paramName: String, description: String)(
       implicit mf: Manifest[T])
 
@@ -48,8 +67,9 @@ abstract class NdlaController()
       NotFound(body = Error(Error.NOT_FOUND, n.getMessage))
     case o: OptimisticLockException =>
       Conflict(body = Error(Error.RESOURCE_OUTDATED, o.getMessage))
-    case _: PSQLException =>
+    case psqle: PSQLException =>
       ComponentRegistry.connectToDatabase()
+      logger.error("Something went wrong with database connections", psqle)
       InternalServerError(
         Error(Error.DATABASE_UNAVAILABLE,
               Error.DATABASE_UNAVAILABLE_DESCRIPTION))
@@ -97,6 +117,10 @@ abstract class NdlaController()
     }
   }
 
+  private def emptySomeToNone(lang: Option[String]): Option[String] = {
+    lang.filter(_.nonEmpty)
+  }
+
   def paramOrNone(paramName: String)(
       implicit request: HttpServletRequest): Option[String] = {
     params.get(paramName).map(_.trim).filterNot(_.isEmpty())
@@ -104,6 +128,12 @@ abstract class NdlaController()
   def paramOrDefault(paramName: String, default: String)(
       implicit request: HttpServletRequest): String = {
     paramOrNone(paramName).getOrElse(default)
+  }
+  def paramAsListOfString(paramName: String)(implicit request: HttpServletRequest): List[String] = {
+    emptySomeToNone(params.get(paramName)) match {
+      case None        => List.empty
+      case Some(param) => param.split(",").toList.map(_.trim)
+    }
   }
 
 }

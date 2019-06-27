@@ -14,12 +14,8 @@ import no.ndla.conceptapi.ConceptSwagger
 import no.ndla.conceptapi.auth.User
 import no.ndla.conceptapi.integration.DataSource
 import no.ndla.conceptapi.repository.ConceptRepository
-import no.ndla.conceptapi.service.{
-  Clock,
-  ConverterService,
-  WriteService,
-  ReadService
-}
+import no.ndla.conceptapi.service.{Clock, ConverterService, ReadService, WriteService}
+import no.ndla.conceptapi.validation.ContentValidator
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
 object ComponentRegistry
@@ -27,6 +23,7 @@ object ComponentRegistry
     with Clock
     with User
     with WriteService
+    with ContentValidator
     with ReadService
     with ConverterService
     with ConceptRepository
@@ -40,6 +37,7 @@ object ComponentRegistry
   lazy val converterService = new ConverterService
   lazy val user = new User
   lazy val clock = new SystemClock
+  lazy val contentValidator = new ContentValidator
 
   def connectToDatabase(): Unit =
     ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))

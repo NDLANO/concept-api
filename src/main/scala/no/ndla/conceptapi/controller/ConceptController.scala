@@ -8,16 +8,15 @@
 package no.ndla.conceptapi.controller
 
 import com.typesafe.scalalogging.LazyLogging
-import org.scalatra.{NotFound, Ok}
-import scalikejdbc._
-
-import scala.util.{Failure, Success, Try}
-import no.ndla.conceptapi.model.api.{Error, NewConcept, UpdatedConcept}
-import no.ndla.conceptapi.service.{ReadService, WriteService}
 import no.ndla.conceptapi.auth.User
+import no.ndla.conceptapi.model.api.{Error, NewConcept, UpdatedConcept}
+import no.ndla.conceptapi.model.domain.Language
+import no.ndla.conceptapi.service.{ReadService, WriteService}
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger.Swagger
-import no.ndla.conceptapi.model.domain.Language
+import org.scalatra.{NotFound, Ok}
+
+import scala.util.{Failure, Success}
 
 trait ConceptController {
   this: WriteService with ReadService with User =>
@@ -29,51 +28,35 @@ trait ConceptController {
     protected implicit override val jsonFormats: Formats = DefaultFormats
     private val conceptId =
       Param[Long]("concept_id", "Id of the concept that is to be returned")
-    protected val language = Param[Option[String]](
+    protected val language: Param[Option[String]] = Param[Option[String]](
       "language",
       "The ISO 639-1 language code describing language.")
+
     get("/") {
       Ok("Hello World")
     }
-    post("/") {
 
-      def newEmptyConcept(id: Long, externalIds: List[String])(
-          implicit session: DBSession = AutoSession): Try[Long] = {
-        Try(
-          sql"""insert into conceptdata (id, external_id) values (55, 'hei')""".update.apply) match {
-          case Success(_) =>
-            logger.info(s"Inserted new empty article: $id")
-            Success(id)
-          case Failure(ex) => Failure(ex)
+    post("/") {
+      doOrAccessDenied(user.getUser.canWrite) {
+        extract[NewConcept](request.body)
+          .flatMap(writeService.newConcept) match {
+          case Success(c)  => c
+          case Failure(ex) => errorHandler(ex)
         }
       }
-      newEmptyConcept(5, List.empty)
-
-    }
-
-    post("/a") {
-      //doOrAccessDenied(user.getUser.canWrite) {
-      val nid = params("externalId")
-      extract[NewConcept](request.body)
-        .flatMap(writeService.newConcept(_, nid)) match {
-        case Success(c)  => c
-        case Failure(ex) => errorHandler(ex)
-      }
-      //}
     }
 
     patch("/:concept_id") {
-      //doOrAccessDenied(user.getUser.canWrite) {
-      val externalId = paramOrNone("externalId")
-
-      extract[UpdatedConcept](request.body)
-        .flatMap(writeService
-          .updateConcept(long(this.conceptId.paramName), _, externalId)) match {
-        case Success(c)  => c
-        case Failure(ex) => errorHandler(ex)
+      doOrAccessDenied(user.getUser.canWrite) {
+        extract[UpdatedConcept](request.body)
+          .flatMap(writeService
+            .updateConcept(long(this.conceptId.paramName), _)) match {
+          case Success(c)  => c
+          case Failure(ex) => errorHandler(ex)
+        }
       }
-      //}
     }
+
     get("/:concept_id") {
       val conceptId = long(this.conceptId.paramName)
       val language =

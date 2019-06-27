@@ -11,7 +11,7 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.integration.DataSource
 import no.ndla.conceptapi.model.api.NotFoundException
 //import no.ndla.conceptapi.model.api.{NotFoundException, OptimisticLockException}
-import no.ndla.conceptapi.model.domain.{Concept}
+import no.ndla.conceptapi.model.domain.Concept
 import org.json4s.Formats
 import org.postgresql.util.PGobject
 import org.json4s.native.Serialization.write
@@ -27,7 +27,7 @@ trait ConceptRepository {
     implicit val formats
       : Formats = org.json4s.DefaultFormats + Concept.JSonSerializer
 
-    def insertWithExternalId(concept: Concept, externalId: String)(
+    def insert(concept: Concept)(
         implicit session: DBSession = AutoSession): Concept = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
@@ -35,41 +35,12 @@ trait ConceptRepository {
 
       val conceptId: Long =
         sql"""
-        insert into ${Concept.table} (document, external_id)
-        values (${dataObject}, ARRAY[${externalId}]::text[])
+        insert into ${Concept.table} (document)
+        values (${dataObject})
           """.updateAndReturnGeneratedKey.apply
 
       logger.info(s"Inserted new concept: $conceptId")
       concept.copy(id = Some(conceptId))
-    }
-
-    def updateWithExternalId(concept: Concept, externalId: String)(
-        implicit session: DBSession = AutoSession): Try[Concept] = {
-      val dataObject = new PGobject()
-      dataObject.setType("jsonb")
-      dataObject.setValue(write(concept))
-
-      Try(sql"""
-              update ${Concept.table} set document=${dataObject}
-              where ${externalId} = any (external_id)
-           """.updateAndReturnGeneratedKey.apply) match {
-        case Success(id) => Success(concept.copy(id = Some(id)))
-        case Failure(ex) =>
-          logger.warn(
-            s"Failed to update concept with external id $externalId: ${ex.getMessage}")
-          Failure(ex)
-      }
-    }
-
-    def newEmptyConcept(id: Long, externalIds: List[String])(
-        implicit session: DBSession = AutoSession): Try[Long] = {
-      Try(
-        sql"insert into ${Concept.table} (id, external_id) values ($id, ARRAY[$externalIds]::text[])".update.apply) match {
-        case Success(_) =>
-          logger.info(s"Inserted new empty article: $id")
-          Success(id)
-        case Failure(ex) => Failure(ex)
-      }
     }
 
     def update(concept: Concept)(
@@ -117,9 +88,6 @@ trait ConceptRepository {
         .single
         .apply()
     }
-
-    def withExternalId(externalId: String): Option[Concept] =
-      conceptWhere(sqls"$externalId = any (co.external_id)")
 
     override def minMaxId(
         implicit session: DBSession = AutoSession): (Long, Long) = {
