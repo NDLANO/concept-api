@@ -49,8 +49,9 @@ trait ConceptController {
     patch("/:concept_id") {
       doOrAccessDenied(user.getUser.canWrite) {
         extract[UpdatedConcept](request.body)
-          .flatMap(writeService
-            .updateConcept(long(this.conceptId.paramName), _)) match {
+          .flatMap(
+            writeService
+              .updateConcept(long(this.conceptId.paramName), _)) match {
           case Success(c)  => c
           case Failure(ex) => errorHandler(ex)
         }
