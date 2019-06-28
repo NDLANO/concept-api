@@ -18,7 +18,7 @@ abstract class IntegrationSuite extends UnitSuite {
   setEnv(PropertyKeys.MetaResourceKey, "postgres")
   setEnv(PropertyKeys.MetaServerKey, "127.0.0.1")
   setEnv(PropertyKeys.MetaPortKey, "5432")
-  setEnv(PropertyKeys.MetaSchemaKey, "draftapitest")
+  setEnv(PropertyKeys.MetaSchemaKey, "conceptapitest")
 
   val testDataSource: HikariDataSource = getHikariDataSource
 }

@@ -2,23 +2,34 @@ package no.ndla.conceptapi.repository
 
 import java.net.Socket
 
-import no.ndla.conceptapi.model.api.{Concept, ConceptContent}
+import no.ndla.conceptapi.model.api
+import no.ndla.conceptapi.model.domain
 import no.ndla.conceptapi.{ConceptApiProperties, DBMigrator, IntegrationSuite, TestData, TestEnvironment}
 import scalikejdbc.{ConnectionPool, DB, DataSourceConnectionPool}
 import no.ndla.conceptapi.TestData._
+import org.joda.time.DateTime
+
 import scala.util.{Success, Try}
+import scalikejdbc._
+
 
 class ConceptRepositoryTest extends IntegrationSuite with TestEnvironment {
 
-  var repository: ConceptRepository = _
+  val repository: ConceptRepository = new ConceptRepository
   def databaseIsAvailable: Boolean = Try(repository.conceptCount).isSuccess
-//
-//  override def beforeEach(): Unit = {
-//    repository = new ConceptRepository()
-//    if (databaseIsAvailable) {
-//      emptyTestDatabase
-//    }
-//  }
+
+  def emptyTestDatabase = {
+    DB autoCommit (implicit session => {
+      sql"delete from conceptapitest.conceptdata;".execute.apply()(session)
+    })
+  }
+
+
+  override def beforeEach(): Unit = {
+    if (databaseIsAvailable) {
+      emptyTestDatabase
+    }
+  }
 
   override def beforeAll(): Unit = {
     val datasource = testDataSource
@@ -39,24 +50,33 @@ class ConceptRepositoryTest extends IntegrationSuite with TestEnvironment {
 
   test("Updating an concept should work as expected") {
     assume(databaseIsAvailable, "Database is unavailable")
-    val art1 = domainConcept.copy(id = Some(1))
-    val art2 = domainConcept.copy(id = Some(2))
-    val art3 = domainConcept.copy(id = Some(3))
+    val art1 = domainConcept.copy()
+    val art2 = domainConcept.copy()
+    val art3 = domainConcept.copy()
 
-    repository.insert(art1)
-    repository.insert(art2)
-    repository.insert(art3)
+    val id1 = repository.insert(art1).id.get
+    val id2 = repository.insert(art2).id.get
+    val id3 = repository.insert(art3).id.get
 
 
-    val updatedContent = Seq(ConceptContent("What u do mr", "nb"))
-    repository.update(art1.copy(ConceptContent = updatedContent))
+    val updatedContent = Seq(domain.ConceptContent("What u do mr", "nb"))
+    repository.update(art1.copy(id = Some(id1), content = updatedContent))
 
-    repository.withId(art1.id.get).get.content should be(updatedContent)
-    repository.withId(art2.id.get).get.content should be(art2.content)
-    repository.withId(art3.id.get).get.content should be(art3.content)
+    repository.withId(id1).get.content should be(updatedContent)
+    repository.withId(id2).get.content should be(art2.content)
+    repository.withId(id3).get.content should be(art3.content)
+  }
+
+  test("Delete concept work as expected"){
+    assume(databaseIsAvailable, "Database is unavailable")
+
+    val id = repository.insert(domainConcept).id.get
+    repository.withId(id).nonEmpty should be(true)
+    repository.delete(id)
+    repository.withId(id) should be(None)
+
   }
 
 
-  //Some(api.ConceptContent("Innhold for begrep", "nb"))
 
 }

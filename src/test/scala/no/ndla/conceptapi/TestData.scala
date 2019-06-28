@@ -51,22 +51,4 @@ object TestData {
     DateTime.now().minusDays(2).toDate
   )
 
-//  val sampleApiConcept = api.Concept(
-//    1,
-//    Some(api.ConceptTitle("Tittel for begrep", "nb")),
-//    Some(api.ConceptContent("Innhold for begrep", "nb")),
-//    Some(
-//      api.Copyright(Some(api.License("publicdomain", None, None)),
-//        Some(""),
-//        Seq.empty,
-//        Seq.empty,
-//        Seq.empty,
-//        None,
-//        None,
-//        None)),
-//    DateTime.now().minusDays(4).toDate,
-//    DateTime.now().minusDays(2).toDate,
-//    Set("nb")
-//  )
-
 }
