@@ -91,6 +91,46 @@ fmt := {
   (Compile / scalafmtSbt).value
 }
 
+assembly / assemblyJarName := "concept-api.jar"
+assembly / mainClass := Some("no.ndla.conceptapi.JettyLauncher")
+assembly / assemblyMergeStrategy := {
+  case "mime.types" => MergeStrategy.filterDistinctLines
+  case PathList("org", "joda", "convert", "ToString.class") =>
+    MergeStrategy.first
+  case PathList("org", "joda", "convert", "FromString.class") =>
+    MergeStrategy.first
+  case PathList("org", "joda", "time", "base", "BaseDateTime.class") =>
+    MergeStrategy.first
+  case x =>
+    val oldStrategy = (assembly / assemblyMergeStrategy).value
+    oldStrategy(x)
+}
+
+// Make the docker task depend on the assembly task, which generates a fat JAR file
+docker := (docker dependsOn assembly).value
+
+docker / dockerfile := {
+  val artifact = (assemblyOutputPath in assembly).value
+  val artifactTargetPath = s"/app/${artifact.name}"
+  new Dockerfile {
+    from("adoptopenjdk/openjdk11:alpine-slim")
+    run("apk", "--no-cache", "add", "ttf-dejavu")
+    add(artifact, artifactTargetPath)
+    entryPoint("java",
+               "-Dorg.scalatra.environment=production",
+               "-jar",
+               artifactTargetPath)
+  }
+}
+
+docker / imageNames := Seq(
+  ImageName(namespace = Some(organization.value),
+            repository = name.value,
+            tag = Some(System.getProperty("docker.tag", "SNAPSHOT")))
+)
+
+Test / parallelExecution := false
+
 resolvers ++= scala.util.Properties
   .envOrNone("NDLA_RELEASES")
   .map(repo => "Release Sonatype Nexus Repository Manager" at repo)

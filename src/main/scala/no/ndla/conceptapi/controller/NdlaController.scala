@@ -33,13 +33,16 @@ import org.json4s.native.Serialization.read
 import org.postgresql.util.PSQLException
 import org.scalatra._
 import org.scalatra.json.NativeJsonSupport
+import org.scalatra.util.NotNothing
+import org.scalatra.swagger.{ParamType, Parameter, SwaggerSupport}
 
 import scala.util.{Failure, Success, Try}
 
 abstract class NdlaController()
     extends ScalatraServlet
     with NativeJsonSupport
-    with LazyLogging {
+    with LazyLogging
+    with SwaggerSupport {
   protected implicit val jsonFormats: Formats = DefaultFormats
 
   before() {
@@ -90,6 +93,16 @@ abstract class NdlaController()
       logger.error(Error.GenericError.toString, t)
       InternalServerError(body = Error.GenericError)
   }
+
+  protected def asHeaderParam[T: Manifest: NotNothing](param: Param[T]) =
+    headerParam[T](param.paramName).description(param.description)
+  protected def asQueryParam[T: Manifest: NotNothing](param: Param[T]) =
+    queryParam[T](param.paramName).description(param.description)
+  protected def asPathParam[T: Manifest: NotNothing](param: Param[T]) =
+    pathParam[T](param.paramName).description(param.description)
+  protected val correlationId =
+    Param[Option[String]]("X-Correlation-ID",
+                          "User supplied correlation-id. May be omitted.")
 
   def extract[T](json: String)(
       implicit mf: scala.reflect.Manifest[T]): Try[T] = {
