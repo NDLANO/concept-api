@@ -23,11 +23,9 @@ trait ConceptRepository {
   val conceptRepository: ConceptRepository
 
   class ConceptRepository extends LazyLogging with Repository[Concept] {
-    implicit val formats
-      : Formats = org.json4s.DefaultFormats + Concept.JSonSerializer
+    implicit val formats: Formats = org.json4s.DefaultFormats + Concept.JSonSerializer
 
-    def insert(concept: Concept)(
-        implicit session: DBSession = AutoSession): Concept = {
+    def insert(concept: Concept)(implicit session: DBSession = AutoSession): Concept = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(write(concept))
@@ -42,8 +40,7 @@ trait ConceptRepository {
       concept.copy(id = Some(conceptId))
     }
 
-    def update(concept: Concept)(
-        implicit session: DBSession = AutoSession): Try[Concept] = {
+    def update(concept: Concept)(implicit session: DBSession = AutoSession): Try[Concept] = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(write(concept))
@@ -52,14 +49,12 @@ trait ConceptRepository {
         sql"update ${Concept.table} set document=${dataObject} where id=${concept.id.get}".updateAndReturnGeneratedKey.apply) match {
         case Success(id) => Success(concept.copy(id = Some(id)))
         case Failure(ex) =>
-          logger.warn(
-            s"Failed to update concept with id ${concept.id}: ${ex.getMessage}")
+          logger.warn(s"Failed to update concept with id ${concept.id}: ${ex.getMessage}")
           Failure(ex)
       }
     }
 
-    def delete(conceptId: Long)(
-        implicit session: DBSession = AutoSession): Try[Long] = {
+    def delete(conceptId: Long)(implicit session: DBSession = AutoSession): Try[Long] = {
       val numRows =
         sql"delete from ${Concept.table} where id = $conceptId".update().apply
       if (numRows == 1) {
@@ -80,16 +75,14 @@ trait ConceptRepository {
         .isDefined
     }
 
-    def getIdFromExternalId(externalId: String)(implicit session: DBSession =
-                                                  AutoSession): Option[Long] = {
+    def getIdFromExternalId(externalId: String)(implicit session: DBSession = AutoSession): Option[Long] = {
       sql"select id from ${Concept.table} where $externalId = any(external_id)"
         .map(rs => rs.long("id"))
         .single
         .apply()
     }
 
-    override def minMaxId(
-        implicit session: DBSession = AutoSession): (Long, Long) = {
+    override def minMaxId(implicit session: DBSession = AutoSession): (Long, Long) = {
       sql"select coalesce(MIN(id),0) as mi, coalesce(MAX(id),0) as ma from ${Concept.table}"
         .map(rs => {
           (rs.long("mi"), rs.long("ma"))

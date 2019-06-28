@@ -12,7 +12,6 @@ import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.domain
 import org.joda.time.DateTime
 
-
 object TestData {
 
   val authHeaderWithWriteRole =

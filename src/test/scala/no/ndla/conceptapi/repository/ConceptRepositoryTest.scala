@@ -12,7 +12,6 @@ import org.joda.time.DateTime
 import scala.util.{Success, Try}
 import scalikejdbc._
 
-
 class ConceptRepositoryTest extends IntegrationSuite with TestEnvironment {
 
   val repository: ConceptRepository = new ConceptRepository
@@ -23,7 +22,6 @@ class ConceptRepositoryTest extends IntegrationSuite with TestEnvironment {
       sql"delete from conceptapitest.conceptdata;".execute.apply()(session)
     })
   }
-
 
   override def beforeEach(): Unit = {
     if (databaseIsAvailable) {
@@ -58,7 +56,6 @@ class ConceptRepositoryTest extends IntegrationSuite with TestEnvironment {
     val id2 = repository.insert(art2).id.get
     val id3 = repository.insert(art3).id.get
 
-
     val updatedContent = Seq(domain.ConceptContent("What u do mr", "nb"))
     repository.update(art1.copy(id = Some(id1), content = updatedContent))
 
@@ -67,7 +64,7 @@ class ConceptRepositoryTest extends IntegrationSuite with TestEnvironment {
     repository.withId(id3).get.content should be(art3.content)
   }
 
-  test("Delete concept work as expected"){
+  test("Delete concept work as expected") {
     assume(databaseIsAvailable, "Database is unavailable")
 
     val id = repository.insert(domainConcept).id.get
@@ -76,7 +73,5 @@ class ConceptRepositoryTest extends IntegrationSuite with TestEnvironment {
     repository.withId(id) should be(None)
 
   }
-
-
 
 }

@@ -26,24 +26,19 @@ trait ContentValidator {
     private val NoHtmlValidator = new TextValidator(allowHtml = false)
     private val HtmlValidator = new TextValidator(allowHtml = true)
 
-    def validateDate(fieldName: String,
-                     dateString: String): Seq[ValidationMessage] = {
+    def validateDate(fieldName: String, dateString: String): Seq[ValidationMessage] = {
       val parser = ISODateTimeFormat.dateOptionalTimeParser()
       Try(parser.parseDateTime(dateString)) match {
         case Success(_) => Seq.empty
         case Failure(_) =>
-          Seq(
-            ValidationMessage(fieldName, "Date field needs to be in ISO 8601"))
+          Seq(ValidationMessage(fieldName, "Date field needs to be in ISO 8601"))
       }
 
     }
 
-    def validateConcept(concept: Concept,
-                        allowUnknownLanguage: Boolean): Try[Concept] = {
-      val validationErrors = concept.content.flatMap(c =>
-        validateConceptContent(c, allowUnknownLanguage)) ++
-        concept.title.flatMap(t =>
-          validateTitle(t.title, t.language, allowUnknownLanguage))
+    def validateConcept(concept: Concept, allowUnknownLanguage: Boolean): Try[Concept] = {
+      val validationErrors = concept.content.flatMap(c => validateConceptContent(c, allowUnknownLanguage)) ++
+        concept.title.flatMap(t => validateTitle(t.title, t.language, allowUnknownLanguage))
 
       if (validationErrors.isEmpty) {
         Success(concept)
@@ -52,29 +47,25 @@ trait ContentValidator {
       }
     }
 
-    private def validateConceptContent(
-        content: ConceptContent,
-        allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
+    private def validateConceptContent(content: ConceptContent,
+                                       allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
       NoHtmlValidator.validate("content", content.content).toList ++
         validateLanguage("language", content.language, allowUnknownLanguage)
     }
 
-    private def validateTitle(
-        title: String,
-        language: String,
-        allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
+    private def validateTitle(title: String,
+                              language: String,
+                              allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
       NoHtmlValidator.validate(s"title.$language", title).toList ++
         validateLanguage("language", language, allowUnknownLanguage) ++
         validateLength(s"title.$language", title, 256) ++
         validateMinimumLength(s"title.$language", title, 1)
     }
 
-    private def validateCopyright(
-        copyright: Copyright): Seq[ValidationMessage] = {
+    private def validateCopyright(copyright: Copyright): Seq[ValidationMessage] = {
       val licenseMessage = copyright.license.map(validateLicense).toSeq.flatten
       val contributorsMessages = copyright.creators.flatMap(validateAuthor) ++ copyright.processors
-        .flatMap(validateAuthor) ++ copyright.rightsholders.flatMap(
-        validateAuthor)
+        .flatMap(validateAuthor) ++ copyright.rightsholders.flatMap(validateAuthor)
       val originMessage =
         copyright.origin
           .map(origin => NoHtmlValidator.validate("copyright.origin", origin))
@@ -87,9 +78,7 @@ trait ContentValidator {
     private def validateLicense(license: String): Seq[ValidationMessage] = {
       getLicense(license) match {
         case None =>
-          Seq(
-            ValidationMessage("license.license",
-                              s"$license is not a valid license"))
+          Seq(ValidationMessage("license.license", s"$license is not a valid license"))
         case _ => Seq()
       }
     }
@@ -99,51 +88,34 @@ trait ContentValidator {
         NoHtmlValidator.validate("author.name", author.name).toList
     }
 
-    private def validateLanguage(
-        fieldPath: String,
-        languageCode: String,
-        allowUnknownLanguage: Boolean): Option[ValidationMessage] = {
-      languageCode.nonEmpty && languageCodeSupported6391(
-        languageCode,
-        allowUnknownLanguage) match {
+    private def validateLanguage(fieldPath: String,
+                                 languageCode: String,
+                                 allowUnknownLanguage: Boolean): Option[ValidationMessage] = {
+      languageCode.nonEmpty && languageCodeSupported6391(languageCode, allowUnknownLanguage) match {
         case true => None
         case false =>
-          Some(
-            ValidationMessage(
-              fieldPath,
-              s"Language '$languageCode' is not a supported value."))
+          Some(ValidationMessage(fieldPath, s"Language '$languageCode' is not a supported value."))
       }
     }
 
-    private def validateLength(fieldPath: String,
-                               content: String,
-                               maxLength: Int): Option[ValidationMessage] = {
+    private def validateLength(fieldPath: String, content: String, maxLength: Int): Option[ValidationMessage] = {
       if (content.length > maxLength)
-        Some(
-          ValidationMessage(
-            fieldPath,
-            s"This field exceeds the maximum permitted length of $maxLength characters"))
+        Some(ValidationMessage(fieldPath, s"This field exceeds the maximum permitted length of $maxLength characters"))
       else
         None
     }
 
-    private def validateMinimumLength(
-        fieldPath: String,
-        content: String,
-        minLength: Int): Option[ValidationMessage] =
+    private def validateMinimumLength(fieldPath: String, content: String, minLength: Int): Option[ValidationMessage] =
       if (content.trim.length < minLength)
-        Some(ValidationMessage(
-          fieldPath,
-          s"This field does not meet the minimum length requirement of $minLength characters"))
+        Some(
+          ValidationMessage(fieldPath,
+                            s"This field does not meet the minimum length requirement of $minLength characters"))
       else
         None
 
-    private def languageCodeSupported6391(
-        languageCode: String,
-        allowUnknownLanguage: Boolean): Boolean = {
+    private def languageCodeSupported6391(languageCode: String, allowUnknownLanguage: Boolean): Boolean = {
       val languageCodes = get6391CodeFor6392CodeMappings.values.toSeq ++ (if (allowUnknownLanguage)
-                                                                            Seq(
-                                                                              "unknown")
+                                                                            Seq("unknown")
                                                                           else
                                                                             Seq.empty)
       languageCodes.contains(languageCode)

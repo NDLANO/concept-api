@@ -78,8 +78,7 @@ trait ConverterService {
           None,
           Seq(domain.ConceptTitle(concept.title, concept.language)),
           concept.content
-            .map(content =>
-              Seq(domain.ConceptContent(content, concept.language)))
+            .map(content => Seq(domain.ConceptContent(content, concept.language)))
             .getOrElse(Seq.empty),
           concept.copyright.map(toDomainCopyright),
           clock.now(),
@@ -87,8 +86,7 @@ trait ConverterService {
         ))
     }
 
-    def toDomainConcept(toMergeInto: domain.Concept,
-                        updateConcept: api.UpdatedConcept): domain.Concept = {
+    def toDomainConcept(toMergeInto: domain.Concept, updateConcept: api.UpdatedConcept): domain.Concept = {
       val domainTitle = updateConcept.title
         .map(t => domain.ConceptTitle(t, updateConcept.language))
         .toSeq
@@ -107,8 +105,7 @@ trait ConverterService {
       )
     }
 
-    def toDomainConcept(id: Long,
-                        article: api.UpdatedConcept): domain.Concept = {
+    def toDomainConcept(id: Long, article: api.UpdatedConcept): domain.Concept = {
       val lang = article.language
 
       domain.Concept(
@@ -121,13 +118,10 @@ trait ConverterService {
       )
     }
 
-    def toDomainCopyright(
-        newCopyright: api.NewAgreementCopyright): domain.Copyright = {
+    def toDomainCopyright(newCopyright: api.NewAgreementCopyright): domain.Copyright = {
       val parser = ISODateTimeFormat.dateOptionalTimeParser()
-      val validFrom = newCopyright.validFrom.flatMap(date =>
-        allCatch.opt(parser.parseDateTime(date).toDate))
-      val validTo = newCopyright.validTo.flatMap(date =>
-        allCatch.opt(parser.parseDateTime(date).toDate))
+      val validFrom = newCopyright.validFrom.flatMap(date => allCatch.opt(parser.parseDateTime(date).toDate))
+      val validTo = newCopyright.validTo.flatMap(date => allCatch.opt(parser.parseDateTime(date).toDate))
 
       val apiCopyright = api.Copyright(
         newCopyright.license,
@@ -158,11 +152,8 @@ trait ConverterService {
     def toDomainAuthor(author: api.Author): domain.Author =
       domain.Author(author.`type`, author.name)
 
-    private[service] def mergeLanguageFields[A <: LanguageField](
-        existing: Seq[A],
-        updated: Seq[A]): Seq[A] = {
-      val toKeep = existing.filterNot(item =>
-        updated.map(_.language).contains(item.language))
+    private[service] def mergeLanguageFields[A <: LanguageField](existing: Seq[A], updated: Seq[A]): Seq[A] = {
+      val toKeep = existing.filterNot(item => updated.map(_.language).contains(item.language))
       (toKeep ++ updated).filterNot(_.isEmpty)
     }
 

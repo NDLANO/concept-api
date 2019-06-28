@@ -21,6 +21,7 @@ object ConceptApiProperties extends LazyLogging {
 
   val Environment = propOrElse("NDLA_ENVIRONMENT", "local")
   val ApplicationName = "concept-api"
+
   val Auth0LoginEndpoint =
     s"https://${AuthUser.getAuth0HostForEnv(Environment)}/authorize"
   val ConceptRoleWithWriteAccess = "concept:write"
@@ -41,22 +42,29 @@ object ConceptApiProperties extends LazyLogging {
 
   val ArticleApiHost: String =
     propOrElse("ARTICLE_API_HOST", "article-api.ndla-local")
+
   val LearningpathApiHost: String =
     propOrElse("LEARNINGPATH_API_HOST", "learningpath-api.ndla-local")
+
   val AudioApiHost: String =
     propOrElse("AUDIO_API_HOST", "audio-api.ndla-local")
+
   val DraftApiHost: String =
     propOrElse("DRAFT_API_HOST", "draft-api.ndla-local")
+
   val ImageApiHost: String =
     propOrElse("IMAGE_API_HOST", "image-api.ndla-local")
+
   val SearchApiHost: String =
     propOrElse("SEARCH_API_HOST", "search-api.ndla-local")
 
   val SearchServer: String =
     propOrElse("SEARCH_SERVER", "http://search-concept-api.ndla-local")
   val SearchRegion: String = propOrElse("SEARCH_REGION", "eu-central-1")
+
   val RunWithSignedSearchRequests: Boolean =
     propOrElse("RUN_WITH_SIGNED_SEARCH_REQUESTS", "true").toBoolean
+
   val ConceptSearchIndex: String =
     propOrElse("CONCEPT_SEARCH_INDEX_NAME", "concepts")
   val ConceptSearchDocument = "concept"
@@ -76,9 +84,7 @@ object ConceptApiProperties extends LazyLogging {
     readSecrets(SecretsFile) match {
       case Success(values) => values
       case Failure(exception) =>
-        throw new RuntimeException(
-          s"Unable to load remote secrets from $SecretsFile",
-          exception)
+        throw new RuntimeException(s"Unable to load remote secrets from $SecretsFile", exception)
     }
   }
 
