@@ -122,6 +122,13 @@ trait ConceptRepository {
         .list
         .apply()
     }
+
+    def conceptCount(implicit session: DBSession = ReadOnlyAutoSession) =
+      sql"select count(*) from ${Concept.table}"
+        .map(rs => rs.long("count"))
+        .single()
+        .apply()
+        .getOrElse(0)
 //    private def conceptsWhereA(whereClause: SQLSyntax)(
 //      implicit session: DBSession = ReadOnlyAutoSession): Seq[Concept] = {
 //      val ar = Concept.syntax("ar")
