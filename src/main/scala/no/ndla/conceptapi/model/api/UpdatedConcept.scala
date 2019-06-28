@@ -15,7 +15,7 @@ import scala.annotation.meta.field
 case class UpdatedConcept(@(ApiModelProperty @field)(description =
                             "The language of this concept") language: String,
                           @(ApiModelProperty @field)(description =
-                            "Available titles for the concept") title: Option[
+                            "Available title for the concept") title: Option[
                             String],
                           @(ApiModelProperty @field)(description =
                             "The content of the concept") content: Option[
