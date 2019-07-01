@@ -21,16 +21,17 @@ import reflect.ClassTag
 import org.mockito.stubbing.Answer
 import org.mockito.MockSettings
 
-trait TestEnvironment extends ConceptRepository
-  with ConceptController
-  with MockitoSugar
-  with DataSource
-  with WriteService
-  with ReadService
-  with ConverterService
-  with ContentValidator
-  with Clock
-  with User {
+trait TestEnvironment
+    extends ConceptRepository
+    with ConceptController
+    with MockitoSugar
+    with DataSource
+    with WriteService
+    with ReadService
+    with ConverterService
+    with ContentValidator
+    with Clock
+    with User {
 
   val conceptRepository = mock[ConceptRepository]
   val dataSource = mock[HikariDataSource]
@@ -41,7 +42,6 @@ trait TestEnvironment extends ConceptRepository
   val contentValidator = mock[ContentValidator]
   val clock = mock[SystemClock]
   val user = mock[User]
-
 
 }
 //lazy val conceptRepository = new ConceptRepository

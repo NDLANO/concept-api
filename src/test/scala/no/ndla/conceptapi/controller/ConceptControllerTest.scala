@@ -3,7 +3,7 @@
  * Copyright (C) 2019 NDLA
  *
  * See LICENSE
-*/
+ */
 
 import no.ndla.conceptapi.model.api.{NewConcept, UpdatedConcept}
 import no.ndla.conceptapi.{ConceptSwagger, TestData, TestEnvironment}
@@ -48,8 +48,8 @@ class ConceptControllerTest extends UnitSuite with ScalatraFunSuite with TestEnv
   }
 
   test("/<concept_id> should return 400 if the concept was not found") {
-      get(s"/test/one") {
-        status should equal(400)
+    get(s"/test/one") {
+      status should equal(400)
     }
   }
 
@@ -84,7 +84,7 @@ class ConceptControllerTest extends UnitSuite with ScalatraFunSuite with TestEnv
     when(
       writeService
         .updateConcept(eqTo(1.toLong), any[UpdatedConcept]))
-        .thenReturn(Success(TestData.sampleConcept))
+      .thenReturn(Success(TestData.sampleConcept))
 
     patch("/test/1", write(TestData.updatedConcept), headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(200)
