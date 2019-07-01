@@ -25,7 +25,7 @@ class ConceptControllerTest extends UnitSuite with ScalatraFunSuite with TestEnv
   val conceptId = 1
   val lang = "nb"
 
-  val invalidConcept = """{"title": [{"language": "nb", "titlee": "lol"]}""" // typo in "titlee"
+  val invalidConcept = """{"title": [{"language": "nb", "titlee": "lol"]}"""
 
   override def beforeEach: Unit = {
     when(user.getUser).thenReturn(TestData.userWithWriteAccess)
