@@ -14,12 +14,7 @@ import no.ndla.conceptapi.ConceptSwagger
 import no.ndla.conceptapi.auth.User
 import no.ndla.conceptapi.integration.DataSource
 import no.ndla.conceptapi.repository.ConceptRepository
-import no.ndla.conceptapi.service.{
-  Clock,
-  ConverterService,
-  ReadService,
-  WriteService
-}
+import no.ndla.conceptapi.service.{Clock, ConverterService, ReadService, WriteService}
 import no.ndla.conceptapi.validation.ContentValidator
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 

@@ -22,15 +22,12 @@ trait ConceptController {
   this: WriteService with ReadService with User =>
   val conceptController: ConceptController
 
-  class ConceptController(implicit val swagger: Swagger)
-      extends NdlaController
-      with LazyLogging {
+  class ConceptController(implicit val swagger: Swagger) extends NdlaController with LazyLogging {
     protected implicit override val jsonFormats: Formats = DefaultFormats
     private val conceptId =
       Param[Long]("concept_id", "Id of the concept that is to be returned")
-    protected val language: Param[Option[String]] = Param[Option[String]](
-      "language",
-      "The ISO 639-1 language code describing language.")
+    protected val language: Param[Option[String]] =
+      Param[Option[String]]("language", "The ISO 639-1 language code describing language.")
 
     get("/") {
       Ok("Hello World")
@@ -65,9 +62,7 @@ trait ConceptController {
       readService.conceptWithId(conceptId, language) match {
         case Some(concept) => concept
         case None =>
-          NotFound(
-            body =
-              Error(Error.NOT_FOUND, s"No concept with id $conceptId found"))
+          NotFound(body = Error(Error.NOT_FOUND, s"No concept with id $conceptId found"))
       }
     }
   }
