@@ -11,6 +11,7 @@ import no.ndla.conceptapi.auth.{Role, UserInfo}
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.domain
 import org.joda.time.DateTime
+import org.parboiled2.RuleTrace.Optional
 
 object TestData {
 
@@ -47,5 +48,7 @@ object TestData {
     DateTime.now().minusDays(4).toDate,
     DateTime.now().minusDays(2).toDate
   )
+  val sampleNewConcept = api.NewConcept("nb", "Tittel", Some("Innhold"), None)
+  val updatedConcept = api.UpdatedConcept("nb", None, Some("Innhold"), None)
 
 }
