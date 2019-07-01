@@ -51,7 +51,7 @@ class ConceptRepositoryTest extends IntegrationSuite with TestEnvironment {
     }
   }
 
-  test("Updating an concept should work as expected") {
+  test("Inserting and Updating an concept should work as expected") {
     assume(databaseIsAvailable, "Database is unavailable")
     val art1 = domainConcept.copy()
     val art2 = domainConcept.copy()
