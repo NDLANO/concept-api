@@ -32,7 +32,10 @@ lazy val concept_api = (project in file("."))
     version := appProperties.value.getProperty("NDLAComponentVersion"),
     scalaVersion := Scalaversion,
     javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
-    scalacOptions := Seq("-target:jvm-1.8", "-unchecked", "-deprecation", "-feature"),
+    scalacOptions := Seq("-target:jvm-1.8",
+                         "-unchecked",
+                         "-deprecation",
+                         "-feature"),
     libraryDependencies ++= Seq(
       "ndla" %% "network" % "0.38",
       "ndla" %% "mapping" % "0.11",
@@ -55,11 +58,38 @@ lazy val concept_api = (project in file("."))
       "net.bull.javamelody" % "javamelody-core" % "1.74.0",
       "org.jrobin" % "jrobin" % "1.5.9",
       "com.amazonaws" % "aws-java-sdk-cloudwatch" % AwsSdkversion,
-      "org.mockito" % "mockito-core" % MockitoVersion % "test"
+      "org.mockito" % "mockito-core" % MockitoVersion % "test",
+      "org.flywaydb" % "flyway-core" % FlywayVersion,
+      "org.scalikejdbc" %% "scalikejdbc" % "3.3.1",
+      "com.zaxxer" % "HikariCP" % HikariConnectionPoolVersion,
+      "org.postgresql" % "postgresql" % PostgresVersion,
+      "org.elasticsearch" % "elasticsearch" % ElasticsearchVersion,
+      "com.sksamuel.elastic4s" %% "elastic4s-core" % Elastic4sVersion,
+      "com.sksamuel.elastic4s" %% "elastic4s-http" % Elastic4sVersion,
+      "com.sksamuel.elastic4s" %% "elastic4s-aws" % Elastic4sVersion,
+      "com.sksamuel.elastic4s" %% "elastic4s-embedded" % Elastic4sVersion % "test"
     )
   )
   .enablePlugins(DockerPlugin)
   .enablePlugins(JettyPlugin)
+
+val checkfmt = taskKey[Boolean]("Check for code style errors")
+checkfmt := {
+  val noErrorsInMainFiles = (Compile / scalafmtCheck).value
+  val noErrorsInTestFiles = (Test / scalafmtCheck).value
+  val noErrorsInSbtConfigFiles = (Compile / scalafmtSbtCheck).value
+
+  noErrorsInMainFiles && noErrorsInTestFiles && noErrorsInSbtConfigFiles
+}
+
+Test / test := (Test / test).dependsOn(Test / checkfmt).value
+
+val fmt = taskKey[Unit]("Automatically apply code style fixes")
+fmt := {
+  (Compile / scalafmt).value
+  (Test / scalafmt).value
+  (Compile / scalafmtSbt).value
+}
 
 resolvers ++= scala.util.Properties
   .envOrNone("NDLA_RELEASES")
