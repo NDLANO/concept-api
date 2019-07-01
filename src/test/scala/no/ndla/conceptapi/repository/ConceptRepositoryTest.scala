@@ -1,16 +1,20 @@
+/*
+ * Part of NDLA concept-api.
+ * Copyright (C) 2019 NDLA
+ *
+ * See LICENSE
+ */
+
 package no.ndla.conceptapi.repository
 
 import java.net.Socket
 
-import no.ndla.conceptapi.model.api
-import no.ndla.conceptapi.model.domain
-import no.ndla.conceptapi.{ConceptApiProperties, DBMigrator, IntegrationSuite, TestData, TestEnvironment}
-import scalikejdbc.{ConnectionPool, DB, DataSourceConnectionPool}
 import no.ndla.conceptapi.TestData._
-import org.joda.time.DateTime
+import no.ndla.conceptapi.model.domain
+import no.ndla.conceptapi.{ConceptApiProperties, DBMigrator, IntegrationSuite, TestEnvironment}
+import scalikejdbc.{ConnectionPool, DB, DataSourceConnectionPool, _}
 
 import scala.util.{Success, Try}
-import scalikejdbc._
 
 class ConceptRepositoryTest extends IntegrationSuite with TestEnvironment {
 

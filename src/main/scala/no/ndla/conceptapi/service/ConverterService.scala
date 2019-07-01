@@ -12,10 +12,12 @@ import no.ndla.conceptapi.repository.ConceptRepository
 import no.ndla.conceptapi.model.domain
 import no.ndla.conceptapi.model.domain.Language._
 import no.ndla.conceptapi.model.api
+import no.ndla.conceptapi.model.api.NotFoundException
 import no.ndla.conceptapi.model.domain.LanguageField
 import no.ndla.mapping.License.getLicense
 import org.joda.time.format.ISODateTimeFormat
 
+import scala.util
 import scala.util.control.Exception.allCatch
 import scala.util.{Failure, Success, Try}
 
@@ -25,23 +27,32 @@ trait ConverterService {
 
   class ConverterService extends LazyLogging {
 
-    def toApiConcept(concept: domain.Concept, language: String): api.Concept = {
-      val title = findByLanguageOrBestEffort(concept.title, language)
-        .map(toApiConceptTitle)
-        .getOrElse(api.ConceptTitle("", DefaultLanguage))
-      val content = findByLanguageOrBestEffort(concept.content, language)
-        .map(toApiConceptContent)
-        .getOrElse(api.ConceptContent("", DefaultLanguage))
+    def toApiConcept(concept: domain.Concept, language: String, fallback: Boolean): Try[api.Concept] = {
+      val isLanguageNeutral = concept.supportedLanguages.contains(UnknownLanguage) && concept.supportedLanguages.size == 1
+      if (concept.supportedLanguages.contains(language) || fallback || isLanguageNeutral || language == AllLanguages) {
+        val title = findByLanguageOrBestEffort(concept.title, language)
+          .map(toApiConceptTitle)
+          .getOrElse(api.ConceptTitle("", UnknownLanguage))
+        val content = findByLanguageOrBestEffort(concept.content, language)
+          .map(toApiConceptContent)
+          .getOrElse(api.ConceptContent("", UnknownLanguage))
 
-      api.Concept(
-        concept.id.get,
-        Some(title),
-        Some(content),
-        concept.copyright.map(toApiCopyright),
-        concept.created,
-        concept.updated,
-        concept.supportedLanguages
-      )
+        Success(
+          api.Concept(
+            concept.id.get,
+            Some(title),
+            Some(content),
+            concept.copyright.map(toApiCopyright),
+            concept.created,
+            concept.updated,
+            concept.supportedLanguages
+          )
+        )
+      } else {
+        Failure(
+          NotFoundException(s"The concept with id ${concept.id.getOrElse(-1)} and language '$language' was not found.",
+                            concept.supportedLanguages.toSeq))
+      }
     }
 
     def toApiCopyright(copyright: domain.Copyright): api.Copyright = {

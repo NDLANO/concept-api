@@ -9,6 +9,9 @@ package no.ndla.conceptapi.service
 
 import no.ndla.conceptapi.repository.ConceptRepository
 import no.ndla.conceptapi.model.api
+import no.ndla.conceptapi.model.api.NotFoundException
+
+import scala.util.{Failure, Try}
 
 trait ReadService {
   this: ConceptRepository with ConceptRepository with ConverterService =>
@@ -16,10 +19,13 @@ trait ReadService {
 
   class ReadService {
 
-    def conceptWithId(id: Long, language: String): Option[api.Concept] =
-      conceptRepository
-        .withId(id)
-        .map(concept => converterService.toApiConcept(concept, language))
+    def conceptWithId(id: Long, language: String, fallback: Boolean): Try[api.Concept] =
+      conceptRepository.withId(id) match {
+        case Some(concept) =>
+          converterService.toApiConcept(concept, language, fallback)
+        case None =>
+          Failure(NotFoundException(s"Concept with id $id was not found with language '$language' in database."))
+      }
 
   }
 }

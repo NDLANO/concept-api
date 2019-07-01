@@ -28,10 +28,8 @@ trait ConceptController {
       Param[Long]("concept_id", "Id of the concept that is to be returned")
     protected val language: Param[Option[String]] =
       Param[Option[String]]("language", "The ISO 639-1 language code describing language.")
-
-    get("/") {
-      Ok("Hello World")
-    }
+    protected val fallback: Param[Option[Boolean]] =
+      Param[Option[Boolean]]("fallback", "Fallback to existing language if language is specified.")
 
     post("/") {
       doOrAccessDenied(user.getUser.canWrite) {
@@ -58,10 +56,11 @@ trait ConceptController {
       val conceptId = long(this.conceptId.paramName)
       val language =
         paramOrDefault(this.language.paramName, Language.NoLanguage)
-      readService.conceptWithId(conceptId, language) match {
-        case Some(concept) => concept
-        case None =>
-          NotFound(body = Error(Error.NOT_FOUND, s"No concept with id $conceptId found"))
+      val fallback = booleanOrDefault(this.fallback.paramName, false)
+
+      readService.conceptWithId(conceptId, language, fallback) match {
+        case Success(concept) => Ok(concept)
+        case Failure(ex)      => errorHandler(ex)
       }
     }
   }
