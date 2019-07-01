@@ -1,6 +1,6 @@
 /*
- * Part of NDLA draft_api.
- * Copyright (C) 2017 NDLA
+ * Part of NDLA concept-api.
+ * Copyright (C) 2019 NDLA
  *
  * See LICENSE
  */
@@ -14,12 +14,7 @@ import no.ndla.conceptapi.integration.DataSource
 import no.ndla.conceptapi.repository.ConceptRepository
 import no.ndla.conceptapi.service.{Clock, ConverterService, ReadService, WriteService}
 import no.ndla.conceptapi.validation.ContentValidator
-import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
-
-import reflect.ClassTag
-import org.mockito.stubbing.Answer
-import org.mockito.MockSettings
 
 trait TestEnvironment
     extends ConceptRepository
@@ -44,10 +39,3 @@ trait TestEnvironment
   val user = mock[User]
 
 }
-//lazy val conceptRepository = new ConceptRepository
-//lazy val writeService = new WriteService
-//lazy val readService = new ReadService
-//lazy val converterService = new ConverterService
-//lazy val user = new User
-//lazy val clock = new SystemClock
-//lazy val contentValidator = new ContentValidator
