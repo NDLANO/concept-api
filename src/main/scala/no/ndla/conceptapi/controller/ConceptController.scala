@@ -9,7 +9,7 @@ package no.ndla.conceptapi.controller
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.auth.User
-import no.ndla.conceptapi.model.api.{Concept, Error, NewConcept, UpdatedConcept}
+import no.ndla.conceptapi.model.api.{Concept, Error, NewConcept, UpdatedConcept, ValidationError}
 import no.ndla.conceptapi.model.domain.Language
 import no.ndla.conceptapi.service.{ReadService, WriteService}
 import org.json4s.{DefaultFormats, Formats}
@@ -22,18 +22,19 @@ trait ConceptController {
   this: WriteService with ReadService with User =>
   val conceptController: ConceptController
 
-  class ConceptController(implicit val swagger: Swagger)
-      extends NdlaController
-      with SwaggerSupport
-      with LazyLogging {
+  class ConceptController(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport with LazyLogging {
     protected implicit override val jsonFormats: Formats = DefaultFormats
     private val conceptId =
       Param[Long]("concept_id", "Id of the concept that is to be returned")
-    protected val language: Param[Option[String]] = Param[Option[String]](
-      "language",
-      "The ISO 639-1 language code describing language.")
+    protected val language: Param[Option[String]] =
+      Param[Option[String]]("language", "The ISO 639-1 language code describing language.")
 
     val applicationDescription = "This is the Api for concepts"
+
+    // Additional models used in error responses
+    registerModel[ValidationError]()
+    registerModel[Error]()
+
     val response400 =
       ResponseMessage(400, "Validation Error", Some("ValidationError"))
     val response403 = ResponseMessage(403, "Access Denied", Some("Error"))
@@ -107,9 +108,7 @@ trait ConceptController {
       readService.conceptWithId(conceptId, language) match {
         case Some(concept) => concept
         case None =>
-          NotFound(
-            body =
-              Error(Error.NOT_FOUND, s"No concept with id $conceptId found"))
+          NotFound(body = Error(Error.NOT_FOUND, s"No concept with id $conceptId found"))
       }
     }
   }

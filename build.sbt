@@ -32,10 +32,7 @@ lazy val concept_api = (project in file("."))
     version := appProperties.value.getProperty("NDLAComponentVersion"),
     scalaVersion := Scalaversion,
     javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
-    scalacOptions := Seq("-target:jvm-1.8",
-                         "-unchecked",
-                         "-deprecation",
-                         "-feature"),
+    scalacOptions := Seq("-target:jvm-1.8", "-unchecked", "-deprecation", "-feature"),
     libraryDependencies ++= Seq(
       "ndla" %% "network" % "0.38",
       "ndla" %% "mapping" % "0.11",
@@ -116,10 +113,7 @@ docker / dockerfile := {
     from("adoptopenjdk/openjdk11:alpine-slim")
     run("apk", "--no-cache", "add", "ttf-dejavu")
     add(artifact, artifactTargetPath)
-    entryPoint("java",
-               "-Dorg.scalatra.environment=production",
-               "-jar",
-               artifactTargetPath)
+    entryPoint("java", "-Dorg.scalatra.environment=production", "-jar", artifactTargetPath)
   }
 }
 

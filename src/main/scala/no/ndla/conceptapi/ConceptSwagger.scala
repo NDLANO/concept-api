@@ -10,9 +10,7 @@ package no.ndla.conceptapi
 import org.scalatra.ScalatraServlet
 import org.scalatra.swagger._
 
-class ResourcesApp(implicit val swagger: Swagger)
-    extends ScalatraServlet
-    with NativeSwaggerBase {
+class ResourcesApp(implicit val swagger: Swagger) extends ScalatraServlet with NativeSwaggerBase {
   get("/") {
     renderSwagger2(swagger.docs.toList)
   }
@@ -37,8 +35,6 @@ class ConceptSwagger extends Swagger("2.0", "1.0", ConceptApiInfo.apiInfo) {
   }
 
   addAuthorization(
-    OAuth(
-      writeRolesInTest,
-      List(ImplicitGrant(LoginEndpoint(ConceptApiProperties.Auth0LoginEndpoint),
-                         "access_token"))))
+    OAuth(writeRolesInTest,
+          List(ImplicitGrant(LoginEndpoint(ConceptApiProperties.Auth0LoginEndpoint), "access_token"))))
 }

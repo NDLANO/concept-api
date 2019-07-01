@@ -12,10 +12,7 @@ import java.nio.file.AccessDeniedException
 import com.typesafe.scalalogging.LazyLogging
 import javax.servlet.http.HttpServletRequest
 import no.ndla.conceptapi.ComponentRegistry
-import no.ndla.conceptapi.ConceptApiProperties.{
-  CorrelationIdHeader,
-  CorrelationIdKey
-}
+import no.ndla.conceptapi.ConceptApiProperties.{CorrelationIdHeader, CorrelationIdKey}
 import no.ndla.conceptapi.model.api.{
   Error,
   NotFoundException,
@@ -38,11 +35,7 @@ import org.scalatra.swagger.{ParamType, Parameter, SwaggerSupport}
 
 import scala.util.{Failure, Success, Try}
 
-abstract class NdlaController()
-    extends ScalatraServlet
-    with NativeJsonSupport
-    with LazyLogging
-    with SwaggerSupport {
+abstract class NdlaController() extends ScalatraServlet with NativeJsonSupport with LazyLogging with SwaggerSupport {
   protected implicit val jsonFormats: Formats = DefaultFormats
 
   before() {
@@ -64,8 +57,7 @@ abstract class NdlaController()
     ApplicationUrl.clear
   }
 
-  case class Param[T](paramName: String, description: String)(
-      implicit mf: Manifest[T])
+  case class Param[T](paramName: String, description: String)(implicit mf: Manifest[T])
 
   error {
     case a: AccessDeniedException =>
@@ -79,9 +71,7 @@ abstract class NdlaController()
     case psqle: PSQLException =>
       ComponentRegistry.connectToDatabase()
       logger.error("Something went wrong with database connections", psqle)
-      InternalServerError(
-        Error(Error.DATABASE_UNAVAILABLE,
-              Error.DATABASE_UNAVAILABLE_DESCRIPTION))
+      InternalServerError(Error(Error.DATABASE_UNAVAILABLE, Error.DATABASE_UNAVAILABLE_DESCRIPTION))
     case h: HttpRequestException =>
       h.httpResponse match {
         case Some(resp) if resp.is4xx => BadRequest(body = resp.body)
@@ -101,16 +91,12 @@ abstract class NdlaController()
   protected def asPathParam[T: Manifest: NotNothing](param: Param[T]) =
     pathParam[T](param.paramName).description(param.description)
   protected val correlationId =
-    Param[Option[String]]("X-Correlation-ID",
-                          "User supplied correlation-id. May be omitted.")
+    Param[Option[String]]("X-Correlation-ID", "User supplied correlation-id. May be omitted.")
 
-  def extract[T](json: String)(
-      implicit mf: scala.reflect.Manifest[T]): Try[T] = {
+  def extract[T](json: String)(implicit mf: scala.reflect.Manifest[T]): Try[T] = {
     Try { read[T](json) } match {
       case Failure(e) =>
-        Failure(
-          new ValidationException(
-            errors = Seq(ValidationMessage("body", e.getMessage))))
+        Failure(new ValidationException(errors = Seq(ValidationMessage("body", e.getMessage))))
       case Success(data) => Success(data)
     }
   }
@@ -129,10 +115,7 @@ abstract class NdlaController()
       case true => paramValue.toLong
       case false =>
         throw new ValidationException(
-          errors = Seq(
-            ValidationMessage(
-              paramName,
-              s"Invalid value for $paramName. Only digits are allowed.")))
+          errors = Seq(ValidationMessage(paramName, s"Invalid value for $paramName. Only digits are allowed.")))
     }
   }
 
@@ -140,16 +123,15 @@ abstract class NdlaController()
     lang.filter(_.nonEmpty)
   }
 
-  def paramOrNone(paramName: String)(
-      implicit request: HttpServletRequest): Option[String] = {
+  def paramOrNone(paramName: String)(implicit request: HttpServletRequest): Option[String] = {
     params.get(paramName).map(_.trim).filterNot(_.isEmpty())
   }
-  def paramOrDefault(paramName: String, default: String)(
-      implicit request: HttpServletRequest): String = {
+
+  def paramOrDefault(paramName: String, default: String)(implicit request: HttpServletRequest): String = {
     paramOrNone(paramName).getOrElse(default)
   }
-  def paramAsListOfString(paramName: String)(
-      implicit request: HttpServletRequest): List[String] = {
+
+  def paramAsListOfString(paramName: String)(implicit request: HttpServletRequest): List[String] = {
     emptySomeToNone(params.get(paramName)) match {
       case None        => List.empty
       case Some(param) => param.split(",").toList.map(_.trim)
