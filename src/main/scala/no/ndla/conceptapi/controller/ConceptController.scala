@@ -98,7 +98,8 @@ trait ConceptController {
           parameters (
             asHeaderParam(correlationId),
             asQueryParam(language),
-            asPathParam(conceptId)
+            asPathParam(conceptId),
+            asQueryParam(fallback)
         )
           authorizations "oauth2"
           responseMessages (response404, response500))
