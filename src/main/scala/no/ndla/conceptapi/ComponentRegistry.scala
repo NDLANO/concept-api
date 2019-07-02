@@ -9,10 +9,11 @@ package no.ndla.conceptapi
 
 import com.typesafe.scalalogging.LazyLogging
 import com.zaxxer.hikari.HikariDataSource
-import no.ndla.conceptapi.controller.{ConceptController, HealthController}
+import no.ndla.conceptapi.controller.{ConceptController, HealthController, InternController}
 import no.ndla.conceptapi.auth.User
-import no.ndla.conceptapi.integration.DataSource
+import no.ndla.conceptapi.integration.{DataSource, Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
 import no.ndla.conceptapi.repository.ConceptRepository
+import no.ndla.conceptapi.service.search.{ConceptIndexService, ConceptSearchService, IndexService, SearchConverterService, SearchService}
 import no.ndla.conceptapi.service.{Clock, ConverterService, ReadService, WriteService}
 import no.ndla.conceptapi.validation.ContentValidator
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
@@ -28,11 +29,23 @@ object ComponentRegistry
     with ConceptRepository
     with DataSource
     with LazyLogging
-    with HealthController {
+    with HealthController
+    with ConceptSearchService
+    with SearchService
+    with SearchConverterService
+    with Elastic4sClient
+    with ConceptIndexService
+    with IndexService
+    with InternController {
 
   lazy val conceptController = new ConceptController
   lazy val conceptRepository = new ConceptRepository
   lazy val healthController = new HealthController
+  lazy val internController = new InternController
+  lazy val conceptSearchService = new ConceptSearchService
+  lazy val searchConverterService = new SearchConverterService
+  lazy val conceptIndexService = new ConceptIndexService
+  lazy val e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient()
 
   lazy val writeService = new WriteService
   lazy val readService = new ReadService
