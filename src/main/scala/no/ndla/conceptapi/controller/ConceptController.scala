@@ -14,7 +14,7 @@ import no.ndla.conceptapi.model.domain.Language
 import no.ndla.conceptapi.service.{ReadService, WriteService}
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
-import org.scalatra.{NotFound}
+import org.scalatra.{Created, NotFound}
 
 import scala.util.{Failure, Success}
 
@@ -55,9 +55,9 @@ trait ConceptController {
           responseMessages (response400, response403, response500))
     ) {
       doOrAccessDenied(user.getUser.canWrite) {
-        extract[NewConcept](request.body)
-          .flatMap(writeService.newConcept) match {
-          case Success(c)  => c
+        val body = extract[NewConcept](request.body)
+        body.flatMap(writeService.newConcept) match {
+          case Success(c)  => Created(c)
           case Failure(ex) => errorHandler(ex)
         }
       }
@@ -78,11 +78,10 @@ trait ConceptController {
           responseMessages (response400, response403, response404, response500))
     ) {
       doOrAccessDenied(user.getUser.canWrite) {
-        extract[UpdatedConcept](request.body)
-          .flatMap(
-            writeService
-              .updateConcept(long(this.conceptId.paramName), _)) match {
-          case Success(c)  => c
+        val body = extract[UpdatedConcept](request.body)
+        val conceptId = long(this.conceptId.paramName)
+        body.flatMap(writeService.updateConcept(conceptId, _)) match {
+          case Success(c)  => Ok(c)
           case Failure(ex) => errorHandler(ex)
         }
       }

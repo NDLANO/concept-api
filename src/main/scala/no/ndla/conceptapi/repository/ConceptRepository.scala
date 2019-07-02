@@ -10,7 +10,6 @@ package no.ndla.conceptapi.repository
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.integration.DataSource
 import no.ndla.conceptapi.model.api.NotFoundException
-//import no.ndla.conceptapi.model.api.{NotFoundException, OptimisticLockException}
 import no.ndla.conceptapi.model.domain.Concept
 import org.json4s.Formats
 import org.postgresql.util.PGobject
@@ -115,13 +114,12 @@ trait ConceptRepository {
         .list
         .apply()
     }
-//    private def conceptsWhereA(whereClause: SQLSyntax)(
-//      implicit session: DBSession = ReadOnlyAutoSession): Seq[Concept] = {
-//      val ar = Concept.syntax("ar")
-//      sql"select ${ar.result.*} from ${Concept.as(ar)} where ar.document is not NULL and $whereClause"
-//        .map(Concept(ar))
-//        .list
-//        .apply()
-//    }
+
+    def conceptCount(implicit session: DBSession = ReadOnlyAutoSession) =
+      sql"select count(*) from ${Concept.table}"
+        .map(rs => rs.long("count"))
+        .single()
+        .apply()
+        .getOrElse(0)
   }
 }
