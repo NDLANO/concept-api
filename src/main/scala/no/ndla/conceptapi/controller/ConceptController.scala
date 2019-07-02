@@ -14,7 +14,7 @@ import no.ndla.conceptapi.model.domain.Language
 import no.ndla.conceptapi.service.{ReadService, WriteService}
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
-import org.scalatra.{NotFound, Ok}
+import org.scalatra.{NotFound}
 
 import scala.util.{Failure, Success}
 
