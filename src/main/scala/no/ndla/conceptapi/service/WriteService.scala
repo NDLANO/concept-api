@@ -27,8 +27,10 @@ trait WriteService {
         _ <- contentValidator.validateConcept(concept, allowUnknownLanguage = false)
         persistedConcept <- Try(conceptRepository.insert(concept))
         //_ <- conceptIndexService.indexDocument(concept)
-      } yield converterService.toApiConcept(persistedConcept, newConcept.language)
+        apiC <- converterService.toApiConcept(persistedConcept, newConcept.language, fallback = true)
+      } yield apiC
     }
+
     private def updateConcept(toUpdate: domain.Concept): Try[domain.Concept] = {
       for {
         _ <- contentValidator.validateConcept(toUpdate, allowUnknownLanguage = true)
@@ -42,11 +44,12 @@ trait WriteService {
         case Some(concept) =>
           val domainConcept =
             converterService.toDomainConcept(concept, updatedConcept)
-          updateConcept(domainConcept).map(x => converterService.toApiConcept(x, updatedConcept.language))
+          updateConcept(domainConcept).flatMap(x =>
+            converterService.toApiConcept(x, updatedConcept.language, fallback = true))
         case None if conceptRepository.exists(id) =>
           val concept = converterService.toDomainConcept(id, updatedConcept)
           updateConcept(concept)
-            .map(concept => converterService.toApiConcept(concept, updatedConcept.language))
+            .flatMap(concept => converterService.toApiConcept(concept, updatedConcept.language, fallback = true))
         case None =>
           Failure(NotFoundException(s"Concept with id $id does not exist"))
       }
