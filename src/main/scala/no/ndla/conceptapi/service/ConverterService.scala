@@ -129,24 +129,6 @@ trait ConverterService {
       )
     }
 
-    def toDomainCopyright(newCopyright: api.NewAgreementCopyright): domain.Copyright = {
-      val parser = ISODateTimeFormat.dateOptionalTimeParser()
-      val validFrom = newCopyright.validFrom.flatMap(date => allCatch.opt(parser.parseDateTime(date).toDate))
-      val validTo = newCopyright.validTo.flatMap(date => allCatch.opt(parser.parseDateTime(date).toDate))
-
-      val apiCopyright = api.Copyright(
-        newCopyright.license,
-        newCopyright.origin,
-        newCopyright.creators,
-        newCopyright.processors,
-        newCopyright.rightsholders,
-        newCopyright.agreementId,
-        validFrom,
-        validTo
-      )
-      toDomainCopyright(apiCopyright)
-    }
-
     def toDomainCopyright(copyright: api.Copyright): domain.Copyright = {
       domain.Copyright(
         copyright.license.map(_.license),

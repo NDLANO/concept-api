@@ -9,12 +9,13 @@ package no.ndla.conceptapi.repository
 
 import java.net.Socket
 
-import no.ndla.conceptapi.TestData._
 import no.ndla.conceptapi.model.domain
-import no.ndla.conceptapi.{ConceptApiProperties, DBMigrator, IntegrationSuite, TestEnvironment}
-import scalikejdbc.{ConnectionPool, DB, DataSourceConnectionPool, _}
+import no.ndla.conceptapi.{ConceptApiProperties, DBMigrator, IntegrationSuite, TestData, TestEnvironment}
+import scalikejdbc.{ConnectionPool, DB, DataSourceConnectionPool}
+import no.ndla.conceptapi.TestData._
 
 import scala.util.{Success, Try}
+import scalikejdbc._
 
 class ConceptRepositoryTest extends IntegrationSuite with TestEnvironment {
 
@@ -50,7 +51,7 @@ class ConceptRepositoryTest extends IntegrationSuite with TestEnvironment {
     }
   }
 
-  test("Updating an concept should work as expected") {
+  test("Inserting and Updating an concept should work as expected") {
     assume(databaseIsAvailable, "Database is unavailable")
     val art1 = domainConcept.copy()
     val art2 = domainConcept.copy()
