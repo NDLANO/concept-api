@@ -34,6 +34,8 @@ trait ConceptController {
     // Additional models used in error responses
     registerModel[ValidationError]()
     registerModel[Error]()
+    protected val fallback: Param[Option[Boolean]] =
+      Param[Option[Boolean]]("fallback", "Fallback to existing language if language is specified.")
 
     val response400 =
       ResponseMessage(400, "Validation Error", Some("ValidationError"))
@@ -104,10 +106,11 @@ trait ConceptController {
       val conceptId = long(this.conceptId.paramName)
       val language =
         paramOrDefault(this.language.paramName, Language.NoLanguage)
-      readService.conceptWithId(conceptId, language) match {
-        case Some(concept) => concept
-        case None =>
-          NotFound(body = Error(Error.NOT_FOUND, s"No concept with id $conceptId found"))
+      val fallback = booleanOrDefault(this.fallback.paramName, false)
+
+      readService.conceptWithId(conceptId, language, fallback) match {
+        case Success(concept) => Ok(concept)
+        case Failure(ex)      => errorHandler(ex)
       }
     }
   }

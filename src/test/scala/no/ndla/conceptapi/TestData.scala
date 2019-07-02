@@ -30,24 +30,41 @@ object TestData {
   val userWithNoRoles = UserInfo("unit test", Set.empty)
   val userWithWriteAccess = UserInfo("unit test", Set(Role.WRITE))
 
-  val sampleConcept = api.Concept(
+  val today = DateTime.now().minusDays(0).toDate
+  val yesterday = DateTime.now().minusDays(1).toDate
+
+  val sampleNbApiConcept = api.Concept(
     1.toLong,
-    Some(api.ConceptTitle("Tittel for begrep", "nb")),
-    Some(api.ConceptContent("Innhold for begrep", "nb")),
+    Some(api.ConceptTitle("Tittel", "nb")),
+    Some(api.ConceptContent("Innhold", "nb")),
     None,
-    DateTime.now().minusDays(4).toDate,
-    DateTime.now().minusDays(2).toDate,
-    Set("nb")
+    yesterday,
+    today,
+    Set("nn", "nb")
   )
 
   val domainConcept = domain.Concept(
     Some(1),
-    Seq(domain.ConceptTitle("Tittel", "nb")),
-    Seq(domain.ConceptContent("Innhold", "nb")),
+    Seq(domain.ConceptTitle("Tittel", "nb"), domain.ConceptTitle("Tittelur", "nn")),
+    Seq(
+      domain.ConceptContent("Innhold", "nb"),
+      domain.ConceptContent("Innhald", "nn")
+    ),
     None,
-    DateTime.now().minusDays(4).toDate,
-    DateTime.now().minusDays(2).toDate
+    yesterday,
+    today
   )
+
+  val sampleNnApiConcept = api.Concept(
+    1.toLong,
+    Some(api.ConceptTitle("Tittelur", "nn")),
+    Some(api.ConceptContent("Innhald", "nn")),
+    None,
+    yesterday,
+    today,
+    Set("nn", "nb")
+  )
+
   val sampleNewConcept = api.NewConcept("nb", "Tittel", Some("Innhold"), None)
   val updatedConcept = api.UpdatedConcept("nb", None, Some("Innhold"), None)
 

@@ -4,8 +4,9 @@
  *
  * See LICENSE
  */
+package no.ndla.conceptapi.controller
 
-import no.ndla.conceptapi.model.api.{NewConcept, UpdatedConcept}
+import no.ndla.conceptapi.model.api.{NewConcept, NotFoundException, UpdatedConcept}
 import no.ndla.conceptapi.{ConceptSwagger, TestData, TestEnvironment}
 import no.ndla.conceptapi.repository.UnitSuite
 import org.json4s.DefaultFormats
@@ -14,7 +15,7 @@ import org.mockito.ArgumentMatchers.{any, eq => eqTo}
 import org.mockito.Mockito.when
 import org.scalatra.test.scalatest.ScalatraFunSuite
 
-import scala.util.{Success}
+import scala.util.{Failure, Success}
 
 class ConceptControllerTest extends UnitSuite with ScalatraFunSuite with TestEnvironment {
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
@@ -32,7 +33,7 @@ class ConceptControllerTest extends UnitSuite with ScalatraFunSuite with TestEnv
   }
 
   test("/<concept_id> should return 200 if the concept was found") {
-    when(readService.conceptWithId(conceptId, lang)).thenReturn(Some(TestData.sampleConcept))
+    when(readService.conceptWithId(conceptId, lang, fallback = false)).thenReturn(Success(TestData.sampleNbApiConcept))
 
     get(s"/test/$conceptId?language=$lang") {
       status should equal(200)
@@ -40,7 +41,8 @@ class ConceptControllerTest extends UnitSuite with ScalatraFunSuite with TestEnv
   }
 
   test("/<concept_id> should return 404 if the concept was not found") {
-    when(readService.conceptWithId(conceptId, lang)).thenReturn(None)
+    when(readService.conceptWithId(conceptId, lang, fallback = false))
+      .thenReturn(Failure(NotFoundException("Not found, yolo")))
 
     get(s"/test/$conceptId?language=$lang") {
       status should equal(404)
@@ -63,7 +65,7 @@ class ConceptControllerTest extends UnitSuite with ScalatraFunSuite with TestEnv
     when(
       writeService
         .newConcept(any[NewConcept]))
-      .thenReturn(Success(TestData.sampleConcept))
+      .thenReturn(Success(TestData.sampleNbApiConcept))
     post("/test/", write(TestData.sampleNewConcept), headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(201)
     }
@@ -74,7 +76,7 @@ class ConceptControllerTest extends UnitSuite with ScalatraFunSuite with TestEnv
     when(
       writeService
         .newConcept(any[NewConcept]))
-      .thenReturn(Success(TestData.sampleConcept))
+      .thenReturn(Success(TestData.sampleNbApiConcept))
     post("/test/", write(TestData.sampleNewConcept), headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(403)
     }
@@ -84,7 +86,7 @@ class ConceptControllerTest extends UnitSuite with ScalatraFunSuite with TestEnv
     when(
       writeService
         .updateConcept(eqTo(1.toLong), any[UpdatedConcept]))
-      .thenReturn(Success(TestData.sampleConcept))
+      .thenReturn(Success(TestData.sampleNbApiConcept))
 
     patch("/test/1", write(TestData.updatedConcept), headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(200)
@@ -95,7 +97,7 @@ class ConceptControllerTest extends UnitSuite with ScalatraFunSuite with TestEnv
     when(
       writeService
         .updateConcept(eqTo(1.toLong), any[UpdatedConcept]))
-      .thenReturn(Success(TestData.sampleConcept))
+      .thenReturn(Success(TestData.sampleNbApiConcept))
 
     patch("/test/1", write(TestData.updatedConcept), headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(403)
