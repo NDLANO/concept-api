@@ -11,7 +11,15 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.ConceptApiProperties
 import no.ndla.conceptapi.service.search.{ConceptSearchService, SearchConverterService}
 import no.ndla.conceptapi.auth.User
-import no.ndla.conceptapi.model.api.{Concept, ConceptSearchResult, Error, NewConcept, UpdatedConcept, ValidationError}
+import no.ndla.conceptapi.model.api.{
+  Concept,
+  ConceptSearchParams,
+  ConceptSearchResult,
+  Error,
+  NewConcept,
+  UpdatedConcept,
+  ValidationError
+}
 import no.ndla.conceptapi.model.domain.{Language, Sort}
 import no.ndla.conceptapi.service.{ConverterService, ReadService, WriteService}
 import org.json4s.{DefaultFormats, Formats}
@@ -47,10 +55,8 @@ trait ConceptController {
       "ids",
       "Return only concepts that have one of the provided ids. To provide multiple ids, separate by comma (,).")
 
-    private def scrollSearchOr(orFunction: => Any): Any = {
-      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
-
-      paramOrNone(this.scrollId.paramName) match {
+    private def scrollSearchOr(scrollId: Option[String], language: String)(orFunction: => Any): Any =
+      scrollId match {
         case Some(scroll) =>
           conceptSearchService.scroll(scroll, language) match {
             case Success(scrollResult) =>
@@ -60,7 +66,6 @@ trait ConceptController {
           }
         case None => orFunction
       }
-    }
 
     private def search(query: Option[String],
                        sort: Option[Sort.Value],
@@ -108,17 +113,17 @@ trait ConceptController {
         apiOperation[Concept]("newConceptById")
           summary "Create new concept"
           description "Create new concept"
-          parameters(
-          asHeaderParam(correlationId),
-          bodyParam[NewConcept]
+          parameters (
+            asHeaderParam(correlationId),
+            bodyParam[NewConcept]
         )
           authorizations "oauth2"
-          responseMessages(response400, response403, response500))
+          responseMessages (response400, response403, response500))
     ) {
       doOrAccessDenied(user.getUser.canWrite) {
         val body = extract[NewConcept](request.body)
         body.flatMap(writeService.newConcept) match {
-          case Success(c) => Created(c)
+          case Success(c)  => Created(c)
           case Failure(ex) => errorHandler(ex)
         }
       }
@@ -130,19 +135,19 @@ trait ConceptController {
         apiOperation[Concept]("updateConceptById")
           summary "Update a concept"
           description "Update a concept"
-          parameters(
-          asHeaderParam(correlationId),
-          bodyParam[UpdatedConcept],
-          asPathParam(conceptId)
+          parameters (
+            asHeaderParam(correlationId),
+            bodyParam[UpdatedConcept],
+            asPathParam(conceptId)
         )
           authorizations "oauth2"
-          responseMessages(response400, response403, response404, response500))
+          responseMessages (response400, response403, response404, response500))
     ) {
       doOrAccessDenied(user.getUser.canWrite) {
         val body = extract[UpdatedConcept](request.body)
         val conceptId = long(this.conceptId.paramName)
         body.flatMap(writeService.updateConcept(conceptId, _)) match {
-          case Success(c) => Ok(c)
+          case Success(c)  => Ok(c)
           case Failure(ex) => errorHandler(ex)
         }
       }
@@ -154,14 +159,14 @@ trait ConceptController {
         apiOperation[String]("getConceptById")
           summary "Show concept with a specified id"
           description "Shows the concept for the specified id."
-          parameters(
-          asHeaderParam(correlationId),
-          asQueryParam(language),
-          asPathParam(conceptId),
-          asQueryParam(fallback)
+          parameters (
+            asHeaderParam(correlationId),
+            asQueryParam(language),
+            asPathParam(conceptId),
+            asQueryParam(fallback)
         )
           authorizations "oauth2"
-          responseMessages(response404, response500))
+          responseMessages (response404, response500))
     ) {
       val conceptId = long(this.conceptId.paramName)
       val language =
@@ -170,7 +175,7 @@ trait ConceptController {
 
       readService.conceptWithId(conceptId, language, fallback) match {
         case Success(concept) => Ok(concept)
-        case Failure(ex) => errorHandler(ex)
+        case Failure(ex)      => errorHandler(ex)
       }
     }
 
@@ -180,25 +185,27 @@ trait ConceptController {
         apiOperation[ConceptSearchResult]("getAllConcepts")
           summary "Show all concepts"
           description "Shows all concepts. You can search it too."
-          parameters(
-          asHeaderParam(correlationId),
-          asQueryParam(query),
-          asQueryParam(conceptIds),
-          asQueryParam(language),
-          asQueryParam(query),
-          asQueryParam(pageNo),
-          asQueryParam(pageSize),
-          asQueryParam(sort),
-          asQueryParam(fallback),
-          asQueryParam(scrollId)
+          parameters (
+            asHeaderParam(correlationId),
+            asQueryParam(query),
+            asQueryParam(conceptIds),
+            asQueryParam(language),
+            asQueryParam(query),
+            asQueryParam(pageNo),
+            asQueryParam(pageSize),
+            asQueryParam(sort),
+            asQueryParam(fallback),
+            asQueryParam(scrollId)
         )
           authorizations "oauth2"
           responseMessages response500)
     ) {
-      scrollSearchOr {
+      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
+      val scrollId = paramOrNone(this.scrollId.paramName)
+
+      scrollSearchOr(scrollId, language) {
         val query = paramOrNone(this.query.paramName)
         val sort = Sort.valueOf(paramOrDefault(this.sort.paramName, ""))
-        val language = paramOrDefault(this.language.paramName, Language.NoLanguage)
         val pageSize = intOrDefault(this.pageSize.paramName, ConceptApiProperties.DefaultPageSize)
         val page = intOrDefault(this.pageNo.paramName, 1)
         val idList = paramAsListOfLong(this.conceptIds.paramName)
@@ -208,6 +215,40 @@ trait ConceptController {
 
       }
     }
-  }
 
+    post(
+      "/search/",
+      operation(
+        apiOperation[ConceptSearchResult]("searchConcepts")
+          summary "Show all concepts"
+          description "Shows all concepts. You can search it too."
+          parameters (
+            asHeaderParam(correlationId),
+            bodyParam[ConceptSearchParams]
+        )
+          authorizations "oauth2"
+          responseMessages (response400, response500))
+    ) {
+      val body = extract[ConceptSearchParams](request.body)
+      val scrollId = body.map(_.scrollId).getOrElse(None)
+      val lang = body.map(_.language).toOption.flatten
+
+      scrollSearchOr(scrollId, lang.getOrElse(Language.DefaultLanguage)) {
+         body match {
+          case Success(searchParams) =>
+            val query = searchParams.query
+            val sort = Sort.valueOf(searchParams.sort.getOrElse(""))
+            val language = searchParams.language.getOrElse(Language.NoLanguage)
+            val pageSize = searchParams.pageSize.getOrElse(ConceptApiProperties.DefaultPageSize)
+            val page = searchParams.page.getOrElse(1)
+            val idList = searchParams.idList
+            val fallback = searchParams.fallback.getOrElse(false)
+
+            search(query, sort, language, page, pageSize, idList, fallback)
+          case Failure(ex) => errorHandler(ex)
+        }
+      }
+    }
+
+  }
 }
