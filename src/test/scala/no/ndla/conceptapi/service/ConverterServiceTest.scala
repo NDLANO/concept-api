@@ -13,7 +13,7 @@ import no.ndla.conceptapi.model.api.{Copyright, NotFoundException, UpdatedConcep
 import no.ndla.conceptapi.model.domain
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.{TestData, TestEnvironment}
-import no.ndla.conceptapi.repository.UnitSuite
+import no.ndla.conceptapi.UnitSuite
 import org.mockito.Mockito._
 
 import scala.util.{Failure, Success}

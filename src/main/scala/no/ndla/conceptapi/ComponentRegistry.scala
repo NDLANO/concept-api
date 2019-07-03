@@ -13,7 +13,13 @@ import no.ndla.conceptapi.controller.{ConceptController, HealthController, Inter
 import no.ndla.conceptapi.auth.User
 import no.ndla.conceptapi.integration.{DataSource, Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
 import no.ndla.conceptapi.repository.ConceptRepository
-import no.ndla.conceptapi.service.search.{ConceptIndexService, ConceptSearchService, IndexService, SearchConverterService, SearchService}
+import no.ndla.conceptapi.service.search.{
+  ConceptIndexService,
+  ConceptSearchService,
+  IndexService,
+  SearchConverterService,
+  SearchService
+}
 import no.ndla.conceptapi.service.{Clock, ConverterService, ReadService, WriteService}
 import no.ndla.conceptapi.validation.ContentValidator
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}

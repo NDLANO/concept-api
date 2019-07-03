@@ -234,7 +234,7 @@ trait ConceptController {
       val lang = body.map(_.language).toOption.flatten
 
       scrollSearchOr(scrollId, lang.getOrElse(Language.DefaultLanguage)) {
-         body match {
+        body match {
           case Success(searchParams) =>
             val query = searchParams.query
             val sort = Sort.valueOf(searchParams.sort.getOrElse(""))

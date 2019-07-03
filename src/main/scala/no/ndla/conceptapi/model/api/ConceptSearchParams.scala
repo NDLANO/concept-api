@@ -25,5 +25,6 @@ case class ConceptSearchParams(
       String],
     @(ApiModelProperty @field)(description =
       "Whether to fallback to existing language if not found in selected language.") fallback: Option[Boolean],
-    @(ApiModelProperty @field)(description =
-      "A search context retrieved from the response header of a previous search.") scrollId: Option[String])
+    @(ApiModelProperty @field)(
+      description = "A search context retrieved from the response header of a previous search.") scrollId: Option[
+      String])
