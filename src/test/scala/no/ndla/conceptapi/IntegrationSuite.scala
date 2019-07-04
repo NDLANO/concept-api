@@ -10,7 +10,6 @@ package no.ndla.conceptapi
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.network.secrets.PropertyKeys
 import no.ndla.conceptapi.integration.DataSource.getHikariDataSource
-import no.ndla.conceptapi.repository.UnitSuite
 
 abstract class IntegrationSuite extends UnitSuite {
   setEnv(PropertyKeys.MetaUserNameKey, "postgres")

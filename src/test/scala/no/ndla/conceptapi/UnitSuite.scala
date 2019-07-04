@@ -5,7 +5,7 @@
  * See LICENSE
  */
 
-package no.ndla.conceptapi.repository
+package no.ndla.conceptapi
 
 import org.scalatest._
 import org.scalatest.mockito.MockitoSugar

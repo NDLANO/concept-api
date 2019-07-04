@@ -12,7 +12,12 @@ import java.nio.file.AccessDeniedException
 import com.typesafe.scalalogging.LazyLogging
 import javax.servlet.http.HttpServletRequest
 import no.ndla.conceptapi.ComponentRegistry
-import no.ndla.conceptapi.ConceptApiProperties.{CorrelationIdHeader, CorrelationIdKey}
+import no.ndla.conceptapi.ConceptApiProperties.{
+  CorrelationIdHeader,
+  CorrelationIdKey,
+  ElasticSearchIndexMaxResultWindow,
+  ElasticSearchScrollKeepAlive
+}
 import no.ndla.conceptapi.model.api.{
   Error,
   NotFoundException,
@@ -68,6 +73,7 @@ abstract class NdlaController() extends ScalatraServlet with NativeJsonSupport w
       NotFound(body = Error(Error.NOT_FOUND, n.getMessage))
     case o: OptimisticLockException =>
       Conflict(body = Error(Error.RESOURCE_OUTDATED, o.getMessage))
+    case e: IndexNotFoundException => InternalServerError(body = Error.IndexMissingError)
     case psqle: PSQLException =>
       ComponentRegistry.connectToDatabase()
       logger.error("Something went wrong with database connections", psqle)
@@ -84,14 +90,37 @@ abstract class NdlaController() extends ScalatraServlet with NativeJsonSupport w
       InternalServerError(body = Error.GenericError)
   }
 
+  protected val correlationId =
+    Param[Option[String]]("X-Correlation-ID", "User supplied correlation-id. May be omitted.")
+  protected val pageNo = Param[Option[Int]]("page", "The page number of the search hits to display.")
+  protected val pageSize = Param[Option[Int]]("page-size", "The number of search hits to display for each page.")
+  protected val sort = Param[Option[String]](
+    "sort",
+    """The sorting used on results.
+             The following are supported: relevance, -relevance, title, -title, lastUpdated, -lastUpdated, id, -id.
+             Default is by -relevance (desc) when query is set, and title (asc) when query is empty.""".stripMargin
+  )
+  protected val deprecatedNodeId = Param[Long]("deprecated_node_id", "Id of deprecated NDLA node")
+  protected val language = Param[Option[String]]("language", "The ISO 639-1 language code describing language.")
+  protected val pathLanguage = Param[String]("language", "The ISO 639-1 language code describing language.")
+  protected val license = Param[Option[String]]("license", "Return only results with provided license.")
+  protected val fallback = Param[Option[Boolean]]("fallback", "Fallback to existing language if language is specified.")
+  protected val scrollId = Param[Option[String]](
+    "search-context",
+    s"""A search context retrieved from the response header of a previous search.
+       |If search-context is specified, all other query parameters, except '${this.language.paramName}' and '${this.fallback.paramName}' are ignored
+       |For the rest of the parameters the original search of the search-context is used.
+       |The search context may change between scrolls. Always use the most recent one (The context if unused dies after $ElasticSearchScrollKeepAlive).
+       |Used to enable scrolling past $ElasticSearchIndexMaxResultWindow results.
+      """.stripMargin
+  )
+
   protected def asHeaderParam[T: Manifest: NotNothing](param: Param[T]) =
     headerParam[T](param.paramName).description(param.description)
   protected def asQueryParam[T: Manifest: NotNothing](param: Param[T]) =
     queryParam[T](param.paramName).description(param.description)
   protected def asPathParam[T: Manifest: NotNothing](param: Param[T]) =
     pathParam[T](param.paramName).description(param.description)
-  protected val correlationId =
-    Param[Option[String]]("X-Correlation-ID", "User supplied correlation-id. May be omitted.")
 
   def extract[T](json: String)(implicit mf: scala.reflect.Manifest[T]): Try[T] = {
     Try { read[T](json) } match {
@@ -123,6 +152,11 @@ abstract class NdlaController() extends ScalatraServlet with NativeJsonSupport w
     lang.filter(_.nonEmpty)
   }
 
+  def intOrNone(paramName: String)(implicit request: HttpServletRequest): Option[Int] =
+    paramOrNone(paramName).flatMap(p => Try(p.toInt).toOption)
+
+  def intOrDefault(paramName: String, default: Int): Int = intOrNone(paramName).getOrElse(default)
+
   def paramOrNone(paramName: String)(implicit request: HttpServletRequest): Option[String] = {
     params.get(paramName).map(_.trim).filterNot(_.isEmpty())
   }
@@ -141,6 +175,20 @@ abstract class NdlaController() extends ScalatraServlet with NativeJsonSupport w
     emptySomeToNone(params.get(paramName)) match {
       case None        => List.empty
       case Some(param) => param.split(",").toList.map(_.trim)
+    }
+  }
+
+  def paramAsListOfLong(paramName: String)(implicit request: HttpServletRequest): List[Long] = {
+    val strings = paramAsListOfString(paramName)
+    strings.headOption match {
+      case None => List.empty
+      case Some(_) =>
+        if (!strings.forall(entry => entry.forall(_.isDigit))) {
+          throw new ValidationException(
+            errors =
+              Seq(ValidationMessage(paramName, s"Invalid value for $paramName. Only (list of) digits are allowed.")))
+        }
+        strings.map(_.toLong)
     }
   }
 

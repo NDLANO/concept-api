@@ -8,7 +8,7 @@ package no.ndla.conceptapi.controller
 
 import no.ndla.conceptapi.model.api.{NewConcept, NotFoundException, UpdatedConcept}
 import no.ndla.conceptapi.{ConceptSwagger, TestData, TestEnvironment}
-import no.ndla.conceptapi.repository.UnitSuite
+import no.ndla.conceptapi.UnitSuite
 import org.json4s.DefaultFormats
 import org.json4s.native.Serialization.write
 import org.mockito.ArgumentMatchers.{any, eq => eqTo}
