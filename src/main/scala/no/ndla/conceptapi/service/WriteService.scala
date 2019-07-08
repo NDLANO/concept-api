@@ -11,12 +11,13 @@ import no.ndla.conceptapi.repository.ConceptRepository
 import no.ndla.conceptapi.model.domain
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api.NotFoundException
+import no.ndla.conceptapi.service.search.ConceptIndexService
 import no.ndla.conceptapi.validation._
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Try}
 
 trait WriteService {
-  this: ConceptRepository with ConverterService with ContentValidator =>
+  this: ConceptRepository with ConverterService with ContentValidator with ConceptIndexService =>
   val writeService: WriteService
 
   class WriteService {
@@ -26,7 +27,7 @@ trait WriteService {
         concept <- converterService.toDomainConcept(newConcept)
         _ <- contentValidator.validateConcept(concept, allowUnknownLanguage = false)
         persistedConcept <- Try(conceptRepository.insert(concept))
-        //_ <- conceptIndexService.indexDocument(concept)
+        _ <- conceptIndexService.indexDocument(persistedConcept)
         apiC <- converterService.toApiConcept(persistedConcept, newConcept.language, fallback = true)
       } yield apiC
     }
@@ -35,7 +36,7 @@ trait WriteService {
       for {
         _ <- contentValidator.validateConcept(toUpdate, allowUnknownLanguage = true)
         domainConcept <- conceptRepository.update(toUpdate)
-        //_ <- conceptIndexService.indexDocument(domainConcept)
+        _ <- conceptIndexService.indexDocument(domainConcept)
       } yield domainConcept
     }
 
