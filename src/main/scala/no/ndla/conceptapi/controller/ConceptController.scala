@@ -205,7 +205,7 @@ trait ConceptController {
 
       scrollSearchOr(scrollId, language) {
         val query = paramOrNone(this.query.paramName)
-        val sort = Sort.valueOf(paramOrDefault(this.sort.paramName, ""))
+        val sort = Sort.valueOf(paramOrDefault(this.sort.paramName, "title"))
         val pageSize = intOrDefault(this.pageSize.paramName, ConceptApiProperties.DefaultPageSize)
         val page = intOrDefault(this.pageNo.paramName, 1)
         val idList = paramAsListOfLong(this.conceptIds.paramName)
@@ -237,8 +237,8 @@ trait ConceptController {
         body match {
           case Success(searchParams) =>
             val query = searchParams.query
-            val sort = Sort.valueOf(searchParams.sort.getOrElse(""))
-            val language = searchParams.language.getOrElse(Language.NoLanguage)
+            val sort = Sort.valueOf(searchParams.sort.getOrElse("title"))
+            val language = searchParams.language.getOrElse(Language.AllLanguages)
             val pageSize = searchParams.pageSize.getOrElse(ConceptApiProperties.DefaultPageSize)
             val page = searchParams.page.getOrElse(1)
             val idList = searchParams.idList
