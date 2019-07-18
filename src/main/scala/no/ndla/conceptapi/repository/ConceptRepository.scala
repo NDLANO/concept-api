@@ -40,6 +40,7 @@ trait ConceptRepository {
       concept.copy(id = Some(conceptId))
     }
 
+
     def update(concept: Concept)(implicit session: DBSession = AutoSession): Try[Concept] = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
