@@ -93,6 +93,9 @@ object TestData {
     Set("nn", "nb")
   )
 
+
+
+
   val sampleNewConcept = api.NewConcept("nb", "Tittel", Some("Innhold"), None)
   val updatedConcept = api.UpdatedConcept("nb", None, Some("Innhold"), None)
 
