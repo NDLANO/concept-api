@@ -9,16 +9,17 @@ package no.ndla.conceptapi.service
 
 import java.util.Date
 
-import scala.util.Failure
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.domain
+import no.ndla.conceptapi.model.domain._
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
 import org.joda.time.DateTime
-import org.mockito.Mockito
-
-import scala.util.{Failure, Success, Try}
+import org.mockito.ArgumentMatchers._
+import scala.util.{Failure, Try}
 import org.mockito.Mockito._
 import org.mockito.{ArgumentCaptor, Mockito}
+import org.mockito.invocation.InvocationOnMock
+import scalikejdbc.DBSession
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
 
@@ -30,44 +31,48 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
 
   val concept: api.Concept =
-    TestData.sampleApiConcept.copy(id = conceptId.toLong, created = yesterday, updated = today)
-  println("concept", concept)
+    TestData.sampleNbApiConcept.copy(id = conceptId.toLong)
+
+
+  val domainConcept: domain.Concept = TestData.sampleNbDomainConcept.copy(id=Option(conceptId.toLong))
+
 
 
   override def beforeEach(): Unit = {
     Mockito.reset( conceptRepository )
-/*
-    when(conceptRepository.withId(conceptId)).thenReturn(Option(domain.concept))
-    when(conceptRepository.getExternalIdsFromId(any[Long])(any[DBSession])).thenReturn(List("1234"))
-    when(clock.now()).thenReturn(today)
-    when(conceptRepository.updateConcept(any[Concept], any[Boolean])(any[DBSession]))
+
+    when(conceptRepository.withId(conceptId)).thenReturn(Option(domainConcept))
+    when(conceptRepository.update(any[Concept])(any[DBSession]))
       .thenAnswer((invocation: InvocationOnMock) => {
-        val arg = invocation.getArgument[Article](0)
-        Try(arg.copy(revision = Some(arg.revision.get + 1)))
+        val arg = invocation.getArgument[Concept](0)
+        Try(arg)
       })
-*/
+
   }
 
 
 
   test("That delete article should fail when only one language") {
     val Failure(result) = service.deleteLanguage(concept.id, "nb")
-    println(result.getMessage)
+
     result.getMessage should equal("Only one language left")
   }
-/*
-  test("That delete article removes language from all languagefields") {
-    val article =
-      TestData.sampleDomainArticle.copy(id = Some(3),
-        title = Seq(ArticleTitle("title", "nb"), ArticleTitle("title", "nn")))
-    val articleCaptor: ArgumentCaptor[Article] = ArgumentCaptor.forClass(classOf[Article])
 
-    when(draftRepository.withId(anyLong())).thenReturn(Some(article))
-    service.deleteLanguage(article.id.get, "nn")
-    verify(draftRepository).updateArticle(articleCaptor.capture(), anyBoolean())
 
-    articleCaptor.getValue.title.length should be(1)
+  test("That delete concept removes language from all languagefields") {
+    val concept =
+      TestData.sampleNbDomainConcept.copy(id = Some(3.toLong),
+        title = Seq(ConceptTitle("title", "nb"), ConceptTitle("title", "nn")))
+    val conceptCaptor: ArgumentCaptor[Concept] = ArgumentCaptor.forClass(classOf[Concept])
+
+    when(conceptRepository.withId(anyLong())).thenReturn(Some(concept))
+
+    service.deleteLanguage(concept.id.get, "nn")
+    verify(conceptRepository).update(conceptCaptor.capture())
+
+    conceptCaptor.getValue.title.length should be(1)
   }
-*/
+
+
 
 }
