@@ -41,8 +41,7 @@ trait TestEnvironment
     with ConverterService
     with ContentValidator
     with Clock
-    with User
-    {
+    with User {
 
   val conceptRepository = mock[ConceptRepository]
   val conceptController = mock[ConceptController]

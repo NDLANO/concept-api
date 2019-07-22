@@ -40,6 +40,18 @@ trait ConceptRepository {
       concept.copy(id = Some(conceptId))
     }
 
+    def newConceptId()(implicit session: DBSession = AutoSession): Try[Long] = {
+      Try(
+        sql"""select max(article_id) from ${Concept.table}"""
+          .map(rs => rs.longOpt("max"))
+          .single()
+          .apply()
+      ) match {
+        case Success(Some(Some(id))) => Success(1 + id)
+        case Success(_)              => Success(1)
+        case Failure(ex)             => Failure(ex)
+      }
+    }
 
     def update(concept: Concept)(implicit session: DBSession = AutoSession): Try[Concept] = {
       val dataObject = new PGobject()

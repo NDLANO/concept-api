@@ -43,6 +43,7 @@ object TestData {
     today,
     Set("nn", "nb")
   )
+
   val sampleNbDomainConcept = domain.Concept(
     Some(1),
     Seq(domain.ConceptTitle("Tittel", "nb")),
@@ -52,7 +53,6 @@ object TestData {
     None,
     yesterday,
     today
-
   )
 
   val sampleConcept = Concept(
@@ -103,9 +103,6 @@ object TestData {
     today,
     Set("nn", "nb")
   )
-
-
-
 
   val sampleNewConcept = api.NewConcept("nb", "Tittel", Some("Innhold"), None)
   val updatedConcept = api.UpdatedConcept("nb", None, Some("Innhold"), None)

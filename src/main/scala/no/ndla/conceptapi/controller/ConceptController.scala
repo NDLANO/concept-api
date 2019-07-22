@@ -11,14 +11,21 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.ConceptApiProperties
 import no.ndla.conceptapi.service.search.{ConceptSearchService, SearchConverterService}
 import no.ndla.conceptapi.auth.User
-import no.ndla.conceptapi.model.api.{Concept, ConceptSearchParams, ConceptSearchResult, Error, NewConcept, UpdatedConcept, ValidationError}
+import no.ndla.conceptapi.model.api.{
+  Concept,
+  ConceptSearchParams,
+  ConceptSearchResult,
+  Error,
+  NewConcept,
+  UpdatedConcept,
+  ValidationError
+}
 import no.ndla.conceptapi.model.domain.{Language, Sort}
 import no.ndla.conceptapi.service.{ConverterService, ReadService, WriteService}
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
 import org.scalatra.{Created, Ok}
 import no.ndla.conceptapi.model.api.NotFoundException
-
 
 import scala.util.{Failure, Success}
 
@@ -264,7 +271,7 @@ trait ConceptController {
         val id = long(this.conceptId.paramName)
         language match {
           case Some(language) => writeService.deleteLanguage(id, language)
-          case None => Failure(NotFoundException("Language not found"))
+          case None           => Failure(NotFoundException("Language not found"))
         }
       }
     }

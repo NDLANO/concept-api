@@ -23,23 +23,18 @@ import scalikejdbc.DBSession
 
 class WriteServiceTest extends UnitSuite with TestEnvironment {
 
-
   val today: Date = DateTime.now().toDate
   val yesterday: Date = DateTime.now().minusDays(1).toDate
   val service = new WriteService()
   val conceptId = 13
 
-
   val concept: api.Concept =
     TestData.sampleNbApiConcept.copy(id = conceptId.toLong)
 
-
-  val domainConcept: domain.Concept = TestData.sampleNbDomainConcept.copy(id=Option(conceptId.toLong))
-
-
+  val domainConcept: domain.Concept = TestData.sampleNbDomainConcept.copy(id = Option(conceptId.toLong))
 
   override def beforeEach(): Unit = {
-    Mockito.reset( conceptRepository )
+    Mockito.reset(conceptRepository)
 
     when(conceptRepository.withId(conceptId)).thenReturn(Option(domainConcept))
     when(conceptRepository.update(any[Concept])(any[DBSession]))
@@ -50,19 +45,16 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   }
 
-
-
-  test("That delete article should fail when only one language") {
+  test("That delete concept should fail when only one language") {
     val Failure(result) = service.deleteLanguage(concept.id, "nb")
 
     result.getMessage should equal("Only one language left")
   }
 
-
   test("That delete concept removes language from all languagefields") {
     val concept =
       TestData.sampleNbDomainConcept.copy(id = Some(3.toLong),
-        title = Seq(ConceptTitle("title", "nb"), ConceptTitle("title", "nn")))
+                                          title = Seq(ConceptTitle("title", "nb"), ConceptTitle("title", "nn")))
     val conceptCaptor: ArgumentCaptor[Concept] = ArgumentCaptor.forClass(classOf[Concept])
 
     when(conceptRepository.withId(anyLong())).thenReturn(Some(concept))
@@ -72,7 +64,5 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     conceptCaptor.getValue.title.length should be(1)
   }
-
-
 
 }
