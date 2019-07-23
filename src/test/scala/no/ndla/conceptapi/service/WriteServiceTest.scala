@@ -77,6 +77,31 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     service.updateConcept(conceptId, updatedApiConcept).get should equal(expectedConcept)
   }
 
+  test("That updateConcept updates multiple fields properly") {
+    val updatedTitle = "NyTittelTestJee"
+    val updatedContent = "NyContentTestYepp"
+    val updatedCopyright =
+      api.Copyright(None, Some("c"), Seq(api.Author("Opphavsmann", "Katrine")), List(), List(), None, None, None)
+
+    val updatedApiConcept = api.UpdatedConcept(
+      ("en"),
+      Some(updatedTitle),
+      Some(updatedContent),
+      Some(updatedCopyright)
+    )
+
+    val expectedConcept = concept.copy(
+      title = Option(api.ConceptTitle(updatedTitle, "en")),
+      content = Option(api.ConceptContent(updatedContent, "en")),
+      copyright = Some(
+        api.Copyright(None, Some("c"), Seq(api.Author("Opphavsmann", "Katrine")), List(), List(), None, None, None)),
+      supportedLanguages = Set("nb", "en")
+    )
+
+    service.updateConcept(conceptId, updatedApiConcept) should equal(Success(expectedConcept))
+
+  }
+
   test("That delete concept should fail when only one language") {
     val Failure(result) = service.deleteLanguage(concept.id, "nb")
 
