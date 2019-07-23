@@ -40,19 +40,6 @@ trait ConceptRepository {
       concept.copy(id = Some(conceptId))
     }
 
-    def newConceptId()(implicit session: DBSession = AutoSession): Try[Long] = {
-      Try(
-        sql"""select max(article_id) from ${Concept.table}"""
-          .map(rs => rs.longOpt("max"))
-          .single()
-          .apply()
-      ) match {
-        case Success(Some(Some(id))) => Success(1 + id)
-        case Success(_)              => Success(1)
-        case Failure(ex)             => Failure(ex)
-      }
-    }
-
     def update(concept: Concept)(implicit session: DBSession = AutoSession): Try[Concept] = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
@@ -64,16 +51,6 @@ trait ConceptRepository {
         case Failure(ex) =>
           logger.warn(s"Failed to update concept with id ${concept.id}: ${ex.getMessage}")
           Failure(ex)
-      }
-    }
-
-    def delete(conceptId: Long)(implicit session: DBSession = AutoSession): Try[Long] = {
-      val numRows =
-        sql"delete from ${Concept.table} where id = $conceptId".update().apply
-      if (numRows == 1) {
-        Success(conceptId)
-      } else {
-        Failure(NotFoundException(s"Concept with id $conceptId does not exist"))
       }
     }
 
