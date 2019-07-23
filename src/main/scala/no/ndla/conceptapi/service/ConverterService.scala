@@ -104,7 +104,6 @@ trait ConverterService {
       val domainContent = updateConcept.content
         .map(c => domain.ConceptContent(c, updateConcept.language))
         .toSeq
-
       toMergeInto.copy(
         title = mergeLanguageFields(toMergeInto.title, domainTitle),
         content = mergeLanguageFields(toMergeInto.content, domainContent),

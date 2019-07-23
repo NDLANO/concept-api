@@ -10,7 +10,7 @@ package no.ndla.conceptapi
 import no.ndla.conceptapi.auth.{Role, UserInfo}
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.domain
-import no.ndla.conceptapi.model.domain.{Concept, ConceptContent, ConceptTitle, Copyright}
+import no.ndla.conceptapi.model.domain.{ConceptContent, ConceptTitle, Copyright}
 import org.joda.time.DateTime
 import org.parboiled2.RuleTrace.Optional
 
@@ -55,7 +55,7 @@ object TestData {
     today
   )
 
-  val sampleConcept = Concept(
+  val sampleConcept = domain.Concept(
     Some(1),
     Seq(ConceptTitle("Tittel for begrep", "nb")),
     Seq(ConceptContent("Innhold for begrep", "nb")),
