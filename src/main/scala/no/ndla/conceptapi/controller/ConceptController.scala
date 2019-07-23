@@ -25,6 +25,7 @@ import no.ndla.conceptapi.service.{ConverterService, ReadService, WriteService}
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
 import org.scalatra.{Created, Ok}
+import no.ndla.conceptapi.model.api.NotFoundException
 
 import scala.util.{Failure, Success}
 
@@ -246,6 +247,31 @@ trait ConceptController {
 
             search(query, sort, language, page, pageSize, idList, fallback)
           case Failure(ex) => errorHandler(ex)
+        }
+      }
+    }
+
+    delete(
+      "/:concept_id",
+      operation(
+        apiOperation[Concept]("deleteLanguage")
+          summary "Delete language from concept"
+          description "Delete language from concept"
+          parameters (
+            asHeaderParam(correlationId),
+            asPathParam(conceptId),
+            asQueryParam(pathLanguage)
+        )
+          authorizations "oauth2"
+          responseMessages (response400, response403, response404, response500))
+    ) {
+      val userInfo = user.getUser
+      val language = paramOrNone(this.language.paramName)
+      doOrAccessDenied(userInfo.canWrite) {
+        val id = long(this.conceptId.paramName)
+        language match {
+          case Some(language) => writeService.deleteLanguage(id, language)
+          case None           => Failure(NotFoundException("Language not found"))
         }
       }
     }

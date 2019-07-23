@@ -54,16 +54,6 @@ trait ConceptRepository {
       }
     }
 
-    def delete(conceptId: Long)(implicit session: DBSession = AutoSession): Try[Long] = {
-      val numRows =
-        sql"delete from ${Concept.table} where id = $conceptId".update().apply
-      if (numRows == 1) {
-        Success(conceptId)
-      } else {
-        Failure(NotFoundException(s"Concept with id $conceptId does not exist"))
-      }
-    }
-
     def withId(id: Long): Option[Concept] =
       conceptWhere(sqls"co.id=${id.toInt}")
 

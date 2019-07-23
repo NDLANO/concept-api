@@ -56,5 +56,28 @@ trait WriteService {
       }
     }
 
+    def deleteLanguage(id: Long, language: String): Try[api.Concept] = {
+      conceptRepository.withId(id) match {
+        case Some(concept) =>
+          concept.title.size match {
+            case 1 => Failure(api.OperationNotAllowedException("Only one language left"))
+            case _ =>
+              val title = concept.title.filter(_.language != language)
+              val content = concept.content.filter(_.language != language)
+              val newConcept = concept.copy(
+                title = title,
+                content = content,
+              )
+              conceptRepository
+                .update(newConcept)
+                .flatMap(
+                  converterService.toApiConcept(_, domain.Language.AllLanguages, false)
+                )
+          }
+        case None => Failure(NotFoundException("Concept does not exist"))
+      }
+
+    }
+
   }
 }

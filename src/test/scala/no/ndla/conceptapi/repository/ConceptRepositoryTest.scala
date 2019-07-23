@@ -69,14 +69,4 @@ class ConceptRepositoryTest extends IntegrationSuite with TestEnvironment {
     repository.withId(id3).get.content should be(art3.content)
   }
 
-  test("Delete concept work as expected") {
-    assume(databaseIsAvailable, "Database is unavailable")
-
-    val id = repository.insert(domainConcept).id.get
-    repository.withId(id).nonEmpty should be(true)
-    repository.delete(id)
-    repository.withId(id) should be(None)
-
-  }
-
 }
