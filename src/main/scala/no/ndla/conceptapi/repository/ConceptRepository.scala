@@ -9,7 +9,7 @@ package no.ndla.conceptapi.repository
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.integration.DataSource
-import no.ndla.conceptapi.model.api.NotFoundException
+import no.ndla.conceptapi.model.api.{ConceptMissingIdException, NotFoundException}
 import no.ndla.conceptapi.model.domain.Concept
 import org.json4s.Formats
 import org.postgresql.util.PGobject
@@ -38,6 +38,23 @@ trait ConceptRepository {
 
       logger.info(s"Inserted new concept: $conceptId")
       concept.copy(id = Some(conceptId))
+    }
+
+    def insertWithId(concept: Concept)(implicit session: DBSession = AutoSession): Try[Concept] = {
+      concept.id match {
+        case Some(id) =>
+          val dataObject = new PGobject()
+          dataObject.setType("jsonb")
+          dataObject.setValue(write(concept))
+
+          Try(sql"""insert into ${Concept.table} (id, document)
+                    values ($id, ${dataObject})""".update.apply)
+
+          logger.info(s"Inserted new concept: $id")
+          Success(concept)
+        case None =>
+          Failure(ConceptMissingIdException("Attempted to insert concept without an id."))
+      }
     }
 
     def update(concept: Concept)(implicit session: DBSession = AutoSession): Try[Concept] = {

@@ -61,6 +61,8 @@ object Error {
 
 case class NotFoundException(message: String, supportedLanguages: Seq[String] = Seq.empty)
     extends RuntimeException(message)
+case class ConceptMissingIdException(message: String) extends RuntimeException(message)
+case class ConceptExistsAlready(message: String) extends RuntimeException(message)
 case class ArticlePublishException(message: String) extends RuntimeException(message)
 case class ArticleVersioningException(message: String) extends RuntimeException(message)
 

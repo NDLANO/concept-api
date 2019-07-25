@@ -10,12 +10,10 @@ package no.ndla.conceptapi.controller
 import no.ndla.conceptapi.ConceptApiProperties
 import no.ndla.conceptapi.service.search.{ConceptIndexService, IndexService}
 import org.json4s.Formats
-import org.scalatra.{GatewayTimeout, InternalServerError, Ok, Unauthorized}
+import org.scalatra.{InternalServerError, Ok, Unauthorized}
 import org.scalatra.swagger.Swagger
 import no.ndla.conceptapi.auth.{User, UserInfo}
-import no.ndla.conceptapi.model.S3UploadException
 import no.ndla.conceptapi.service.{ConverterService, ImportService}
-import no.ndla.conceptapi.model.api.NDLAErrors
 
 import scala.util.{Failure, Success}
 
@@ -59,32 +57,26 @@ trait InternController {
 
     post("/import") {
       UserInfo.get match {
-        case Some(value) =>
+        case Some(x) if x.canWrite =>
           val start = System.currentTimeMillis
+          val forceUpdate = booleanOrDefault("forceUpdate", default = false)
 
-          importService.importConcepts() match {
-            case Success(concept) => {
-              Ok(converterService.asApiImageMetaInformationWithDomainUrlV2(imageMeta, None))
-            }
-
-            case Failure(ex: Throwable) => {
+          importService.importConcepts(forceUpdate) match {
+            case Success(result) =>
+              if (result.numSuccessfullyImportedConcepts < result.totalAttemptedImportedConcepts) {
+                InternalServerError(result)
+              } else {
+                Ok(result)
+              }
+            case Failure(ex) =>
               val errMsg =
                 s"Import of concepts failed after ${System.currentTimeMillis - start} ms with error: ${ex.getMessage}\n"
               logger.warn(errMsg, ex)
               InternalServerError(body = errMsg)
-            }
           }
-        case None => Unauthorized("No access for u")
+        case _ => Unauthorized("No access for u")
       }
 
-    }
-
-    get("/dump/concept") {
-      // Dumps Domain articles
-      val pageNo = intOrDefault("page", 1)
-      val pageSize = intOrDefault("page-size", 250)
-
-      // readService.getArticleDomainDump(pageNo, pageSize)
     }
 
   }
