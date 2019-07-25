@@ -11,7 +11,13 @@ import com.typesafe.scalalogging.LazyLogging
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.conceptapi.controller.{ConceptController, HealthController, InternController}
 import no.ndla.conceptapi.auth.User
-import no.ndla.conceptapi.integration.{DataSource, Elastic4sClient, Elastic4sClientFactory, NdlaE4sClient}
+import no.ndla.conceptapi.integration.{
+  ArticleApiClient,
+  DataSource,
+  Elastic4sClient,
+  Elastic4sClientFactory,
+  NdlaE4sClient
+}
 import no.ndla.conceptapi.repository.ConceptRepository
 import no.ndla.conceptapi.service.search.{
   ConceptIndexService,
@@ -20,8 +26,9 @@ import no.ndla.conceptapi.service.search.{
   SearchConverterService,
   SearchService
 }
-import no.ndla.conceptapi.service.{Clock, ConverterService, ReadService, WriteService}
+import no.ndla.conceptapi.service.{Clock, ConverterService, ImportService, ReadService, WriteService}
 import no.ndla.conceptapi.validation.ContentValidator
+import no.ndla.network.NdlaClient
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
 object ComponentRegistry
@@ -37,12 +44,15 @@ object ComponentRegistry
     with LazyLogging
     with HealthController
     with ConceptSearchService
+    with ImportService
     with SearchService
     with SearchConverterService
     with Elastic4sClient
     with ConceptIndexService
     with IndexService
-    with InternController {
+    with InternController
+    with ArticleApiClient
+    with NdlaClient {
 
   lazy val conceptController = new ConceptController
   lazy val conceptRepository = new ConceptRepository
@@ -52,6 +62,11 @@ object ComponentRegistry
   lazy val searchConverterService = new SearchConverterService
   lazy val conceptIndexService = new ConceptIndexService
   lazy val e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient()
+
+  lazy val ndlaClient = new NdlaClient
+  lazy val articleApiClient = new ArticleApiClient
+
+  lazy val importService = new ImportService
 
   lazy val writeService = new WriteService
   lazy val readService = new ReadService
