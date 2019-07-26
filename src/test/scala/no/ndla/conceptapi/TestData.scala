@@ -39,6 +39,7 @@ object TestData {
     Some(api.ConceptTitle("Tittel", "nb")),
     Some(api.ConceptContent("Innhold", "nb")),
     None,
+    None,
     yesterday,
     today,
     Set("nn", "nb")
@@ -52,7 +53,8 @@ object TestData {
     ),
     None,
     yesterday,
-    today
+    today,
+    Seq(domain.ConceptMetaImage("", "", "")),
   )
 
   val sampleConcept = domain.Concept(
@@ -61,7 +63,8 @@ object TestData {
     Seq(ConceptContent("Innhold for begrep", "nb")),
     Some(Copyright(Some("publicdomain"), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None, None)),
     DateTime.now().minusDays(4).toDate,
-    DateTime.now().minusDays(2).toDate
+    DateTime.now().minusDays(2).toDate,
+    Seq(domain.ConceptMetaImage("", "", "")),
   )
 
   val sampleApiConcept = api.Concept(
@@ -77,6 +80,7 @@ object TestData {
                     None,
                     None,
                     None)),
+    None,
     DateTime.now().minusDays(4).toDate,
     DateTime.now().minusDays(2).toDate,
     Set("nb")
@@ -91,7 +95,8 @@ object TestData {
     ),
     None,
     yesterday,
-    today
+    today,
+    Seq(domain.ConceptMetaImage("", "", "")),
   )
 
   val sampleNnApiConcept = api.Concept(
@@ -99,12 +104,13 @@ object TestData {
     Some(api.ConceptTitle("Tittelur", "nn")),
     Some(api.ConceptContent("Innhald", "nn")),
     None,
+    None,
     yesterday,
     today,
     Set("nn", "nb")
   )
 
-  val sampleNewConcept = api.NewConcept("nb", "Tittel", Some("Innhold"), None)
-  val updatedConcept = api.UpdatedConcept("nb", None, Some("Innhold"), None)
+  val sampleNewConcept = api.NewConcept("nb", "Tittel", Some("Innhold"), None, None)
+  val updatedConcept = api.UpdatedConcept("nb", None, Some("Innhold"), None, None)
 
 }

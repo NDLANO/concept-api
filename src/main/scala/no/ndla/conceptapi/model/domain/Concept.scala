@@ -20,7 +20,8 @@ case class Concept(id: Option[Long],
                    content: Seq[ConceptContent],
                    copyright: Option[Copyright],
                    created: Date,
-                   updated: Date) {
+                   updated: Date,
+                   metaImage: Seq[ConceptMetaImage]) {
   lazy val supportedLanguages: Set[String] =
     (content union title).map(_.language).toSet
 }
@@ -41,7 +42,8 @@ object Concept extends SQLSyntaxSupport[Concept] {
       meta.content,
       meta.copyright,
       meta.created,
-      meta.updated
+      meta.updated,
+      meta.metaImage
     )
   }
 

@@ -16,5 +16,7 @@ case class UpdatedConcept(
     @(ApiModelProperty @field)(description = "The language of this concept") language: String,
     @(ApiModelProperty @field)(description = "Available titles for the concept") title: Option[String],
     @(ApiModelProperty @field)(description = "The content of the concept") content: Option[String],
+    @(ApiModelProperty @field)(description = "An image-api ID for the concept meta image") metaImage: Option[
+      NewConceptMetaImage],
     @(ApiModelProperty @field)(description = "Describes the copyright information for the concept") copyright: Option[
       Copyright])

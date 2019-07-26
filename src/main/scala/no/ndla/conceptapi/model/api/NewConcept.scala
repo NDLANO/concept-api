@@ -17,4 +17,6 @@ case class NewConcept(
     @(ApiModelProperty @field)(description = "Available titles for the concept") title: String,
     @(ApiModelProperty @field)(description = "The content of the concept") content: Option[String],
     @(ApiModelProperty @field)(description = "Describes the copyright information for the concept") copyright: Option[
-      Copyright])
+      Copyright],
+    @(ApiModelProperty @field)(description = "An image-api ID for the concept meta image") metaImage: Option[
+      NewConceptMetaImage])
