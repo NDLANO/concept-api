@@ -31,6 +31,18 @@ object Concept extends SQLSyntaxSupport[Concept] {
   override val tableName = "conceptdata"
   override val schemaName = Some(ConceptApiProperties.MetaSchema)
 
+  // This Constructor is needed since json4s doesn't understand that it shouldn't attempt the other constructors if some fields are missing
+  // Added cause metaImage are a new field and article-api doesn't dump it.
+  // Can be removed after importing is done.
+  def apply(id: Option[Long],
+            title: Seq[ConceptTitle],
+            content: Seq[ConceptContent],
+            copyright: Option[Copyright],
+            created: Date,
+            updated: Date): Concept = {
+    new Concept(id, title, content, copyright, created, updated, Seq.empty)
+  }
+
   def apply(lp: SyntaxProvider[Concept])(rs: WrappedResultSet): Concept =
     apply(lp.resultName)(rs)
 

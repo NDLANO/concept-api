@@ -24,7 +24,7 @@ trait WriteService {
   class WriteService {
 
     def saveImportedConcepts(concepts: Seq[domain.Concept], forceUpdate: Boolean): Seq[Try[domain.Concept]] = {
-      val savedConcepts = concepts.map(concept => {
+      concepts.map(concept => {
         if (concept.id.exists(conceptRepository.exists)) {
           if (forceUpdate) {
             updateConcept(concept) match {
@@ -39,14 +39,9 @@ trait WriteService {
             Failure(ConceptExistsAlready("The concept already exists."))
           }
         } else {
-
           conceptRepository.insertWithId(concept)
         }
-
       })
-
-      conceptRepository.updateIdCounterToHighestId()
-      savedConcepts
     }
 
     def newConcept(newConcept: api.NewConcept): Try[api.Concept] = {

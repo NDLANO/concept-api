@@ -8,6 +8,7 @@
 package no.ndla.conceptapi.repository
 
 import com.typesafe.scalalogging.LazyLogging
+import no.ndla.conceptapi.ConceptApiProperties
 import no.ndla.conceptapi.integration.DataSource
 import no.ndla.conceptapi.model.api.{ConceptMissingIdException, NotFoundException}
 import no.ndla.conceptapi.model.domain.Concept
@@ -137,11 +138,12 @@ trait ConceptRepository {
         .getOrElse(0)
     }
 
-    def updateIdCounterToHighestId()(implicit session: DBSession = AutoSession): Boolean = {
-      val idToStartAt = getHighestId() + 1
-      sql"""
-         alter sequence ${Concept.table}_id_seq restart with $idToStartAt
-       """.execute().apply()
+    def updateIdCounterToHighestId()(implicit session: DBSession = AutoSession): Int = {
+      val idToStartAt = SQLSyntax.createUnsafely((getHighestId() + 1).toString)
+      val sequenceName = SQLSyntax.createUnsafely(
+        s"${Concept.schemaName.getOrElse(ConceptApiProperties.MetaSchema)}.${Concept.tableName}_id_seq")
+
+      sql"alter sequence $sequenceName restart with $idToStartAt;".executeUpdate().apply()
     }
   }
 }

@@ -36,6 +36,8 @@ trait ImportService {
         })
         .toList
 
+      conceptRepository.updateIdCounterToHighestId()
+
       done.collect { case Failure(ex) => Failure(ex) } match {
         case Nil =>
           val successfulPages = done.collect {
