@@ -128,5 +128,20 @@ trait ConceptRepository {
         .single()
         .apply()
         .getOrElse(0)
+
+    private def getHighestId(implicit session: DBSession = ReadOnlyAutoSession): Long = {
+      sql"select id from ${Concept.table} order by id desc limit 1"
+        .map(rs => rs.long("id"))
+        .single()
+        .apply()
+        .getOrElse(0)
+    }
+
+    def updateIdCounterToHighestId()(implicit session: DBSession = AutoSession): Boolean = {
+      val idToStartAt = getHighestId() + 1
+      sql"""
+         alter sequence ${Concept.table}_id_seq restart with $idToStartAt
+       """.execute().apply()
+    }
   }
 }

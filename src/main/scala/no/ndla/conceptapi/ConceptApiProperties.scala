@@ -56,7 +56,7 @@ object ConceptApiProperties extends LazyLogging {
   val ConceptSearchDocument = "concept"
   val DefaultPageSize = 10
   val MaxPageSize = 100
-  val IndexBulkSize = 200
+  val IndexBulkSize = 10
   val ElasticSearchIndexMaxResultWindow = 10000
   val ElasticSearchScrollKeepAlive = "10s"
 

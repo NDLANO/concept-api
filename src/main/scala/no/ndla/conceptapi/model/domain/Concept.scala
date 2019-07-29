@@ -48,7 +48,6 @@ object Concept extends SQLSyntaxSupport[Concept] {
   }
 
   val JSonSerializer = FieldSerializer[Concept](
-    ignore("id") orElse
-      ignore("revision")
+    ignore("id")
   )
 }
