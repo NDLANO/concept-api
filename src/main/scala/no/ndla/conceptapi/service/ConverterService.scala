@@ -112,6 +112,10 @@ trait ConverterService {
       val domainContent = updateConcept.content
         .map(c => domain.ConceptContent(c, updateConcept.language))
         .toSeq
+      val domainMetaImage = updateConcept.metaImage
+        .map(m => domain.ConceptMetaImage(m.id, m.alt, updateConcept.language))
+        .toSeq
+
       toMergeInto.copy(
         title = mergeLanguageFields(toMergeInto.title, domainTitle),
         content = mergeLanguageFields(toMergeInto.content, domainContent),
@@ -119,7 +123,8 @@ trait ConverterService {
           .map(toDomainCopyright)
           .orElse(toMergeInto.copyright),
         created = toMergeInto.created,
-        updated = clock.now()
+        updated = clock.now(),
+        metaImage = mergeLanguageFields(toMergeInto.metaImage, domainMetaImage)
       )
     }
 

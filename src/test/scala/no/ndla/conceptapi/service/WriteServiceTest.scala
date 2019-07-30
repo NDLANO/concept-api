@@ -82,23 +82,24 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val updatedContent = "NyContentTestYepp"
     val updatedCopyright =
       api.Copyright(None, Some("c"), Seq(api.Author("Opphavsmann", "Katrine")), List(), List(), None, None, None)
+    val updatedMetaImage = api.NewConceptMetaImage("2", "AltTxt")
 
     val updatedApiConcept = api.UpdatedConcept(
-      ("en"),
+      "en",
       Some(updatedTitle),
       Some(updatedContent),
-      None,
+      Some(updatedMetaImage),
       Some(updatedCopyright)
     )
 
     val expectedConcept = concept.copy(
       title = Option(api.ConceptTitle(updatedTitle, "en")),
       content = Option(api.ConceptContent(updatedContent, "en")),
+      metaImage = Some(api.ConceptMetaImage("http://api-gateway.ndla-local/image-api/raw/id/2", "AltTxt", "en")),
       copyright = Some(
         api.Copyright(None, Some("c"), Seq(api.Author("Opphavsmann", "Katrine")), List(), List(), None, None, None)),
       supportedLanguages = Set("nb", "en")
     )
-
     service.updateConcept(conceptId, updatedApiConcept) should equal(Success(expectedConcept))
 
   }
