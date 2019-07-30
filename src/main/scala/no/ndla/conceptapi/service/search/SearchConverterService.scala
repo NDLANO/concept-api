@@ -48,7 +48,8 @@ trait SearchConverterService {
         id = c.id.get,
         title = SearchableLanguageValues(c.title.map(title => LanguageValue(title.language, title.title))),
         content = SearchableLanguageValues(c.content.map(content => LanguageValue(content.language, content.content))),
-        defaultTitle = defaultTitle.map(_.title)
+        defaultTitle = defaultTitle.map(_.title),
+        metaImage = c.metaImage
       )
     }
 
@@ -68,11 +69,16 @@ trait SearchConverterService {
         .findByLanguageOrBestEffort(contents, language)
         .map(converterService.toApiConceptContent)
         .getOrElse(api.ConceptContent("", Language.UnknownLanguage))
+      val metaImage = Language
+        .findByLanguageOrBestEffort(searchableConcept.metaImage, language)
+        .map(converterService.toApiMetaImage)
+        .getOrElse(api.ConceptMetaImage("", "", Language.UnknownLanguage))
 
       api.ConceptSummary(
         searchableConcept.id,
         title,
         concept,
+        metaImage,
         supportedLanguages
       )
     }
