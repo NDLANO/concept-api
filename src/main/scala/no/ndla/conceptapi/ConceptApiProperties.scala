@@ -56,7 +56,7 @@ object ConceptApiProperties extends LazyLogging {
   val ConceptSearchDocument = "concept"
   val DefaultPageSize = 10
   val MaxPageSize = 100
-  val IndexBulkSize = 200
+  val IndexBulkSize = 250
   val ElasticSearchIndexMaxResultWindow = 10000
   val ElasticSearchScrollKeepAlive = "10s"
 
@@ -73,6 +73,10 @@ object ConceptApiProperties extends LazyLogging {
         throw new RuntimeException(s"Unable to load remote secrets from $SecretsFile", exception)
     }
   }
+
+  val externalApiUrls: Map[String, String] = Map(
+    "raw-image" -> s"$Domain/image-api/raw/id"
+  )
 
   def booleanProp(key: String): Boolean = prop(key).toBoolean
 

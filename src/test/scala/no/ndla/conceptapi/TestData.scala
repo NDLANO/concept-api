@@ -39,6 +39,7 @@ object TestData {
     Some(api.ConceptTitle("Tittel", "nb")),
     Some(api.ConceptContent("Innhold", "nb")),
     None,
+    Some(api.ConceptMetaImage("http://api-gateway.ndla-local/image-api/raw/id/1", "Hei", "nb")),
     yesterday,
     today,
     Set("nn", "nb")
@@ -52,7 +53,8 @@ object TestData {
     ),
     None,
     yesterday,
-    today
+    today,
+    Seq(domain.ConceptMetaImage("1", "Hei", "nb")),
   )
 
   val sampleConcept = domain.Concept(
@@ -61,7 +63,8 @@ object TestData {
     Seq(ConceptContent("Innhold for begrep", "nb")),
     Some(Copyright(Some("publicdomain"), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None, None)),
     DateTime.now().minusDays(4).toDate,
-    DateTime.now().minusDays(2).toDate
+    DateTime.now().minusDays(2).toDate,
+    Seq(domain.ConceptMetaImage("1", "Hei", "nb")),
   )
 
   val sampleApiConcept = api.Concept(
@@ -77,6 +80,7 @@ object TestData {
                     None,
                     None,
                     None)),
+    Some(api.ConceptMetaImage("http://api-gateway.ndla-local/image-api/raw/id/1", "Hei", "nb")),
     DateTime.now().minusDays(4).toDate,
     DateTime.now().minusDays(2).toDate,
     Set("nb")
@@ -91,7 +95,8 @@ object TestData {
     ),
     None,
     yesterday,
-    today
+    today,
+    Seq(domain.ConceptMetaImage("1", "Hei", "nb"), domain.ConceptMetaImage("2", "Hej", "nn")),
   )
 
   val sampleNnApiConcept = api.Concept(
@@ -99,12 +104,13 @@ object TestData {
     Some(api.ConceptTitle("Tittelur", "nn")),
     Some(api.ConceptContent("Innhald", "nn")),
     None,
+    Some(api.ConceptMetaImage("http://api-gateway.ndla-local/image-api/raw/id/2", "Hej", "nn")),
     yesterday,
     today,
     Set("nn", "nb")
   )
 
-  val sampleNewConcept = api.NewConcept("nb", "Tittel", Some("Innhold"), None)
-  val updatedConcept = api.UpdatedConcept("nb", None, Some("Innhold"), None)
+  val sampleNewConcept = api.NewConcept("nb", "Tittel", Some("Innhold"), None, None)
+  val updatedConcept = api.UpdatedConcept("nb", None, Some("Innhold"), None, None)
 
 }

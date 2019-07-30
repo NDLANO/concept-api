@@ -15,10 +15,8 @@ import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api.NotFoundException
 import no.ndla.conceptapi.model.domain.LanguageField
 import no.ndla.mapping.License.getLicense
-import org.joda.time.format.ISODateTimeFormat
+import no.ndla.conceptapi.ConceptApiProperties._
 
-import scala.util
-import scala.util.control.Exception.allCatch
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
@@ -36,6 +34,9 @@ trait ConverterService {
         val content = findByLanguageOrBestEffort(concept.content, language)
           .map(toApiConceptContent)
           .getOrElse(api.ConceptContent("", UnknownLanguage))
+        val metaImage = findByLanguageOrBestEffort(concept.metaImage, language)
+          .map(toApiMetaImage)
+          .getOrElse(api.ConceptMetaImage("", "", UnknownLanguage))
 
         Success(
           api.Concept(
@@ -43,9 +44,10 @@ trait ConverterService {
             Some(title),
             Some(content),
             concept.copyright.map(toApiCopyright),
+            Some(metaImage),
             concept.created,
             concept.updated,
-            concept.supportedLanguages
+            concept.supportedLanguages,
           )
         )
       } else {
@@ -83,6 +85,11 @@ trait ConverterService {
     def toApiConceptContent(title: domain.ConceptContent): api.ConceptContent =
       api.ConceptContent(title.content, title.language)
 
+    def toApiMetaImage(metaImage: domain.ConceptMetaImage): api.ConceptMetaImage =
+      api.ConceptMetaImage(s"${externalApiUrls("raw-image")}/${metaImage.imageId}",
+                           metaImage.altText,
+                           metaImage.language)
+
     def toDomainConcept(concept: api.NewConcept): Try[domain.Concept] = {
       Success(
         domain.Concept(
@@ -93,7 +100,8 @@ trait ConverterService {
             .getOrElse(Seq.empty),
           concept.copyright.map(toDomainCopyright),
           clock.now(),
-          clock.now()
+          clock.now(),
+          concept.metaImage.map(m => domain.ConceptMetaImage(m.id, m.alt, concept.language)).toSeq
         ))
     }
 
@@ -104,6 +112,10 @@ trait ConverterService {
       val domainContent = updateConcept.content
         .map(c => domain.ConceptContent(c, updateConcept.language))
         .toSeq
+      val domainMetaImage = updateConcept.metaImage
+        .map(m => domain.ConceptMetaImage(m.id, m.alt, updateConcept.language))
+        .toSeq
+
       toMergeInto.copy(
         title = mergeLanguageFields(toMergeInto.title, domainTitle),
         content = mergeLanguageFields(toMergeInto.content, domainContent),
@@ -111,20 +123,22 @@ trait ConverterService {
           .map(toDomainCopyright)
           .orElse(toMergeInto.copyright),
         created = toMergeInto.created,
-        updated = clock.now()
+        updated = clock.now(),
+        metaImage = mergeLanguageFields(toMergeInto.metaImage, domainMetaImage)
       )
     }
 
-    def toDomainConcept(id: Long, article: api.UpdatedConcept): domain.Concept = {
-      val lang = article.language
+    def toDomainConcept(id: Long, concept: api.UpdatedConcept): domain.Concept = {
+      val lang = concept.language
 
       domain.Concept(
         id = Some(id),
-        title = article.title.map(t => domain.ConceptTitle(t, lang)).toSeq,
-        content = article.content.map(c => domain.ConceptContent(c, lang)).toSeq,
-        copyright = article.copyright.map(toDomainCopyright),
+        title = concept.title.map(t => domain.ConceptTitle(t, lang)).toSeq,
+        content = concept.content.map(c => domain.ConceptContent(c, lang)).toSeq,
+        copyright = concept.copyright.map(toDomainCopyright),
         created = clock.now(),
-        updated = clock.now()
+        updated = clock.now(),
+        metaImage = concept.metaImage.map(m => domain.ConceptMetaImage(m.id, m.alt, lang)).toSeq
       )
     }
 
