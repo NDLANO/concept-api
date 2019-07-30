@@ -52,15 +52,7 @@ trait ArticleApiClient {
 
     def get[T](path: String, params: Map[String, Any], timeout: Int)(implicit mf: Manifest[T]): Try[T] = {
       implicit val formats: Formats = org.json4s.DefaultFormats ++ org.json4s.ext.JodaTimeSerializers.all
-      import org.json4s.native.Serialization.read
-      val resp =
-        ndlaClient.fetchRawWithForwardedAuth(Http((baseUrl / path).addParams(params.toList)).timeout(timeout, timeout))
-
-      val y = resp.map(x => {
-        val parsed = read[T](x.body)
-        parsed
-      })
-      y
+      ndlaClient.fetchWithForwardedAuth[T](Http((baseUrl / path).addParams(params.toList)).timeout(timeout, timeout))
     }
 
     private def getChunk(page: Int, pageSize: Int): Try[ConceptDomainDumpResults] = {

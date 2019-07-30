@@ -15,10 +15,8 @@ import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api.NotFoundException
 import no.ndla.conceptapi.model.domain.LanguageField
 import no.ndla.mapping.License.getLicense
-import org.joda.time.format.ISODateTimeFormat
+import no.ndla.conceptapi.ConceptApiProperties._
 
-import scala.util
-import scala.util.control.Exception.allCatch
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
@@ -88,7 +86,7 @@ trait ConverterService {
       api.ConceptContent(title.content, title.language)
 
     def toApiMetaImage(metaImage: domain.ConceptMetaImage): api.ConceptMetaImage =
-      api.ConceptMetaImage(metaImage.imageId /*TODO: This should be converted to url*/,
+      api.ConceptMetaImage(s"${externalApiUrls("raw-image")}/${metaImage.imageId}",
                            metaImage.altText,
                            metaImage.language)
 
