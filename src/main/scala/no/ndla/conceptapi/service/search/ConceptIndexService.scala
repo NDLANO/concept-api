@@ -36,7 +36,12 @@ trait ConceptIndexService {
       mapping(documentType).fields(
         List(
           intField("id"),
-          keywordField("defaultTitle")
+          keywordField("defaultTitle"),
+          nestedField("metaImage").fields(
+            keywordField("imageId"),
+            keywordField("altText"),
+            keywordField("language")
+          )
         ) ++
           generateLanguageSupportedFieldList("title", keepRaw = true) ++
           generateLanguageSupportedFieldList("content")
