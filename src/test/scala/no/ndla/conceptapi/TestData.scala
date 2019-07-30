@@ -39,7 +39,7 @@ object TestData {
     Some(api.ConceptTitle("Tittel", "nb")),
     Some(api.ConceptContent("Innhold", "nb")),
     None,
-    None,
+    Some(api.ConceptMetaImage("http://api-gateway.ndla-local/image-api/raw/id/1", "Hei", "nb")),
     yesterday,
     today,
     Set("nn", "nb")
@@ -54,7 +54,7 @@ object TestData {
     None,
     yesterday,
     today,
-    Seq(domain.ConceptMetaImage("", "", "")),
+    Seq(domain.ConceptMetaImage("1", "Hei", "nb")),
   )
 
   val sampleConcept = domain.Concept(
@@ -64,7 +64,7 @@ object TestData {
     Some(Copyright(Some("publicdomain"), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None, None)),
     DateTime.now().minusDays(4).toDate,
     DateTime.now().minusDays(2).toDate,
-    Seq(domain.ConceptMetaImage("", "", "")),
+    Seq(domain.ConceptMetaImage("1", "Hei", "nb")),
   )
 
   val sampleApiConcept = api.Concept(
@@ -80,7 +80,7 @@ object TestData {
                     None,
                     None,
                     None)),
-    None,
+    Some(api.ConceptMetaImage("http://api-gateway.ndla-local/image-api/raw/id/1", "Hei", "nb")),
     DateTime.now().minusDays(4).toDate,
     DateTime.now().minusDays(2).toDate,
     Set("nb")
@@ -96,7 +96,7 @@ object TestData {
     None,
     yesterday,
     today,
-    Seq(domain.ConceptMetaImage("", "", "")),
+    Seq(domain.ConceptMetaImage("1", "Hei", "nb"), domain.ConceptMetaImage("2", "Hej", "nn")),
   )
 
   val sampleNnApiConcept = api.Concept(
@@ -104,7 +104,7 @@ object TestData {
     Some(api.ConceptTitle("Tittelur", "nn")),
     Some(api.ConceptContent("Innhald", "nn")),
     None,
-    None,
+    Some(api.ConceptMetaImage("http://api-gateway.ndla-local/image-api/raw/id/2", "Hej", "nn")),
     yesterday,
     today,
     Set("nn", "nb")
