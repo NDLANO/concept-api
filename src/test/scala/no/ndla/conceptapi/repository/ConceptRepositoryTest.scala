@@ -35,10 +35,12 @@ class ConceptRepositoryTest extends IntegrationSuite with TestEnvironment {
   }
 
   override def beforeAll(): Unit = {
-    val datasource = testDataSource
-    if (serverIsListening) {
-      ConnectionPool.singleton(new DataSourceConnectionPool(datasource))
-      DBMigrator.migrate(datasource)
+    Try {
+      val datasource = testDataSource.get
+      if (serverIsListening) {
+        ConnectionPool.singleton(new DataSourceConnectionPool(datasource))
+        DBMigrator.migrate(datasource)
+      }
     }
   }
 
