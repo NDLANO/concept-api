@@ -51,13 +51,15 @@ trait ConceptSearchService {
 
       val titleSearch = simpleStringQuery(query).field(s"title.$language", 2)
       val contentSearch = simpleStringQuery(query).field(s"content.$language", 1)
+      val tagSearch = simpleStringQuery(query).field(s"tags.$language", 1)
 
       val fullQuery = boolQuery()
         .must(
           boolQuery()
             .should(
               titleSearch,
-              contentSearch
+              contentSearch,
+              tagSearch
             ))
 
       executeSearch(withIdIn, language, sort, page, pageSize, fullQuery, fallback)

@@ -120,7 +120,8 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
   val concept10: Concept = TestData.sampleConcept.copy(
     id = Option(10),
     title = List(ConceptTitle("Unrelated", "en"), ConceptTitle("Urelatert", "nb")),
-    content = List(ConceptContent("Pompel", "en"), ConceptContent("Pilt", "nb"))
+    content = List(ConceptContent("Pompel", "en"), ConceptContent("Pilt", "nb")),
+    tags = Seq(ConceptTags(Seq("cageowl"), "en"), ConceptTags(Seq("burugle"), "nb"))
   )
 
   val concept11: Concept = TestData.sampleConcept.copy(id = Option(11),
@@ -391,6 +392,18 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
     scroll4.results.map(_.id) should be(expectedIds(4))
     scroll5.results.map(_.id) should be(expectedIds(5))
     scroll6.results.map(_.id) should be(List.empty)
+  }
+
+  test("that searching for tags works") {
+    val Success(search) =
+      conceptSearchService.matchingQuery("burugle", List.empty, "all", 1, 10, Sort.ByIdAsc, fallback = false)
+
+    search.totalCount should be(1)
+    search.results.head.id should be(10)
+  }
+
+  test("that filtering with subject id should work as expected") {
+    ???
   }
 
   def blockUntil(predicate: () => Boolean): Unit = {
