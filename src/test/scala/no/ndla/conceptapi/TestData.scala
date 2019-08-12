@@ -41,7 +41,7 @@ object TestData {
     None,
     Some(api.ConceptMetaImage("http://api-gateway.ndla-local/image-api/raw/id/1", "Hei", "nb")),
     Some(api.ConceptTags(Seq("stor", "kaktus"), "nb")),
-    Set("urn:subject:3", "urn:subject:4"),
+    Some(Set("urn:subject:3", "urn:subject:4")),
     yesterday,
     today,
     Set("nn", "nb")
@@ -90,7 +90,7 @@ object TestData {
     None,
     Some(api.ConceptMetaImage("http://api-gateway.ndla-local/image-api/raw/id/2", "Hej", "nn")),
     Some(api.ConceptTags(Seq("liten", "fisk"), "nn")),
-    Set("urn:subject:3", "urn:subject:4"),
+    Some(Set("urn:subject:3", "urn:subject:4")),
     yesterday,
     today,
     Set("nn", "nb")

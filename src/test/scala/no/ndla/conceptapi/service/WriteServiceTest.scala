@@ -103,7 +103,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
         api.Copyright(None, Some("c"), Seq(api.Author("Opphavsmann", "Katrine")), List(), List(), None, None, None)),
       supportedLanguages = Set("nb", "en"),
       tags = Some(api.ConceptTags(Seq("Nye", "Tags"), "en")),
-      subjectIds = Set("urn:subject:900")
+      subjectIds = Some(Set("urn:subject:900"))
     )
 
     service.updateConcept(conceptId, updatedApiConcept) should equal(Success(expectedConcept))

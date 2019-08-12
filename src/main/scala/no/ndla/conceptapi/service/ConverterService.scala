@@ -49,7 +49,7 @@ trait ConverterService {
             concept.copyright.map(toApiCopyright),
             Some(metaImage),
             tags,
-            concept.subjectIds,
+            if (concept.subjectIds.isEmpty) None else Some(concept.subjectIds),
             concept.created,
             concept.updated,
             concept.supportedLanguages,

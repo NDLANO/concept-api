@@ -22,8 +22,8 @@ case class Concept(
       Copyright],
     @(ApiModelProperty @field)(description = "A meta image for the concept") metaImage: Option[ConceptMetaImage],
     @(ApiModelProperty @field)(description = "Search tags the concept is tagged with") tags: Option[ConceptTags],
-    @(ApiModelProperty @field)(description = "Taxonomy subject ids the concept is connected to") subjectIds: Set[
-      String],
+    @(ApiModelProperty @field)(description = "Taxonomy subject ids the concept is connected to") subjectIds: Option[
+      Set[String]],
     @(ApiModelProperty @field)(description = "When the concept was created") created: Date,
     @(ApiModelProperty @field)(description = "When the concept was last updated") updated: Date,
     @(ApiModelProperty @field)(description = "All available languages of the current concept") supportedLanguages: Set[
