@@ -9,25 +9,15 @@ package no.ndla.conceptapi.service.search
 
 import com.sksamuel.elastic4s.http.search.SearchHit
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.conceptapi.model.domain.Language
+import no.ndla.conceptapi.model.api.ConceptSearchResult
+import no.ndla.conceptapi.model.{api, domain}
+import no.ndla.conceptapi.model.domain.Language.getSupportedLanguages
+import no.ndla.conceptapi.model.domain.{Concept, Language, SearchResult}
+import no.ndla.conceptapi.model.search._
 import no.ndla.conceptapi.service.ConverterService
 import no.ndla.mapping.ISO639
-import no.ndla.network.ApplicationUrl
-import org.joda.time.DateTime
 import org.json4s._
-import org.json4s.native.JsonMethods._
 import org.json4s.native.Serialization.read
-import org.jsoup.Jsoup
-import no.ndla.conceptapi.model.api
-import no.ndla.conceptapi.model.api.ConceptSearchResult
-import no.ndla.conceptapi.model.domain
-import no.ndla.conceptapi.model.domain.{Concept, SearchResult}, Language.getSupportedLanguages
-import no.ndla.conceptapi.model.search.{
-  LanguageValue,
-  SearchableConcept,
-  SearchableLanguageFormats,
-  SearchableLanguageValues
-}
 
 trait SearchConverterService {
   this: ConverterService =>
@@ -49,7 +39,9 @@ trait SearchConverterService {
         title = SearchableLanguageValues(c.title.map(title => LanguageValue(title.language, title.title))),
         content = SearchableLanguageValues(c.content.map(content => LanguageValue(content.language, content.content))),
         defaultTitle = defaultTitle.map(_.title),
-        metaImage = c.metaImage
+        metaImage = c.metaImage,
+        tags = SearchableLanguageList(c.tags.map(tag => LanguageValue(tag.language, tag.tags))),
+        subjectIds = c.subjectIds.toSeq
       )
     }
 

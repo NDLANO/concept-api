@@ -10,7 +10,7 @@ package no.ndla.conceptapi.model.domain
 import java.util.Date
 
 import no.ndla.conceptapi.ConceptApiProperties
-import org.json4s.FieldSerializer
+import org.json4s.{DefaultFormats, FieldSerializer}
 import org.json4s.FieldSerializer._
 import org.json4s.native.Serialization._
 import scalikejdbc._
@@ -21,13 +21,15 @@ case class Concept(id: Option[Long],
                    copyright: Option[Copyright],
                    created: Date,
                    updated: Date,
-                   metaImage: Seq[ConceptMetaImage]) {
+                   metaImage: Seq[ConceptMetaImage],
+                   tags: Seq[ConceptTags],
+                   subjectIds: Set[String]) {
   lazy val supportedLanguages: Set[String] =
     (content union title).map(_.language).toSet
 }
 
 object Concept extends SQLSyntaxSupport[Concept] {
-  implicit val formats = org.json4s.DefaultFormats
+  implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
   override val tableName = "conceptdata"
   override val schemaName = Some(ConceptApiProperties.MetaSchema)
 
@@ -40,7 +42,7 @@ object Concept extends SQLSyntaxSupport[Concept] {
             copyright: Option[Copyright],
             created: Date,
             updated: Date): Concept = {
-    new Concept(id, title, content, copyright, created, updated, Seq.empty)
+    new Concept(id, title, content, copyright, created, updated, Seq.empty, Seq.empty, Set.empty)
   }
 
   def apply(lp: SyntaxProvider[Concept])(rs: WrappedResultSet): Concept =
@@ -55,11 +57,13 @@ object Concept extends SQLSyntaxSupport[Concept] {
       meta.copyright,
       meta.created,
       meta.updated,
-      meta.metaImage
+      meta.metaImage,
+      meta.tags,
+      meta.subjectIds
     )
   }
 
-  val JSonSerializer = FieldSerializer[Concept](
+  val JSonSerializer: FieldSerializer[Concept] = FieldSerializer[Concept](
     ignore("id")
   )
 }

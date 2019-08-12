@@ -61,16 +61,17 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   test("That update function updates only content properly") {
     val newContent = "NewContentTest"
-    val updatedApiConcept = api.UpdatedConcept("en", None, content = Some(newContent), None, None)
+    val updatedApiConcept = api.UpdatedConcept("en", None, content = Some(newContent), None, None, None, None)
     val expectedConcept = concept.copy(content = Option(api.ConceptContent(newContent, "en")),
                                        updated = today,
                                        supportedLanguages = Set("nb", "en"))
-    service.updateConcept(conceptId, updatedApiConcept).get should equal(expectedConcept)
+    val result = service.updateConcept(conceptId, updatedApiConcept).get
+    result should equal(expectedConcept)
   }
 
   test("That update function updates only title properly") {
     val newTitle = "NewTitleTest"
-    val updatedApiConcept = api.UpdatedConcept("nn", title = Some(newTitle), None, None, None)
+    val updatedApiConcept = api.UpdatedConcept("nn", title = Some(newTitle), None, None, None, None, None)
     val expectedConcept = concept.copy(title = Option(api.ConceptTitle(newTitle, "nn")),
                                        updated = today,
                                        supportedLanguages = Set("nb", "nn"))
@@ -89,7 +90,9 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       Some(updatedTitle),
       Some(updatedContent),
       Some(updatedMetaImage),
-      Some(updatedCopyright)
+      Some(updatedCopyright),
+      Some(Seq("Nye", "Tags")),
+      Some(Seq("urn:subject:900"))
     )
 
     val expectedConcept = concept.copy(
@@ -98,8 +101,11 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       metaImage = Some(api.ConceptMetaImage("http://api-gateway.ndla-local/image-api/raw/id/2", "AltTxt", "en")),
       copyright = Some(
         api.Copyright(None, Some("c"), Seq(api.Author("Opphavsmann", "Katrine")), List(), List(), None, None, None)),
-      supportedLanguages = Set("nb", "en")
+      supportedLanguages = Set("nb", "en"),
+      tags = Some(api.ConceptTags(Seq("Nye", "Tags"), "en")),
+      subjectIds = Set("urn:subject:900")
     )
+
     service.updateConcept(conceptId, updatedApiConcept) should equal(Success(expectedConcept))
 
   }

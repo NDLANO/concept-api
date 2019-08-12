@@ -19,4 +19,8 @@ case class UpdatedConcept(
     @(ApiModelProperty @field)(description = "An image-api ID for the concept meta image") metaImage: Option[
       NewConceptMetaImage],
     @(ApiModelProperty @field)(description = "Describes the copyright information for the concept") copyright: Option[
-      Copyright])
+      Copyright],
+    @(ApiModelProperty @field)(description = "A list of searchable tags") tags: Option[Seq[String]],
+    @(ApiModelProperty @field)(description = "A list of taxonomy subject ids the concept is connected to") subjectIds: Option[
+      Seq[String]]
+)
