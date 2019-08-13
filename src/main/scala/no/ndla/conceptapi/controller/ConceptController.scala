@@ -71,15 +71,17 @@ trait ConceptController {
     private def getResponseScrollHeader(result: SearchResult[_]) =
       result.scrollId.map(i => this.scrollId.paramName -> i).toMap
 
-    private def search(query: Option[String],
-                       sort: Option[Sort.Value],
-                       language: String,
-                       page: Int,
-                       pageSize: Int,
-                       idList: List[Long],
-                       fallback: Boolean,
-                       subjectIds: Set[String]) = {
-
+    private def search(
+        query: Option[String],
+        sort: Option[Sort.Value],
+        language: String,
+        page: Int,
+        pageSize: Int,
+        idList: List[Long],
+        fallback: Boolean,
+        subjectIds: Set[String],
+        tagsToFilterBy: Set[String]
+    ) = {
       val settings = SearchSettings(
         withIdIn = idList,
         searchLanguage = language,
@@ -87,7 +89,8 @@ trait ConceptController {
         pageSize = pageSize,
         sort = sort.getOrElse(Sort.ByRelevanceDesc),
         fallback = fallback,
-        subjectIds = subjectIds
+        subjectIds = subjectIds,
+        tagsToFilterBy = tagsToFilterBy
       )
 
       val result = query match {
@@ -209,8 +212,9 @@ trait ConceptController {
         val idList = paramAsListOfLong(this.conceptIds.paramName)
         val fallback = booleanOrDefault(this.fallback.paramName, default = false)
         val subjectIds = paramAsListOfString(this.subjectIds.paramName)
+        val tagsToFilterBy = paramAsListOfString(this.tagsToFilterBy.paramName)
 
-        search(query, sort, language, page, pageSize, idList, fallback, subjectIds.toSet)
+        search(query, sort, language, page, pageSize, idList, fallback, subjectIds.toSet, tagsToFilterBy.toSet)
 
       }
     }
@@ -243,8 +247,9 @@ trait ConceptController {
             val idList = searchParams.idList
             val fallback = searchParams.fallback.getOrElse(false)
             val subjectIds = searchParams.subjectIds
+            val tagsToFilterBy = searchParams.tags
 
-            search(query, sort, language, page, pageSize, idList, fallback, subjectIds)
+            search(query, sort, language, page, pageSize, idList, fallback, subjectIds, tagsToFilterBy)
           case Failure(ex) => errorHandler(ex)
         }
       }

@@ -9,5 +9,6 @@ case class SearchSettings(
     pageSize: Int,
     sort: Sort.Value,
     fallback: Boolean,
-    subjectIds: Set[String]
+    subjectIds: Set[String],
+    tagsToFilterBy: Set[String]
 )

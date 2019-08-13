@@ -139,6 +139,7 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
     10,
     Sort.ByIdAsc,
     false,
+    Set.empty,
     Set.empty
   )
 
@@ -411,6 +412,17 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
 
     search.totalCount should be(2)
     search.results.map(_.id) should be(Seq(9, 10))
+  }
+
+  test("that filtering for tags works as expected") {
+    val Success(search) = conceptSearchService.all(searchSettings.copy(tagsToFilterBy = Set("burugle")))
+    search.totalCount should be(1)
+    search.results.map(_.id) should be(Seq(10))
+
+    val Success(search1) =
+      conceptSearchService.all(searchSettings.copy(tagsToFilterBy = Set("burugle"), searchLanguage = "all"))
+    search1.totalCount should be(1)
+    search1.results.map(_.id) should be(Seq(10))
   }
 
   def blockUntil(predicate: () => Boolean): Unit = {

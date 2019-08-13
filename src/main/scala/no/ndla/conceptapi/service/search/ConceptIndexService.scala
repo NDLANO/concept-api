@@ -46,7 +46,7 @@ trait ConceptIndexService {
         ) ++
           generateLanguageSupportedFieldList("title", keepRaw = true) ++
           generateLanguageSupportedFieldList("content") ++
-          generateLanguageSupportedFieldList("tags")
+          generateLanguageSupportedFieldList("tags", keepRaw = true)
       )
     }
 

@@ -19,6 +19,7 @@ import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api.ResultWindowTooLargeException
 import no.ndla.conceptapi.model.domain.{Language, SearchResult, Sort}
 import no.ndla.conceptapi.model.search.SearchSettings
+import no.ndla.mapping.ISO639
 
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.{Failure, Success, Try}
@@ -78,7 +79,19 @@ trait ConceptSearchService {
                 )
               ))
 
-      val filters = List(idFilter, languageFilter, subjectFilter)
+      val tagFilter =
+        if (settings.tagsToFilterBy.isEmpty) None
+        else
+          Some(
+            boolQuery()
+              .should(
+                settings.tagsToFilterBy
+                  .flatMap(t =>
+                    ISO639.languagePriority // Since termQuery doesn't support wildcard in field we need to create one for each language.
+                      .map(l => termQuery(s"tags.$l.raw", t)))
+              ))
+
+      val filters = List(idFilter, languageFilter, subjectFilter, tagFilter)
       val filteredSearch = queryBuilder.filter(filters.flatten)
 
       val (startAt, numResults) = getStartAtAndNumResults(settings.page, settings.pageSize)
