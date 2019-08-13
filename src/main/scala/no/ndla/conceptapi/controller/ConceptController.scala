@@ -91,8 +91,9 @@ trait ConceptController {
       )
 
       val result = query match {
-        case Some(q) => conceptSearchService.matchingQuery(q, settings)
-        case None    => conceptSearchService.all(settings)
+        case Some(q) =>
+          conceptSearchService.matchingQuery(q, settings.copy(sort = sort.getOrElse(Sort.ByRelevanceDesc)))
+        case None => conceptSearchService.all(settings.copy(sort = sort.getOrElse(Sort.ByTitleDesc)))
       }
 
       result match {
@@ -202,7 +203,7 @@ trait ConceptController {
 
       scrollSearchOr(scrollId, language) {
         val query = paramOrNone(this.query.paramName)
-        val sort = Sort.valueOf(paramOrDefault(this.sort.paramName, "title"))
+        val sort = paramOrNone(this.sort.paramName).flatMap(Sort.valueOf)
         val pageSize = intOrDefault(this.pageSize.paramName, ConceptApiProperties.DefaultPageSize)
         val page = intOrDefault(this.pageNo.paramName, 1)
         val idList = paramAsListOfLong(this.conceptIds.paramName)
@@ -235,7 +236,7 @@ trait ConceptController {
         body match {
           case Success(searchParams) =>
             val query = searchParams.query
-            val sort = Sort.valueOf(searchParams.sort.getOrElse("title"))
+            val sort = searchParams.sort.flatMap(Sort.valueOf)
             val language = searchParams.language.getOrElse(Language.AllLanguages)
             val pageSize = searchParams.pageSize.getOrElse(ConceptApiProperties.DefaultPageSize)
             val page = searchParams.page.getOrElse(1)
