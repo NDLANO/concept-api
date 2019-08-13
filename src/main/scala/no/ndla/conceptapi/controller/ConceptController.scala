@@ -9,7 +9,6 @@ package no.ndla.conceptapi.controller
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.ConceptApiProperties
-import no.ndla.conceptapi.service.search.{ConceptSearchService, SearchConverterService}
 import no.ndla.conceptapi.auth.User
 import no.ndla.conceptapi.model.api.{
   Concept,
@@ -17,15 +16,17 @@ import no.ndla.conceptapi.model.api.{
   ConceptSearchResult,
   Error,
   NewConcept,
+  NotFoundException,
   UpdatedConcept,
   ValidationError
 }
-import no.ndla.conceptapi.model.domain.{Language, Sort}
-import no.ndla.conceptapi.service.{ConverterService, ReadService, WriteService}
+import no.ndla.conceptapi.model.domain.{Language, SearchResult, Sort}
+import no.ndla.conceptapi.model.search.SearchSettings
+import no.ndla.conceptapi.service.search.{ConceptSearchService, SearchConverterService}
+import no.ndla.conceptapi.service.{ReadService, WriteService}
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
 import org.scalatra.{Created, Ok}
-import no.ndla.conceptapi.model.api.NotFoundException
 
 import scala.util.{Failure, Success}
 
@@ -61,12 +62,14 @@ trait ConceptController {
         case Some(scroll) =>
           conceptSearchService.scroll(scroll, language) match {
             case Success(scrollResult) =>
-              val responseHeader = scrollResult.scrollId.map(i => this.scrollId.paramName -> i).toMap
-              Ok(searchConverterService.asApiConceptSearchResult(scrollResult), headers = responseHeader)
+              Ok(searchConverterService.asApiConceptSearchResult(scrollResult), getResponseScrollHeader(scrollResult))
             case Failure(ex) => errorHandler(ex)
           }
         case None => orFunction
       }
+
+    private def getResponseScrollHeader(result: SearchResult[_]) =
+      result.scrollId.map(i => this.scrollId.paramName -> i).toMap
 
     private def search(query: Option[String],
                        sort: Option[Sort.Value],
@@ -76,33 +79,23 @@ trait ConceptController {
                        idList: List[Long],
                        fallback: Boolean) = {
 
-      val result = query match {
-        case Some(q) =>
-          conceptSearchService.matchingQuery(
-            query = q,
-            withIdIn = idList,
-            searchLanguage = language,
-            page = page,
-            pageSize = pageSize,
-            sort = sort.getOrElse(Sort.ByRelevanceDesc),
-            fallback = fallback
-          )
+      val settings = SearchSettings(
+        withIdIn = idList,
+        searchLanguage = language,
+        page = page,
+        pageSize = pageSize,
+        sort = sort.getOrElse(Sort.ByRelevanceDesc),
+        fallback = fallback
+      )
 
-        case None =>
-          conceptSearchService.all(
-            withIdIn = idList,
-            language = language,
-            page = page,
-            pageSize = pageSize,
-            sort = sort.getOrElse(Sort.ByTitleAsc),
-            fallback = fallback
-          )
+      val result = query match {
+        case Some(q) => conceptSearchService.matchingQuery(q, settings)
+        case None    => conceptSearchService.all(settings)
       }
 
       result match {
         case Success(searchResult) =>
-          val responseHeader = searchResult.scrollId.map(i => this.scrollId.paramName -> i).toMap
-          Ok(searchConverterService.asApiConceptSearchResult(searchResult), headers = responseHeader)
+          Ok(searchConverterService.asApiConceptSearchResult(searchResult), getResponseScrollHeader(searchResult))
         case Failure(ex) => errorHandler(ex)
       }
 
