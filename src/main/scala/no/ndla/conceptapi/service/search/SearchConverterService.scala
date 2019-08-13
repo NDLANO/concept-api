@@ -50,6 +50,7 @@ trait SearchConverterService {
       val searchableConcept = read[SearchableConcept](hitString)
       val titles = searchableConcept.title.languageValues.map(lv => domain.ConceptTitle(lv.value, lv.language))
       val contents = searchableConcept.content.languageValues.map(lv => domain.ConceptContent(lv.value, lv.language))
+      val tags = searchableConcept.tags.languageValues.map(lv => domain.ConceptTags(lv.value, lv.language))
 
       val supportedLanguages = getSupportedLanguages(Seq(titles, contents))
 
@@ -65,13 +66,17 @@ trait SearchConverterService {
         .findByLanguageOrBestEffort(searchableConcept.metaImage, language)
         .map(converterService.toApiMetaImage)
         .getOrElse(api.ConceptMetaImage("", "", Language.UnknownLanguage))
+      val tag = Language.findByLanguageOrBestEffort(tags, language).map(converterService.toApiTags)
+      val subjectIds = Option(searchableConcept.subjectIds.toSet).filter(_.nonEmpty)
 
       api.ConceptSummary(
-        searchableConcept.id,
-        title,
-        concept,
-        metaImage,
-        supportedLanguages
+        id = searchableConcept.id,
+        title = title,
+        content = concept,
+        metaImage = metaImage,
+        tags = tag,
+        subjectIds = subjectIds,
+        supportedLanguages = supportedLanguages
       )
     }
 

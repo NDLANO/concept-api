@@ -38,8 +38,7 @@ trait ConverterService {
           .map(toApiMetaImage)
           .getOrElse(api.ConceptMetaImage("", "", UnknownLanguage))
 
-        val tags = findByLanguageOrBestEffort(concept.tags, language)
-          .map(toApiTags)
+        val tags = findByLanguageOrBestEffort(concept.tags, language).map(toApiTags)
 
         Success(
           api.Concept(
@@ -62,7 +61,7 @@ trait ConverterService {
       }
     }
 
-    private def toApiTags(tags: domain.ConceptTags) = {
+    def toApiTags(tags: domain.ConceptTags) = {
       api.ConceptTags(
         tags.tags,
         tags.language
