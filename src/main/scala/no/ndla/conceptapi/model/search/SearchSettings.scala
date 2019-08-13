@@ -8,5 +8,6 @@ case class SearchSettings(
     page: Int,
     pageSize: Int,
     sort: Sort.Value,
-    fallback: Boolean
+    fallback: Boolean,
+    subjectIds: Set[String]
 )

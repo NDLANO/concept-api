@@ -115,6 +115,9 @@ abstract class NdlaController() extends ScalatraServlet with NativeJsonSupport w
       """.stripMargin
   )
 
+  protected val subjectIds =
+    Param[Option[String]]("subjectIds", "A comma-separated list of subjectIds that should appear in the search.")
+
   protected def asHeaderParam[T: Manifest: NotNothing](param: Param[T]) =
     headerParam[T](param.paramName).description(param.description)
   protected def asQueryParam[T: Manifest: NotNothing](param: Param[T]) =

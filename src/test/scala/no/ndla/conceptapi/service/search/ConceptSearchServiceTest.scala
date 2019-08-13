@@ -109,20 +109,23 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
   val concept8: Concept = TestData.sampleConcept.copy(
     id = Option(8),
     title = List(ConceptTitle("Baldur har mareritt", "nb")),
-    content = List(ConceptContent("<p>Bilde av <em>Baldurs</em> mareritt om Ragnarok.", "nb"))
+    content = List(ConceptContent("<p>Bilde av <em>Baldurs</em> mareritt om Ragnarok.", "nb")),
+    subjectIds = Set("urn:subject:10")
   )
 
   val concept9: Concept = TestData.sampleConcept.copy(
     id = Option(9),
     title = List(ConceptTitle("Baldur har mareritt om Ragnarok", "nb")),
-    content = List(ConceptContent("<p>Bilde av <em>Baldurs</em> som har  mareritt.", "nb"))
+    content = List(ConceptContent("<p>Bilde av <em>Baldurs</em> som har  mareritt.", "nb")),
+    subjectIds = Set("urn:subject:1")
   )
 
   val concept10: Concept = TestData.sampleConcept.copy(
     id = Option(10),
     title = List(ConceptTitle("Unrelated", "en"), ConceptTitle("Urelatert", "nb")),
     content = List(ConceptContent("Pompel", "en"), ConceptContent("Pilt", "nb")),
-    tags = Seq(ConceptTags(Seq("cageowl"), "en"), ConceptTags(Seq("burugle"), "nb"))
+    tags = Seq(ConceptTags(Seq("cageowl"), "en"), ConceptTags(Seq("burugle"), "nb")),
+    subjectIds = Set("urn:subject:2")
   )
 
   val concept11: Concept = TestData.sampleConcept.copy(id = Option(11),
@@ -135,7 +138,8 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
     1,
     10,
     Sort.ByIdAsc,
-    false
+    false,
+    Set.empty
   )
 
   override def beforeAll: Unit = {
@@ -402,7 +406,11 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("that filtering with subject id should work as expected") {
-    ???
+    val Success(search) =
+      conceptSearchService.all(searchSettings.copy(subjectIds = Set("urn:subject:1", "urn:subject:2")))
+
+    search.totalCount should be(2)
+    search.results.map(_.id) should be(Seq(9, 10))
   }
 
   def blockUntil(predicate: () => Boolean): Unit = {

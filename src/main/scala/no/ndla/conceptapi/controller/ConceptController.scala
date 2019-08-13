@@ -77,7 +77,8 @@ trait ConceptController {
                        page: Int,
                        pageSize: Int,
                        idList: List[Long],
-                       fallback: Boolean) = {
+                       fallback: Boolean,
+                       subjectIds: Set[String]) = {
 
       val settings = SearchSettings(
         withIdIn = idList,
@@ -85,7 +86,8 @@ trait ConceptController {
         page = page,
         pageSize = pageSize,
         sort = sort.getOrElse(Sort.ByRelevanceDesc),
-        fallback = fallback
+        fallback = fallback,
+        subjectIds = subjectIds
       )
 
       val result = query match {
@@ -189,7 +191,8 @@ trait ConceptController {
             asQueryParam(pageSize),
             asQueryParam(sort),
             asQueryParam(fallback),
-            asQueryParam(scrollId)
+            asQueryParam(scrollId),
+            asQueryParam(subjectIds)
         )
           authorizations "oauth2"
           responseMessages response500)
@@ -204,8 +207,9 @@ trait ConceptController {
         val page = intOrDefault(this.pageNo.paramName, 1)
         val idList = paramAsListOfLong(this.conceptIds.paramName)
         val fallback = booleanOrDefault(this.fallback.paramName, default = false)
+        val subjectIds = paramAsListOfString(this.subjectIds.paramName)
 
-        search(query, sort, language, page, pageSize, idList, fallback)
+        search(query, sort, language, page, pageSize, idList, fallback, subjectIds.toSet)
 
       }
     }
@@ -237,8 +241,9 @@ trait ConceptController {
             val page = searchParams.page.getOrElse(1)
             val idList = searchParams.idList
             val fallback = searchParams.fallback.getOrElse(false)
+            val subjectIds = searchParams.subjectIds
 
-            search(query, sort, language, page, pageSize, idList, fallback)
+            search(query, sort, language, page, pageSize, idList, fallback, subjectIds)
           case Failure(ex) => errorHandler(ex)
         }
       }

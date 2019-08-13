@@ -67,7 +67,18 @@ trait ConceptSearchService {
             (Some(existsQuery(s"title.$lang")), lang)
       }
 
-      val filters = List(idFilter, languageFilter)
+      val subjectFilter =
+        if (settings.subjectIds.isEmpty) None
+        else
+          Some(
+            boolQuery()
+              .should(
+                settings.subjectIds.map(
+                  si => termQuery("subjectIds", si)
+                )
+              ))
+
+      val filters = List(idFilter, languageFilter, subjectFilter)
       val filteredSearch = queryBuilder.filter(filters.flatten)
 
       val (startAt, numResults) = getStartAtAndNumResults(settings.page, settings.pageSize)
