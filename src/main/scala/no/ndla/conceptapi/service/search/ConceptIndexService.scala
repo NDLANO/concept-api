@@ -37,6 +37,7 @@ trait ConceptIndexService {
         List(
           intField("id"),
           keywordField("defaultTitle"),
+          keywordField("subjectIds"),
           nestedField("metaImage").fields(
             keywordField("imageId"),
             keywordField("altText"),
@@ -44,7 +45,8 @@ trait ConceptIndexService {
           )
         ) ++
           generateLanguageSupportedFieldList("title", keepRaw = true) ++
-          generateLanguageSupportedFieldList("content")
+          generateLanguageSupportedFieldList("content") ++
+          generateLanguageSupportedFieldList("tags", keepRaw = true)
       )
     }
 

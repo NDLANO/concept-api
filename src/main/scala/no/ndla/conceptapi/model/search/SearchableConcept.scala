@@ -14,5 +14,7 @@ case class SearchableConcept(
     title: SearchableLanguageValues,
     content: SearchableLanguageValues,
     metaImage: Seq[domain.ConceptMetaImage],
-    defaultTitle: Option[String]
+    defaultTitle: Option[String],
+    tags: SearchableLanguageList,
+    subjectIds: Seq[String]
 )

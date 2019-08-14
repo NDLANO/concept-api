@@ -17,5 +17,8 @@ case class ConceptSummary(
     @(ApiModelProperty @field)(description = "Available titles for the concept") title: ConceptTitle,
     @(ApiModelProperty @field)(description = "The content of the concept in available languages") content: ConceptContent,
     @(ApiModelProperty @field)(description = "The metaImage of the concept") metaImage: ConceptMetaImage,
+    @(ApiModelProperty @field)(description = "Search tags the concept is tagged with") tags: Option[ConceptTags],
+    @(ApiModelProperty @field)(description = "Taxonomy subject ids the concept is connected to") subjectIds: Option[
+      Set[String]],
     @(ApiModelProperty @field)(description = "All available languages of the current concept") supportedLanguages: Seq[
       String])

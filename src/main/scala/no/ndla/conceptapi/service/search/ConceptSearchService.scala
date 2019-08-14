@@ -17,7 +17,9 @@ import no.ndla.conceptapi.service.ConverterService
 import no.ndla.conceptapi.ConceptApiProperties
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api.ResultWindowTooLargeException
-import no.ndla.conceptapi.model.domain.{SearchResult, Sort, Language}
+import no.ndla.conceptapi.model.domain.{Language, SearchResult, Sort}
+import no.ndla.conceptapi.model.search.SearchSettings
+import no.ndla.mapping.ISO639
 
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.{Failure, Success, Try}
@@ -32,61 +34,68 @@ trait ConceptSearchService {
     override def hitToApiModel(hitString: String, language: String): api.ConceptSummary =
       searchConverterService.hitAsConceptSummary(hitString, language)
 
-    def all(withIdIn: List[Long],
-            language: String,
-            page: Int,
-            pageSize: Int,
-            sort: Sort.Value,
-            fallback: Boolean): Try[SearchResult[api.ConceptSummary]] =
-      executeSearch(withIdIn, language, sort, page, pageSize, boolQuery(), fallback)
+    def all(settings: SearchSettings): Try[SearchResult[api.ConceptSummary]] = executeSearch(boolQuery(), settings)
 
-    def matchingQuery(query: String,
-                      withIdIn: List[Long],
-                      searchLanguage: String,
-                      page: Int,
-                      pageSize: Int,
-                      sort: Sort.Value,
-                      fallback: Boolean): Try[SearchResult[api.ConceptSummary]] = {
-      val language = if (searchLanguage == Language.AllLanguages) "*" else searchLanguage
+    def matchingQuery(query: String, settings: SearchSettings): Try[SearchResult[api.ConceptSummary]] = {
+      val language = if (settings.searchLanguage == Language.AllLanguages) "*" else settings.searchLanguage
 
       val titleSearch = simpleStringQuery(query).field(s"title.$language", 2)
       val contentSearch = simpleStringQuery(query).field(s"content.$language", 1)
+      val tagSearch = simpleStringQuery(query).field(s"tags.$language", 1)
 
       val fullQuery = boolQuery()
         .must(
           boolQuery()
             .should(
               titleSearch,
-              contentSearch
+              contentSearch,
+              tagSearch
             ))
 
-      executeSearch(withIdIn, language, sort, page, pageSize, fullQuery, fallback)
+      executeSearch(fullQuery, settings)
     }
 
-    def executeSearch(withIdIn: List[Long],
-                      language: String,
-                      sort: Sort.Value,
-                      page: Int,
-                      pageSize: Int,
-                      queryBuilder: BoolQuery,
-                      fallback: Boolean): Try[SearchResult[api.ConceptSummary]] = {
-      val idFilter = if (withIdIn.isEmpty) None else Some(idsQuery(withIdIn))
+    def executeSearch(queryBuilder: BoolQuery, settings: SearchSettings): Try[SearchResult[api.ConceptSummary]] = {
+      val idFilter = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
 
-      val (languageFilter, searchLanguage) = language match {
+      val (languageFilter, searchLanguage) = settings.searchLanguage match {
         case "" | Language.AllLanguages | "*" =>
           (None, "*")
         case lang =>
-          if (fallback)
+          if (settings.fallback)
             (None, "*")
           else
             (Some(existsQuery(s"title.$lang")), lang)
       }
 
-      val filters = List(idFilter, languageFilter)
+      val subjectFilter =
+        if (settings.subjectIds.isEmpty) None
+        else
+          Some(
+            boolQuery()
+              .should(
+                settings.subjectIds.map(
+                  si => termQuery("subjectIds", si)
+                )
+              ))
+
+      val tagFilter =
+        if (settings.tagsToFilterBy.isEmpty) None
+        else
+          Some(
+            boolQuery()
+              .should(
+                settings.tagsToFilterBy
+                  .flatMap(t =>
+                    ISO639.languagePriority // Since termQuery doesn't support wildcard in field we need to create one for each language.
+                      .map(l => termQuery(s"tags.$l.raw", t)))
+              ))
+
+      val filters = List(idFilter, languageFilter, subjectFilter, tagFilter)
       val filteredSearch = queryBuilder.filter(filters.flatten)
 
-      val (startAt, numResults) = getStartAtAndNumResults(page, pageSize)
-      val requestedResultWindow = pageSize * page
+      val (startAt, numResults) = getStartAtAndNumResults(settings.page, settings.pageSize)
+      val requestedResultWindow = settings.pageSize * settings.page
       if (requestedResultWindow > ConceptApiProperties.ElasticSearchIndexMaxResultWindow) {
         logger.info(
           s"Max supported results are ${ConceptApiProperties.ElasticSearchIndexMaxResultWindow}, user requested $requestedResultWindow")
@@ -98,7 +107,7 @@ trait ConceptSearchService {
             .from(startAt)
             .query(filteredSearch)
             .highlighting(highlight("*"))
-            .sortBy(getSortDefinition(sort, searchLanguage))
+            .sortBy(getSortDefinition(settings.sort, searchLanguage))
 
         val searchWithScroll =
           if (startAt != 0) { searchToExecute } else {
@@ -110,10 +119,10 @@ trait ConceptSearchService {
             Success(
               SearchResult(
                 response.result.totalHits,
-                Some(page),
+                Some(settings.page),
                 numResults,
                 if (searchLanguage == "*") Language.AllLanguages else searchLanguage,
-                getHits(response.result, language),
+                getHits(response.result, settings.searchLanguage),
                 response.result.scrollId
               ))
           case Failure(ex) =>

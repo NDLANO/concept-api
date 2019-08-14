@@ -65,8 +65,7 @@ trait WriteService {
     def updateConcept(id: Long, updatedConcept: api.UpdatedConcept): Try[api.Concept] = {
       conceptRepository.withId(id) match {
         case Some(concept) =>
-          val domainConcept =
-            converterService.toDomainConcept(concept, updatedConcept)
+          val domainConcept = converterService.toDomainConcept(concept, updatedConcept)
           updateConcept(domainConcept).flatMap(x =>
             converterService.toApiConcept(x, updatedConcept.language, fallback = true))
         case None if conceptRepository.exists(id) =>

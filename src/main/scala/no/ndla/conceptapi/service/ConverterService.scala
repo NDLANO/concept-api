@@ -38,6 +38,8 @@ trait ConverterService {
           .map(toApiMetaImage)
           .getOrElse(api.ConceptMetaImage("", "", UnknownLanguage))
 
+        val tags = findByLanguageOrBestEffort(concept.tags, language).map(toApiTags)
+
         Success(
           api.Concept(
             concept.id.get,
@@ -45,6 +47,8 @@ trait ConverterService {
             Some(content),
             concept.copyright.map(toApiCopyright),
             Some(metaImage),
+            tags,
+            if (concept.subjectIds.isEmpty) None else Some(concept.subjectIds),
             concept.created,
             concept.updated,
             concept.supportedLanguages,
@@ -55,6 +59,13 @@ trait ConverterService {
           NotFoundException(s"The concept with id ${concept.id.getOrElse(-1)} and language '$language' was not found.",
                             concept.supportedLanguages.toSeq))
       }
+    }
+
+    def toApiTags(tags: domain.ConceptTags) = {
+      api.ConceptTags(
+        tags.tags,
+        tags.language
+      )
     }
 
     def toApiCopyright(copyright: domain.Copyright): api.Copyright = {
@@ -93,17 +104,22 @@ trait ConverterService {
     def toDomainConcept(concept: api.NewConcept): Try[domain.Concept] = {
       Success(
         domain.Concept(
-          None,
-          Seq(domain.ConceptTitle(concept.title, concept.language)),
-          concept.content
+          id = None,
+          title = Seq(domain.ConceptTitle(concept.title, concept.language)),
+          content = concept.content
             .map(content => Seq(domain.ConceptContent(content, concept.language)))
             .getOrElse(Seq.empty),
-          concept.copyright.map(toDomainCopyright),
-          clock.now(),
-          clock.now(),
-          concept.metaImage.map(m => domain.ConceptMetaImage(m.id, m.alt, concept.language)).toSeq
+          copyright = concept.copyright.map(toDomainCopyright),
+          created = clock.now(),
+          updated = clock.now(),
+          metaImage = concept.metaImage.map(m => domain.ConceptMetaImage(m.id, m.alt, concept.language)).toSeq,
+          tags = concept.tags.map(t => toDomainTags(t, concept.language)).getOrElse(Seq.empty),
+          subjectIds = concept.subjectIds.getOrElse(Seq.empty).toSet
         ))
     }
+
+    private def toDomainTags(tags: Seq[String], language: String): Seq[domain.ConceptTags] =
+      if (tags.isEmpty) Seq.empty else Seq(domain.ConceptTags(tags, language))
 
     def toDomainConcept(toMergeInto: domain.Concept, updateConcept: api.UpdatedConcept): domain.Concept = {
       val domainTitle = updateConcept.title
@@ -116,6 +132,8 @@ trait ConverterService {
         .map(m => domain.ConceptMetaImage(m.id, m.alt, updateConcept.language))
         .toSeq
 
+      val domainTags = updateConcept.tags.map(t => domain.ConceptTags(t, updateConcept.language)).toSeq
+
       toMergeInto.copy(
         title = mergeLanguageFields(toMergeInto.title, domainTitle),
         content = mergeLanguageFields(toMergeInto.content, domainContent),
@@ -124,7 +142,9 @@ trait ConverterService {
           .orElse(toMergeInto.copyright),
         created = toMergeInto.created,
         updated = clock.now(),
-        metaImage = mergeLanguageFields(toMergeInto.metaImage, domainMetaImage)
+        metaImage = mergeLanguageFields(toMergeInto.metaImage, domainMetaImage),
+        tags = mergeLanguageFields(toMergeInto.tags, domainTags),
+        subjectIds = updateConcept.subjectIds.map(_.toSet).getOrElse(toMergeInto.subjectIds)
       )
     }
 
@@ -138,7 +158,9 @@ trait ConverterService {
         copyright = concept.copyright.map(toDomainCopyright),
         created = clock.now(),
         updated = clock.now(),
-        metaImage = concept.metaImage.map(m => domain.ConceptMetaImage(m.id, m.alt, lang)).toSeq
+        metaImage = concept.metaImage.map(m => domain.ConceptMetaImage(m.id, m.alt, lang)).toSeq,
+        tags = concept.tags.map(t => toDomainTags(t, concept.language)).getOrElse(Seq.empty),
+        subjectIds = concept.subjectIds.getOrElse(Seq.empty).toSet
       )
     }
 

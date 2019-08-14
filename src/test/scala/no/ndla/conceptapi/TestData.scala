@@ -40,63 +40,47 @@ object TestData {
     Some(api.ConceptContent("Innhold", "nb")),
     None,
     Some(api.ConceptMetaImage("http://api-gateway.ndla-local/image-api/raw/id/1", "Hei", "nb")),
+    Some(api.ConceptTags(Seq("stor", "kaktus"), "nb")),
+    Some(Set("urn:subject:3", "urn:subject:4")),
     yesterday,
     today,
     Set("nn", "nb")
   )
 
   val sampleNbDomainConcept = domain.Concept(
-    Some(1),
-    Seq(domain.ConceptTitle("Tittel", "nb")),
-    Seq(
-      domain.ConceptContent("Innhold", "nb"),
-    ),
-    None,
-    yesterday,
-    today,
-    Seq(domain.ConceptMetaImage("1", "Hei", "nb")),
+    id = Some(1),
+    title = Seq(domain.ConceptTitle("Tittel", "nb")),
+    content = Seq(domain.ConceptContent("Innhold", "nb")),
+    copyright = None,
+    created = yesterday,
+    updated = today,
+    metaImage = Seq(domain.ConceptMetaImage("1", "Hei", "nb")),
+    tags = Seq(domain.ConceptTags(Seq("stor", "kaktus"), "nb")),
+    subjectIds = Set("urn:subject:3", "urn:subject:4")
   )
 
   val sampleConcept = domain.Concept(
-    Some(1),
-    Seq(ConceptTitle("Tittel for begrep", "nb")),
-    Seq(ConceptContent("Innhold for begrep", "nb")),
-    Some(Copyright(Some("publicdomain"), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None, None)),
-    DateTime.now().minusDays(4).toDate,
-    DateTime.now().minusDays(2).toDate,
-    Seq(domain.ConceptMetaImage("1", "Hei", "nb")),
-  )
-
-  val sampleApiConcept = api.Concept(
-    1,
-    Some(api.ConceptTitle("Tittel for begrep", "nb")),
-    Some(api.ConceptContent("Innhold for begrep", "nb")),
-    Some(
-      api.Copyright(Some(api.License("publicdomain", None, None)),
-                    Some(""),
-                    Seq.empty,
-                    Seq.empty,
-                    Seq.empty,
-                    None,
-                    None,
-                    None)),
-    Some(api.ConceptMetaImage("http://api-gateway.ndla-local/image-api/raw/id/1", "Hei", "nb")),
-    DateTime.now().minusDays(4).toDate,
-    DateTime.now().minusDays(2).toDate,
-    Set("nb")
+    id = Some(1),
+    title = Seq(ConceptTitle("Tittel for begrep", "nb")),
+    content = Seq(ConceptContent("Innhold for begrep", "nb")),
+    copyright = Some(Copyright(Some("publicdomain"), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None, None)),
+    created = DateTime.now().minusDays(4).toDate,
+    updated = DateTime.now().minusDays(2).toDate,
+    metaImage = Seq(domain.ConceptMetaImage("1", "Hei", "nb")),
+    tags = Seq(domain.ConceptTags(Seq("liten", "fisk"), "nb")),
+    subjectIds = Set("urn:subject:3", "urn:subject:4")
   )
 
   val domainConcept = domain.Concept(
-    Some(1),
-    Seq(domain.ConceptTitle("Tittel", "nb"), domain.ConceptTitle("Tittelur", "nn")),
-    Seq(
-      domain.ConceptContent("Innhold", "nb"),
-      domain.ConceptContent("Innhald", "nn")
-    ),
-    None,
-    yesterday,
-    today,
-    Seq(domain.ConceptMetaImage("1", "Hei", "nb"), domain.ConceptMetaImage("2", "Hej", "nn")),
+    id = Some(1),
+    title = Seq(domain.ConceptTitle("Tittel", "nb"), domain.ConceptTitle("Tittelur", "nn")),
+    content = Seq(domain.ConceptContent("Innhold", "nb"), domain.ConceptContent("Innhald", "nn")),
+    copyright = None,
+    created = yesterday,
+    updated = today,
+    metaImage = Seq(domain.ConceptMetaImage("1", "Hei", "nb"), domain.ConceptMetaImage("2", "Hej", "nn")),
+    tags = Seq(domain.ConceptTags(Seq("stor", "kaktus"), "nb"), domain.ConceptTags(Seq("liten", "fisk"), "nn")),
+    subjectIds = Set("urn:subject:3", "urn:subject:4")
   )
 
   val sampleNnApiConcept = api.Concept(
@@ -105,12 +89,14 @@ object TestData {
     Some(api.ConceptContent("Innhald", "nn")),
     None,
     Some(api.ConceptMetaImage("http://api-gateway.ndla-local/image-api/raw/id/2", "Hej", "nn")),
+    Some(api.ConceptTags(Seq("liten", "fisk"), "nn")),
+    Some(Set("urn:subject:3", "urn:subject:4")),
     yesterday,
     today,
     Set("nn", "nb")
   )
 
-  val sampleNewConcept = api.NewConcept("nb", "Tittel", Some("Innhold"), None, None)
-  val updatedConcept = api.UpdatedConcept("nb", None, Some("Innhold"), None, None)
+  val sampleNewConcept = api.NewConcept("nb", "Tittel", Some("Innhold"), None, None, None, None)
+  val updatedConcept = api.UpdatedConcept("nb", None, Some("Innhold"), None, None, None, None)
 
 }
