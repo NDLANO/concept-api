@@ -280,7 +280,7 @@ trait ConceptController {
     }
 
     get(
-      "/tags",
+      "/tags/",
       operation(
         apiOperation[Concept]("getTags")
           summary "Returns a list of all tags with selected filters"
