@@ -17,6 +17,7 @@ import no.ndla.conceptapi.model.api.{
   Error,
   NewConcept,
   NotFoundException,
+  SubjectTags,
   UpdatedConcept,
   ValidationError
 }
@@ -282,9 +283,9 @@ trait ConceptController {
     get(
       "/tags/",
       operation(
-        apiOperation[Concept]("getTags")
-          summary "Returns a list of all tags with selected filters"
-          description "Returns a list of all tags with selected filters"
+        apiOperation[List[SubjectTags]]("getTags")
+          summary "Returns a list of all tags in the specified subjects"
+          description "Returns a list of all tags in the specified subjects"
           parameters (
             asHeaderParam(correlationId),
             asQueryParam(language),
