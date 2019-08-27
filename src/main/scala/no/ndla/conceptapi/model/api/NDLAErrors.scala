@@ -30,6 +30,7 @@ object Error {
   val PUBLISH = "PUBLISH"
   val DATABASE_UNAVAILABLE = "DATABASE_UNAVAILABLE"
   val INVALID_SEARCH_CONTEXT = "INVALID_SEARCH_CONTEXT"
+  val OPERATION_NOT_ALLOWED = "OPERATION_NOT_ALLOWED"
 
   val VALIDATION_DESCRIPTION = "Validation Error"
 
@@ -47,7 +48,6 @@ object Error {
 
   val DATABASE_UNAVAILABLE_DESCRIPTION =
     s"Database seems to be unavailable, retrying connection."
-  val ILLEGAL_STATUS_TRANSITION: String = "Illegal status transition"
 
   val INVALID_SEARCH_CONTEXT_DESCRIPTION =
     "The search-context specified was not expected. Please create one by searching from page 1."
@@ -57,21 +57,17 @@ object Error {
 
   val InvalidSearchContext =
     Error(INVALID_SEARCH_CONTEXT, INVALID_SEARCH_CONTEXT_DESCRIPTION)
+
 }
 
 case class NotFoundException(message: String, supportedLanguages: Seq[String] = Seq.empty)
     extends RuntimeException(message)
 case class ConceptMissingIdException(message: String) extends RuntimeException(message)
 case class ConceptExistsAlready(message: String) extends RuntimeException(message)
-case class ArticlePublishException(message: String) extends RuntimeException(message)
-case class ArticleVersioningException(message: String) extends RuntimeException(message)
 
-class ArticleStatusException(message: String) extends RuntimeException(message)
 class AccessDeniedException(message: String) extends RuntimeException(message)
 case class OperationNotAllowedException(message: String) extends RuntimeException(message)
 class OptimisticLockException(message: String = Error.RESOURCE_OUTDATED_DESCRIPTION) extends RuntimeException(message)
-case class IllegalStatusStateTransition(message: String = Error.ILLEGAL_STATUS_TRANSITION)
-    extends RuntimeException(message)
 
 class ResultWindowTooLargeException(message: String = Error.WINDOW_TOO_LARGE_DESCRIPTION)
     extends RuntimeException(message)

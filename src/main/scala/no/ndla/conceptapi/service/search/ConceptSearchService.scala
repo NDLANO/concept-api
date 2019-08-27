@@ -16,7 +16,7 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.ConceptApiProperties
 import no.ndla.conceptapi.integration.Elastic4sClient
 import no.ndla.conceptapi.model.api
-import no.ndla.conceptapi.model.api.{ResultWindowTooLargeException, SubjectTags}
+import no.ndla.conceptapi.model.api.{OperationNotAllowedException, ResultWindowTooLargeException, SubjectTags}
 import no.ndla.conceptapi.model.domain.{Language, SearchResult}
 import no.ndla.conceptapi.model.search.SearchSettings
 import no.ndla.conceptapi.service.ConverterService
@@ -41,9 +41,13 @@ trait ConceptSearchService {
     def getTagsWithSubjects(subjectIds: List[String],
                             language: String,
                             fallback: Boolean): Try[List[api.SubjectTags]] = {
-      implicit val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(subjectIds.size))
-      val searches = subjectIds.traverse(subjectId => searchSubjectIdTags(subjectId, language, fallback))
-      Await.result(searches, 1 minute).sequence.map(_.flatten)
+      if (subjectIds.size > 0) {
+        implicit val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(subjectIds.size))
+        val searches = subjectIds.traverse(subjectId => searchSubjectIdTags(subjectId, language, fallback))
+        Await.result(searches, 1 minute).sequence.map(_.flatten)
+      } else {
+        Failure(OperationNotAllowedException("Will not generate list of subject tags with no specified subjectIds"))
+      }
     }
 
     private def searchSubjectIdTags(subjectId: String, language: String, fallback: Boolean)(

@@ -26,7 +26,7 @@ import no.ndla.conceptapi.service.search.{ConceptSearchService, SearchConverterS
 import no.ndla.conceptapi.service.{ReadService, WriteService}
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
-import org.scalatra.{Created, Ok}
+import org.scalatra.{Created, NotFound, Ok}
 
 import scala.util.{Failure, Success}
 
@@ -298,7 +298,11 @@ trait ConceptController {
       val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
       val fallback = booleanOrDefault(this.fallback.paramName, false)
 
-      conceptSearchService.getTagsWithSubjects(subjectIds, language, fallback) // TODO: Maybe handle error?
+      conceptSearchService.getTagsWithSubjects(subjectIds, language, fallback) match {
+        case Success(res) if res.size > 0 => Ok(res)
+        case Success(res)                 => errorHandler(NotFoundException("Could not find any tags in the specified subjects"))
+        case Failure(ex)                  => errorHandler(ex)
+      }
     }
 
   }

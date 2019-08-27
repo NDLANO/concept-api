@@ -86,7 +86,7 @@ trait SearchConverterService {
         .groupBy(_.language)
         .map {
           case (lang, conceptTags) => {
-            val tagsForLang = conceptTags.flatMap(_.tags)
+            val tagsForLang = conceptTags.flatMap(_.tags).distinct
             api.SubjectTags(subjectId, tagsForLang, lang)
           }
         }
