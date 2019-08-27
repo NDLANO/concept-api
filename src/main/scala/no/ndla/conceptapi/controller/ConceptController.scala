@@ -280,5 +280,22 @@ trait ConceptController {
       }
     }
 
+    get(
+      "/subjects/",
+      operation(
+        apiOperation[List[String]]("getSubjects")
+          summary "Returns a list of all subjects used in concepts"
+          description "Returns a list of all subjects used in concepts"
+          parameters (
+            asHeaderParam(correlationId)
+          )
+          authorizations "oauth2"
+          responseMessages (response400, response403, response404, response500))
+    ) {
+      readService.allSubjects() match {
+        case Success(subjects) => Ok(subjects)
+        case Failure(ex)       => errorHandler(ex)
+      }
+    }
   }
 }
