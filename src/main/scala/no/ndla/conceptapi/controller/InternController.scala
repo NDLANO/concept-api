@@ -55,7 +55,17 @@ trait InternController {
       }
     }
 
-    post("/import") {
+    post("/import/liste") {
+      UserInfo.get match {
+        case Some(x) if x.canWrite =>
+          val start = System.currentTimeMillis
+          val forceUpdate = booleanOrDefault("forceUpdate", default = false)
+
+        case _ => Unauthorized("You do not have access to perform this action")
+      }
+    }
+
+    post("/import/concept") {
       UserInfo.get match {
         case Some(x) if x.canWrite =>
           val start = System.currentTimeMillis
@@ -74,7 +84,7 @@ trait InternController {
               logger.warn(errMsg, ex)
               InternalServerError(body = errMsg)
           }
-        case _ => Unauthorized("No access for u")
+        case _ => Unauthorized("You do not have access to perform this action")
       }
 
     }

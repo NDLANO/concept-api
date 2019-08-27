@@ -280,5 +280,23 @@ trait ConceptController {
       }
     }
 
+    get(
+      "/tags",
+      operation(
+        apiOperation[Concept]("getTags")
+          summary "Returns a list of all tags with selected filters"
+          description "Returns a list of all tags with selected filters"
+          parameters (
+            asHeaderParam(correlationId),
+            asPathParam(conceptId),
+            asQueryParam(pathLanguage)
+        )
+          authorizations "oauth2"
+          responseMessages (response400, response403, response404, response500))
+    ) {
+
+      readService
+    }
+
   }
 }

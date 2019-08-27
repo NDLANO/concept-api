@@ -1,6 +1,7 @@
 package no.ndla.conceptapi.model.search
 
-import no.ndla.conceptapi.model.domain.Sort
+import no.ndla.conceptapi.ConceptApiProperties
+import no.ndla.conceptapi.model.domain.{Language, Sort}
 
 case class SearchSettings(
     withIdIn: List[Long],
@@ -12,3 +13,19 @@ case class SearchSettings(
     subjectIds: Set[String],
     tagsToFilterBy: Set[String]
 )
+
+object SearchSettings {
+
+  def empty: SearchSettings = {
+    new SearchSettings(
+      withIdIn = List.empty,
+      searchLanguage = Language.AllLanguages,
+      page = 1,
+      pageSize = ConceptApiProperties.MaxPageSize,
+      sort = Sort.ByRelevanceDesc,
+      fallback = false,
+      subjectIds = Set.empty,
+      tagsToFilterBy = Set.empty
+    )
+  }
+}

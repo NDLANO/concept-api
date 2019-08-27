@@ -14,6 +14,7 @@ import no.ndla.conceptapi.{TestEnvironment, UnitSuite}
 import no.ndla.conceptapi.ConceptApiProperties.DefaultPageSize
 import no.ndla.conceptapi._
 import no.ndla.conceptapi.integration.NdlaE4sClient
+import no.ndla.conceptapi.model.api.SubjectTags
 import no.ndla.conceptapi.model.domain._
 import no.ndla.conceptapi.model.search.SearchSettings
 import org.joda.time.DateTime
@@ -117,7 +118,8 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
     id = Option(9),
     title = List(ConceptTitle("Baldur har mareritt om Ragnarok", "nb")),
     content = List(ConceptContent("<p>Bilde av <em>Baldurs</em> som har  mareritt.", "nb")),
-    subjectIds = Set("urn:subject:1")
+    tags = Seq(ConceptTags(Seq("stor", "klovn"), "nb")),
+    subjectIds = Set("urn:subject:1", "urn:subject:100")
   )
 
   val concept10: Concept = TestData.sampleConcept.copy(
@@ -423,6 +425,41 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
       conceptSearchService.all(searchSettings.copy(tagsToFilterBy = Set("burugle"), searchLanguage = "all"))
     search1.totalCount should be(1)
     search1.results.map(_.id) should be(Seq(10))
+  }
+
+  test("That tag search works as expected") {
+    val Success(tagSearch1) =
+      conceptSearchService.getTagsWithSubjects(List("urn:subject:2", "urn:subject:100"), "nb", false)
+    val Success(tagSearch2) =
+      conceptSearchService.getTagsWithSubjects(List("urn:subject:2", "urn:subject:100"), "en", false)
+
+    tagSearch1 should be(
+      List(
+        SubjectTags(
+          subjectId = "urn:subject:2",
+          tags = List("burugle"),
+          language = "nb"
+        ),
+        SubjectTags(
+          subjectId = "urn:subject:100",
+          tags = List("stor", "klovn"),
+          language = "nb"
+        )
+      ))
+
+    tagSearch2 should be(
+      List(
+        SubjectTags(
+          subjectId = "urn:subject:2",
+          tags = List("cageowl"),
+          language = "en"
+        ),
+        SubjectTags(
+          subjectId = "urn:subject:100",
+          tags = List(),
+          language = "en"
+        ),
+      ))
   }
 
   def blockUntil(predicate: () => Boolean): Unit = {

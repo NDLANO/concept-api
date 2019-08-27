@@ -21,7 +21,13 @@ import no.ndla.conceptapi.model.domain.{Language, SearchResult, Sort}
 import no.ndla.conceptapi.model.search.SearchSettings
 import no.ndla.mapping.ISO639
 
-import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
+import cats._
+import cats.data._
+import cats.implicits._
+
+import scala.annotation.tailrec
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.{Failure, Success, Try}
 
 trait ConceptSearchService {
@@ -33,6 +39,54 @@ trait ConceptSearchService {
 
     override def hitToApiModel(hitString: String, language: String): api.ConceptSummary =
       searchConverterService.hitAsConceptSummary(hitString, language)
+
+    def getTagsWithSubjects(subjectIds: List[String],
+                            language: String,
+                            fallback: Boolean): Try[List[api.SubjectTags]] = {
+      implicit val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(subjectIds.size))
+
+      val queries = subjectIds.traverse(subjectId =>
+        Future {
+          val searchResultT = searchUntilNoMoreResults(
+            SearchSettings.empty.copy(
+              subjectIds = Set(subjectId),
+              searchLanguage = language,
+              fallback = fallback
+            ))
+
+          searchResultT.map(searchResults => {
+            val tags = for {
+              searchResult <- searchResults
+              searchHits <- searchResult.results
+              matchedTags <- searchHits.tags.toSeq
+              flattenedTags <- matchedTags.tags
+            } yield flattenedTags
+
+            api.SubjectTags(subjectId, tags, language)
+          })
+
+      })
+
+      import scala.concurrent.duration._
+
+      Await.result(queries, 10 seconds).sequence
+    }
+
+    @tailrec
+    private def searchUntilNoMoreResults(
+        searchSettings: SearchSettings,
+        prevResults: List[SearchResult[api.ConceptSummary]] = List.empty
+    ): Try[List[SearchResult[api.ConceptSummary]]] = {
+
+      val page = prevResults.lastOption.flatMap(_.page).getOrElse(0) + 1
+      val result = this.all(searchSettings.copy(page = page))
+      result match {
+        case Failure(ex)                                                        => Failure(ex)
+        case Success(value) if value.results.size <= 0 || value.totalCount == 0 => Success(prevResults)
+        case Success(value)                                                     => searchUntilNoMoreResults(searchSettings, prevResults :+ value)
+      }
+
+    }
 
     def all(settings: SearchSettings): Try[SearchResult[api.ConceptSummary]] = executeSearch(boolQuery(), settings)
 
@@ -125,8 +179,7 @@ trait ConceptSearchService {
                 getHits(response.result, settings.searchLanguage),
                 response.result.scrollId
               ))
-          case Failure(ex) =>
-            errorHandler(ex)
+          case Failure(ex) => errorHandler(ex)
         }
       }
     }
