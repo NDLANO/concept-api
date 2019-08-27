@@ -453,12 +453,7 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
           subjectId = "urn:subject:2",
           tags = List("cageowl"),
           language = "en"
-        ),
-        SubjectTags(
-          subjectId = "urn:subject:100",
-          tags = List(),
-          language = "en"
-        ),
+        )
       ))
   }
 

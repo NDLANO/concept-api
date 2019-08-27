@@ -13,6 +13,7 @@ import no.ndla.conceptapi.model.api.ConceptSearchResult
 import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.model.domain.Language.getSupportedLanguages
 import no.ndla.conceptapi.model.domain.{Concept, Language, SearchResult}
+import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.search._
 import no.ndla.conceptapi.service.ConverterService
 import no.ndla.mapping.ISO639
@@ -79,6 +80,17 @@ trait SearchConverterService {
         supportedLanguages = supportedLanguages
       )
     }
+
+    def groupSubjectTagsByLanguage(subjectId: String, tags: List[api.ConceptTags]) =
+      tags
+        .groupBy(_.language)
+        .map {
+          case (lang, conceptTags) => {
+            val tagsForLang = conceptTags.flatMap(_.tags)
+            api.SubjectTags(subjectId, tagsForLang, lang)
+          }
+        }
+        .toList
 
     /**
       * Attempts to extract language that hit from highlights in elasticsearch response.
