@@ -462,6 +462,41 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
       ))
   }
 
+  test("That tag search works as expected with fallback") {
+    val Success(tagSearch1) =
+      conceptSearchService.getTagsWithSubjects(List("urn:subject:2", "urn:subject:100"), "nb", true)
+    val Success(tagSearch2) =
+      conceptSearchService.getTagsWithSubjects(List("urn:subject:2", "urn:subject:100"), "en", true)
+
+    tagSearch1 should be(
+      List(
+        SubjectTags(
+          subjectId = "urn:subject:2",
+          tags = List("burugle"),
+          language = "nb"
+        ),
+        SubjectTags(
+          subjectId = "urn:subject:100",
+          tags = List("stor", "klovn"),
+          language = "nb"
+        )
+      ))
+
+    tagSearch2 should be(
+      List(
+        SubjectTags(
+          subjectId = "urn:subject:2",
+          tags = List("cageowl"),
+          language = "en"
+        ),
+        SubjectTags(
+          subjectId = "urn:subject:100",
+          tags = List("stor", "klovn"),
+          language = "nb"
+        ),
+      ))
+  }
+
   def blockUntil(predicate: () => Boolean): Unit = {
     var backoff = 0
     var done = false

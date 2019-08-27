@@ -190,7 +190,6 @@ trait ConceptController {
             asQueryParam(query),
             asQueryParam(conceptIds),
             asQueryParam(language),
-            asQueryParam(query),
             asQueryParam(pageNo),
             asQueryParam(pageSize),
             asQueryParam(sort),
@@ -288,14 +287,18 @@ trait ConceptController {
           description "Returns a list of all tags with selected filters"
           parameters (
             asHeaderParam(correlationId),
-            asPathParam(conceptId),
-            asQueryParam(pathLanguage)
+            asQueryParam(language),
+            asQueryParam(fallback),
+            asQueryParam(subjectIds)
         )
           authorizations "oauth2"
           responseMessages (response400, response403, response404, response500))
     ) {
+      val subjectIds = paramAsListOfString(this.subjectIds.paramName)
+      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
+      val fallback = booleanOrDefault(this.fallback.paramName, false)
 
-      readService
+      conceptSearchService.getTagsWithSubjects(subjectIds, language, fallback) // TODO: Maybe handle error?
     }
 
   }

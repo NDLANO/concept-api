@@ -21,6 +21,9 @@ import no.ndla.conceptapi.model.domain.{Language, SearchResult, Sort}
 import no.ndla.conceptapi.model.search.SearchSettings
 import no.ndla.mapping.ISO639
 
+import scala.concurrent.duration._
+import scala.language.postfixOps
+
 import cats._
 import cats.data._
 import cats.implicits._
@@ -67,9 +70,7 @@ trait ConceptSearchService {
 
       })
 
-      import scala.concurrent.duration._
-
-      Await.result(queries, 10 seconds).sequence
+      Await.result(queries, 1 minute).sequence
     }
 
     @tailrec
