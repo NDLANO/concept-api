@@ -41,12 +41,12 @@ trait ConceptSearchService {
     def getTagsWithSubjects(subjectIds: List[String],
                             language: String,
                             fallback: Boolean): Try[List[api.SubjectTags]] = {
-      if (subjectIds.size > 0) {
+      if (subjectIds.size <= 0) {
+        Failure(OperationNotAllowedException("Will not generate list of subject tags with no specified subjectIds"))
+      } else {
         implicit val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(subjectIds.size))
         val searches = subjectIds.traverse(subjectId => searchSubjectIdTags(subjectId, language, fallback))
         Await.result(searches, 1 minute).sequence.map(_.flatten)
-      } else {
-        Failure(OperationNotAllowedException("Will not generate list of subject tags with no specified subjectIds"))
       }
     }
 
@@ -66,7 +66,9 @@ trait ConceptSearchService {
             matchedTags <- searchHits.tags.toSeq
           } yield matchedTags
 
-          searchConverterService.groupSubjectTagsByLanguage(subjectId, tagsInSubject)
+          searchConverterService
+            .groupSubjectTagsByLanguage(subjectId, tagsInSubject)
+            .filter(t => t.language == language || language == Language.AllLanguages || fallback)
         })
       }
 
