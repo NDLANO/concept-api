@@ -39,6 +39,7 @@ object TestData {
     Some(api.ConceptTitle("Tittel", "nb")),
     Some(api.ConceptContent("Innhold", "nb")),
     None,
+    None,
     Some(api.ConceptMetaImage("http://api-gateway.ndla-local/image-api/raw/id/1", "Hei", "nb")),
     Some(api.ConceptTags(Seq("stor", "kaktus"), "nb")),
     Some(Set("urn:subject:3", "urn:subject:4")),
@@ -52,6 +53,7 @@ object TestData {
     title = Seq(domain.ConceptTitle("Tittel", "nb")),
     content = Seq(domain.ConceptContent("Innhold", "nb")),
     copyright = None,
+    source = None,
     created = yesterday,
     updated = today,
     metaImage = Seq(domain.ConceptMetaImage("1", "Hei", "nb")),
@@ -64,6 +66,7 @@ object TestData {
     title = Seq(ConceptTitle("Tittel for begrep", "nb")),
     content = Seq(ConceptContent("Innhold for begrep", "nb")),
     copyright = Some(Copyright(Some("publicdomain"), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None, None)),
+    source = None,
     created = DateTime.now().minusDays(4).toDate,
     updated = DateTime.now().minusDays(2).toDate,
     metaImage = Seq(domain.ConceptMetaImage("1", "Hei", "nb")),
@@ -76,6 +79,7 @@ object TestData {
     title = Seq(domain.ConceptTitle("Tittel", "nb"), domain.ConceptTitle("Tittelur", "nn")),
     content = Seq(domain.ConceptContent("Innhold", "nb"), domain.ConceptContent("Innhald", "nn")),
     copyright = None,
+    source = None,
     created = yesterday,
     updated = today,
     metaImage = Seq(domain.ConceptMetaImage("1", "Hei", "nb"), domain.ConceptMetaImage("2", "Hej", "nn")),
@@ -88,6 +92,7 @@ object TestData {
     Some(api.ConceptTitle("Tittelur", "nn")),
     Some(api.ConceptContent("Innhald", "nn")),
     None,
+    None,
     Some(api.ConceptMetaImage("http://api-gateway.ndla-local/image-api/raw/id/2", "Hej", "nn")),
     Some(api.ConceptTags(Seq("liten", "fisk"), "nn")),
     Some(Set("urn:subject:3", "urn:subject:4")),
@@ -96,7 +101,7 @@ object TestData {
     Set("nn", "nb")
   )
 
-  val sampleNewConcept = api.NewConcept("nb", "Tittel", Some("Innhold"), None, None, None, None)
-  val updatedConcept = api.UpdatedConcept("nb", None, Some("Innhold"), None, None, None, None)
+  val sampleNewConcept = api.NewConcept("nb", "Tittel", Some("Innhold"), None, None, None, None, None)
+  val updatedConcept = api.UpdatedConcept("nb", None, Some("Innhold"), None, None, None, None, None)
 
 }

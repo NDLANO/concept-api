@@ -20,6 +20,7 @@ case class Concept(
     @(ApiModelProperty @field)(description = "The content of the concept") content: Option[ConceptContent],
     @(ApiModelProperty @field)(description = "Describes the copyright information for the concept") copyright: Option[
       Copyright],
+    @(ApiModelProperty @field)(description = "URL for the source of the concept") source: Option[String],
     @(ApiModelProperty @field)(description = "A meta image for the concept") metaImage: Option[ConceptMetaImage],
     @(ApiModelProperty @field)(description = "Search tags the concept is tagged with") tags: Option[ConceptTags],
     @(ApiModelProperty @field)(description = "Taxonomy subject ids the concept is connected to") subjectIds: Option[

@@ -61,7 +61,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   test("That update function updates only content properly") {
     val newContent = "NewContentTest"
-    val updatedApiConcept = api.UpdatedConcept("en", None, content = Some(newContent), None, None, None, None)
+    val updatedApiConcept = api.UpdatedConcept("en", None, content = Some(newContent), None, None, None, None, None)
     val expectedConcept = concept.copy(content = Option(api.ConceptContent(newContent, "en")),
                                        updated = today,
                                        supportedLanguages = Set("nb", "en"))
@@ -71,7 +71,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   test("That update function updates only title properly") {
     val newTitle = "NewTitleTest"
-    val updatedApiConcept = api.UpdatedConcept("nn", title = Some(newTitle), None, None, None, None, None)
+    val updatedApiConcept = api.UpdatedConcept("nn", title = Some(newTitle), None, None, None, None, None, None)
     val expectedConcept = concept.copy(title = Option(api.ConceptTitle(newTitle, "nn")),
                                        updated = today,
                                        supportedLanguages = Set("nb", "nn"))
@@ -84,6 +84,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val updatedCopyright =
       api.Copyright(None, Some("c"), Seq(api.Author("Opphavsmann", "Katrine")), List(), List(), None, None, None)
     val updatedMetaImage = api.NewConceptMetaImage("2", "AltTxt")
+    val updatedSource = "https://www.ndla.no"
 
     val updatedApiConcept = api.UpdatedConcept(
       "en",
@@ -91,6 +92,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       Some(updatedContent),
       Some(updatedMetaImage),
       Some(updatedCopyright),
+      Some(updatedSource),
       Some(Seq("Nye", "Tags")),
       Some(Seq("urn:subject:900"))
     )
@@ -101,6 +103,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       metaImage = Some(api.ConceptMetaImage("http://api-gateway.ndla-local/image-api/raw/id/2", "AltTxt", "en")),
       copyright = Some(
         api.Copyright(None, Some("c"), Seq(api.Author("Opphavsmann", "Katrine")), List(), List(), None, None, None)),
+      source = Some("https://www.ndla.no"),
       supportedLanguages = Set("nb", "en"),
       tags = Some(api.ConceptTags(Seq("Nye", "Tags"), "en")),
       subjectIds = Some(Set("urn:subject:900"))

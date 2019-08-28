@@ -49,7 +49,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val updated = new Date()
     when(clock.now()).thenReturn(updated)
 
-    val updateWith = UpdatedConcept("nb", Some("heisann"), None, None, None, None, None)
+    val updateWith = UpdatedConcept("nb", Some("heisann"), None, None, None, None, None, None)
     service.toDomainConcept(TestData.domainConcept, updateWith) should be(
       TestData.domainConcept.copy(
         title = Seq(
@@ -65,7 +65,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val updated = new Date()
     when(clock.now()).thenReturn(updated)
 
-    val updateWith = UpdatedConcept("nn", None, Some("Nytt innhald"), None, None, None, None)
+    val updateWith = UpdatedConcept("nn", None, Some("Nytt innhald"), None, None, None, None, None)
     service.toDomainConcept(TestData.domainConcept, updateWith) should be(
       TestData.domainConcept.copy(
         content = Seq(
@@ -81,7 +81,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     val updated = new Date()
     when(clock.now()).thenReturn(updated)
 
-    val updateWith = UpdatedConcept("en", Some("Title"), Some("My content"), None, None, None, None)
+    val updateWith = UpdatedConcept("en", Some("Title"), Some("My content"), None, None, None, None, None)
     service.toDomainConcept(TestData.domainConcept, updateWith) should be(
       TestData.domainConcept.copy(
         title = Seq(domain.ConceptTitle("Tittel", "nb"),
@@ -118,6 +118,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
           None
         )
       ),
+      None,
       None,
       None
     )

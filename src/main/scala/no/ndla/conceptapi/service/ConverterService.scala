@@ -46,6 +46,7 @@ trait ConverterService {
             Some(title),
             Some(content),
             concept.copyright.map(toApiCopyright),
+            concept.source,
             Some(metaImage),
             tags,
             if (concept.subjectIds.isEmpty) None else Some(concept.subjectIds),
@@ -110,6 +111,7 @@ trait ConverterService {
             .map(content => Seq(domain.ConceptContent(content, concept.language)))
             .getOrElse(Seq.empty),
           copyright = concept.copyright.map(toDomainCopyright),
+          source = concept.source,
           created = clock.now(),
           updated = clock.now(),
           metaImage = concept.metaImage.map(m => domain.ConceptMetaImage(m.id, m.alt, concept.language)).toSeq,
@@ -140,6 +142,7 @@ trait ConverterService {
         copyright = updateConcept.copyright
           .map(toDomainCopyright)
           .orElse(toMergeInto.copyright),
+        source = updateConcept.source,
         created = toMergeInto.created,
         updated = clock.now(),
         metaImage = mergeLanguageFields(toMergeInto.metaImage, domainMetaImage),
@@ -156,6 +159,7 @@ trait ConverterService {
         title = concept.title.map(t => domain.ConceptTitle(t, lang)).toSeq,
         content = concept.content.map(c => domain.ConceptContent(c, lang)).toSeq,
         copyright = concept.copyright.map(toDomainCopyright),
+        source = concept.source,
         created = clock.now(),
         updated = clock.now(),
         metaImage = concept.metaImage.map(m => domain.ConceptMetaImage(m.id, m.alt, lang)).toSeq,
