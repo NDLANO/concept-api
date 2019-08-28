@@ -83,6 +83,17 @@ trait ConceptRepository {
         .isDefined
     }
 
+    def allSubjectIds(implicit session: DBSession = ReadOnlyAutoSession): Set[String] = {
+      sql"""
+        select distinct jsonb_array_elements_text(document->'subjectIds') as subject_id 
+        from ${Concept.table} 
+        where jsonb_array_length(document->'subjectIds') != 0;"""
+        .map(rs => rs.string("subject_id"))
+        .list
+        .apply
+        .toSet
+    }
+
     def getIdFromExternalId(externalId: String)(implicit session: DBSession = AutoSession): Option[Long] = {
       sql"select id from ${Concept.table} where $externalId = any(external_id)"
         .map(rs => rs.long("id"))
