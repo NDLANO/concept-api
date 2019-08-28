@@ -55,9 +55,9 @@ trait InternController {
       }
     }
 
-    post("/import/liste") {
+    post("/import/listing") {
       UserInfo.get match {
-        case Some(x) if x.canWrite =>
+        case Some(user) if user.canWrite =>
           val start = System.currentTimeMillis
           val forceUpdate = booleanOrDefault("forceUpdate", default = false)
 
@@ -67,7 +67,7 @@ trait InternController {
 
     post("/import/concept") {
       UserInfo.get match {
-        case Some(x) if x.canWrite =>
+        case Some(user) if user.canWrite =>
           val start = System.currentTimeMillis
           val forceUpdate = booleanOrDefault("forceUpdate", default = false)
 

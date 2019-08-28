@@ -68,7 +68,7 @@ trait ConceptSearchService {
 
           searchConverterService
             .groupSubjectTagsByLanguage(subjectId, tagsInSubject)
-            .filter(t => t.language == language || language == Language.AllLanguages || fallback)
+            .filter(tags => tags.language == language || language == Language.AllLanguages || fallback)
         })
       }
 
