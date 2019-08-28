@@ -9,19 +9,23 @@ package no.ndla.conceptapi.service.search
 
 import java.util.concurrent.Executors
 
+import cats.implicits._
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.searches.queries.BoolQuery
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.conceptapi.integration.Elastic4sClient
-import no.ndla.conceptapi.service.ConverterService
 import no.ndla.conceptapi.ConceptApiProperties
+import no.ndla.conceptapi.integration.Elastic4sClient
 import no.ndla.conceptapi.model.api
-import no.ndla.conceptapi.model.api.ResultWindowTooLargeException
-import no.ndla.conceptapi.model.domain.{Language, SearchResult, Sort}
+import no.ndla.conceptapi.model.api.{OperationNotAllowedException, ResultWindowTooLargeException, SubjectTags}
+import no.ndla.conceptapi.model.domain.{Language, SearchResult}
 import no.ndla.conceptapi.model.search.SearchSettings
+import no.ndla.conceptapi.service.ConverterService
 import no.ndla.mapping.ISO639
 
-import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService, Future}
+import scala.annotation.tailrec
+import scala.concurrent.duration._
+import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
+import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
 trait ConceptSearchService {
@@ -33,6 +37,54 @@ trait ConceptSearchService {
 
     override def hitToApiModel(hitString: String, language: String): api.ConceptSummary =
       searchConverterService.hitAsConceptSummary(hitString, language)
+
+    def getTagsWithSubjects(subjectIds: List[String],
+                            language: String,
+                            fallback: Boolean): Try[List[api.SubjectTags]] = {
+      if (subjectIds.size <= 0) {
+        Failure(OperationNotAllowedException("Will not generate list of subject tags with no specified subjectIds"))
+      } else {
+        implicit val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(subjectIds.size))
+        val searches = subjectIds.traverse(subjectId => searchSubjectIdTags(subjectId, language, fallback))
+        Await.result(searches, 1 minute).sequence.map(_.flatten)
+      }
+    }
+
+    private def searchSubjectIdTags(subjectId: String, language: String, fallback: Boolean)(
+        implicit executor: ExecutionContext): Future[Try[List[SubjectTags]]] =
+      Future {
+        val settings = SearchSettings.empty.copy(
+          subjectIds = Set(subjectId),
+          searchLanguage = language,
+          fallback = fallback
+        )
+
+        searchUntilNoMoreResults(settings).map(searchResults => {
+          val tagsInSubject = for {
+            searchResult <- searchResults
+            searchHits <- searchResult.results
+            matchedTags <- searchHits.tags.toSeq
+          } yield matchedTags
+
+          searchConverterService
+            .groupSubjectTagsByLanguage(subjectId, tagsInSubject)
+            .filter(tags => tags.language == language || language == Language.AllLanguages || fallback)
+        })
+      }
+
+    @tailrec
+    private def searchUntilNoMoreResults(
+        searchSettings: SearchSettings,
+        prevResults: List[SearchResult[api.ConceptSummary]] = List.empty
+    ): Try[List[SearchResult[api.ConceptSummary]]] = {
+      val page = prevResults.lastOption.flatMap(_.page).getOrElse(0) + 1
+      val result = this.all(searchSettings.copy(page = page))
+      result match {
+        case Failure(ex)                                                        => Failure(ex)
+        case Success(value) if value.results.size <= 0 || value.totalCount == 0 => Success(prevResults)
+        case Success(value)                                                     => searchUntilNoMoreResults(searchSettings, prevResults :+ value)
+      }
+    }
 
     def all(settings: SearchSettings): Try[SearchResult[api.ConceptSummary]] = executeSearch(boolQuery(), settings)
 
@@ -125,8 +177,7 @@ trait ConceptSearchService {
                 getHits(response.result, settings.searchLanguage),
                 response.result.scrollId
               ))
-          case Failure(ex) =>
-            errorHandler(ex)
+          case Failure(ex) => errorHandler(ex)
         }
       }
     }

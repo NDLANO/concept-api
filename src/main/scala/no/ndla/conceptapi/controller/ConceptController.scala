@@ -17,6 +17,7 @@ import no.ndla.conceptapi.model.api.{
   Error,
   NewConcept,
   NotFoundException,
+  SubjectTags,
   UpdatedConcept,
   ValidationError
 }
@@ -26,7 +27,7 @@ import no.ndla.conceptapi.service.search.{ConceptSearchService, SearchConverterS
 import no.ndla.conceptapi.service.{ReadService, WriteService}
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
-import org.scalatra.{Created, Ok}
+import org.scalatra.{Created, NotFound, Ok}
 
 import scala.util.{Failure, Success}
 
@@ -190,7 +191,6 @@ trait ConceptController {
             asQueryParam(query),
             asQueryParam(conceptIds),
             asQueryParam(language),
-            asQueryParam(query),
             asQueryParam(pageNo),
             asQueryParam(pageSize),
             asQueryParam(sort),
@@ -277,6 +277,32 @@ trait ConceptController {
           case Some(language) => writeService.deleteLanguage(id, language)
           case None           => Failure(NotFoundException("Language not found"))
         }
+      }
+    }
+
+    get(
+      "/tags/",
+      operation(
+        apiOperation[List[SubjectTags]]("getTags")
+          summary "Returns a list of all tags in the specified subjects"
+          description "Returns a list of all tags in the specified subjects"
+          parameters (
+            asHeaderParam(correlationId),
+            asQueryParam(language),
+            asQueryParam(fallback),
+            asQueryParam(subjectIds)
+        )
+          authorizations "oauth2"
+          responseMessages (response400, response403, response404, response500))
+    ) {
+      val subjectIds = paramAsListOfString(this.subjectIds.paramName)
+      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
+      val fallback = booleanOrDefault(this.fallback.paramName, false)
+
+      conceptSearchService.getTagsWithSubjects(subjectIds, language, fallback) match {
+        case Success(res) if res.size > 0 => Ok(res)
+        case Success(res)                 => errorHandler(NotFoundException("Could not find any tags in the specified subjects"))
+        case Failure(ex)                  => errorHandler(ex)
       }
     }
 

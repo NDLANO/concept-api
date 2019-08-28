@@ -23,6 +23,7 @@ import no.ndla.conceptapi.model.api.{
   NotFoundException,
   OptimisticLockException,
   ResultWindowTooLargeException,
+  OperationNotAllowedException,
   ValidationError
 }
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
@@ -65,15 +66,12 @@ abstract class NdlaController() extends ScalatraServlet with NativeJsonSupport w
   case class Param[T](paramName: String, description: String)(implicit mf: Manifest[T])
 
   error {
-    case a: AccessDeniedException =>
-      Forbidden(body = Error(Error.ACCESS_DENIED, a.getMessage))
-    case v: ValidationException =>
-      BadRequest(body = ValidationError(messages = v.errors))
-    case n: NotFoundException =>
-      NotFound(body = Error(Error.NOT_FOUND, n.getMessage))
-    case o: OptimisticLockException =>
-      Conflict(body = Error(Error.RESOURCE_OUTDATED, o.getMessage))
-    case e: IndexNotFoundException => InternalServerError(body = Error.IndexMissingError)
+    case a: AccessDeniedException          => Forbidden(body = Error(Error.ACCESS_DENIED, a.getMessage))
+    case v: ValidationException            => BadRequest(body = ValidationError(messages = v.errors))
+    case n: NotFoundException              => NotFound(body = Error(Error.NOT_FOUND, n.getMessage))
+    case o: OptimisticLockException        => Conflict(body = Error(Error.RESOURCE_OUTDATED, o.getMessage))
+    case e: IndexNotFoundException         => InternalServerError(body = Error.IndexMissingError)
+    case ona: OperationNotAllowedException => BadRequest(body = Error(Error.OPERATION_NOT_ALLOWED, ona.getMessage))
     case psqle: PSQLException =>
       ComponentRegistry.connectToDatabase()
       logger.error("Something went wrong with database connections", psqle)

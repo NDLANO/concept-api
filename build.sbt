@@ -12,10 +12,10 @@ val Elastic4sVersion = "6.3.7"
 val JacksonVersion = "2.9.9.3"
 val ElasticsearchVersion = "6.3.2"
 val Json4SVersion = "3.5.4"
-val CatsEffectVersion = "1.0.0"
 val FlywayVersion = "5.2.0"
 val PostgresVersion = "42.2.5"
 val HikariConnectionPoolVersion = "3.2.0"
+val CatsEffectVersion = "1.6.1"
 
 val appProperties = settingKey[Properties]("The application properties")
 
@@ -32,7 +32,7 @@ lazy val concept_api = (project in file("."))
     version := appProperties.value.getProperty("NDLAComponentVersion"),
     scalaVersion := Scalaversion,
     javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
-    scalacOptions := Seq("-target:jvm-1.8", "-unchecked", "-deprecation", "-feature"),
+    scalacOptions := Seq("-target:jvm-1.8", "-unchecked", "-deprecation", "-feature", "-Ypartial-unification"),
     libraryDependencies ++= Seq(
       "ndla" %% "network" % "0.38",
       "ndla" %% "mapping" % "0.11",
@@ -64,7 +64,8 @@ lazy val concept_api = (project in file("."))
       "com.sksamuel.elastic4s" %% "elastic4s-core" % Elastic4sVersion,
       "com.sksamuel.elastic4s" %% "elastic4s-http" % Elastic4sVersion,
       "com.sksamuel.elastic4s" %% "elastic4s-aws" % Elastic4sVersion,
-      "com.sksamuel.elastic4s" %% "elastic4s-embedded" % Elastic4sVersion % "test"
+      "com.sksamuel.elastic4s" %% "elastic4s-embedded" % Elastic4sVersion % "test",
+      "org.typelevel" %% "cats-core" % CatsEffectVersion
     )
   )
   .enablePlugins(DockerPlugin)
