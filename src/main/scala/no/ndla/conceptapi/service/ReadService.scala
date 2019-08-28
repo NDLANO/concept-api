@@ -11,7 +11,7 @@ import no.ndla.conceptapi.repository.ConceptRepository
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api.NotFoundException
 
-import scala.util.{Failure, Try}
+import scala.util.{Failure, Success, Try}
 
 trait ReadService {
   this: ConceptRepository with ConceptRepository with ConverterService =>
@@ -26,6 +26,11 @@ trait ReadService {
         case None =>
           Failure(NotFoundException(s"Concept with id $id was not found with language '$language' in database."))
       }
+
+    def allSubjects(): Try[Set[String]] = {
+      val subjectIds = conceptRepository.allSubjectIds
+      if (subjectIds.size > 0) Success(subjectIds) else Failure(NotFoundException("Could not find any subjects"))
+    }
 
   }
 }

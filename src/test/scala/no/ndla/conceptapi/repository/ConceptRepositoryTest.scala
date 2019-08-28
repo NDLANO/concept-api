@@ -71,4 +71,23 @@ class ConceptRepositoryTest extends IntegrationSuite with TestEnvironment {
     repository.withId(id3).get.content should be(art3.content)
   }
 
+  test("That getting subjects works as expected") {
+    val concept1 = domainConcept.copy(subjectIds = Set("urn:subject:1", "urn:subject:2"))
+    val concept2 = domainConcept.copy(subjectIds = Set("urn:subject:1", "urn:subject:19"))
+    val concept3 = domainConcept.copy(subjectIds = Set("urn:subject:12"))
+
+    repository.insert(concept1)
+    repository.insert(concept2)
+    repository.insert(concept3)
+
+    repository.allSubjectIds should be(
+      Set(
+        "urn:subject:1",
+        "urn:subject:2",
+        "urn:subject:12",
+        "urn:subject:19"
+      )
+    )
+  }
+
 }
