@@ -19,6 +19,7 @@ case class Concept(id: Option[Long],
                    title: Seq[ConceptTitle],
                    content: Seq[ConceptContent],
                    copyright: Option[Copyright],
+                   source: Option[String],
                    created: Date,
                    updated: Date,
                    metaImage: Seq[ConceptMetaImage],
@@ -40,9 +41,10 @@ object Concept extends SQLSyntaxSupport[Concept] {
             title: Seq[ConceptTitle],
             content: Seq[ConceptContent],
             copyright: Option[Copyright],
+            source: Option[String],
             created: Date,
             updated: Date): Concept = {
-    new Concept(id, title, content, copyright, created, updated, Seq.empty, Seq.empty, Set.empty)
+    new Concept(id, title, content, copyright, source, created, updated, Seq.empty, Seq.empty, Set.empty)
   }
 
   def apply(lp: SyntaxProvider[Concept])(rs: WrappedResultSet): Concept =
@@ -55,6 +57,7 @@ object Concept extends SQLSyntaxSupport[Concept] {
       meta.title,
       meta.content,
       meta.copyright,
+      meta.source,
       meta.created,
       meta.updated,
       meta.metaImage,
