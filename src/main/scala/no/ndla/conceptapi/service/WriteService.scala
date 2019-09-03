@@ -23,6 +23,15 @@ trait WriteService {
 
   class WriteService {
 
+    def insertListingImportedConcepts(conceptsWithListingId: Seq[(domain.Concept, Long)],
+                                      forceUpdate: Boolean): Seq[Try[domain.Concept]] = {
+      ???
+//      conceptsWithListingId.map {
+//        case (concept, listingId) =>
+//          if (conceptRepository.withListingId(listingId).nonEmpty) {}
+//      }
+    }
+
     def saveImportedConcepts(concepts: Seq[domain.Concept], forceUpdate: Boolean): Seq[Try[domain.Concept]] = {
       concepts.map(concept => {
         if (concept.id.exists(conceptRepository.exists)) {

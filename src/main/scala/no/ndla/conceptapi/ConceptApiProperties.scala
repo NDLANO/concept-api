@@ -41,9 +41,7 @@ object ConceptApiProperties extends LazyLogging {
   val ApiClientsCacheAgeInMs: Long = 1000 * 60 * 60 // 1 hour caching
 
   val ArticleApiHost: String = propOrElse("ARTICLE_API_HOST", "article-api.ndla-local")
-  val LearningpathApiHost: String = propOrElse("LEARNINGPATH_API_HOST", "learningpath-api.ndla-local")
-  val AudioApiHost: String = propOrElse("AUDIO_API_HOST", "audio-api.ndla-local")
-  val DraftApiHost: String = propOrElse("DRAFT_API_HOST", "draft-api.ndla-local")
+  val ListingApiHost: String = propOrElse("LISTING_API_HOST", "learningpath-api.ndla-local")
   val ImageApiHost: String = propOrElse("IMAGE_API_HOST", "image-api.ndla-local")
 
   val SearchApiHost: String = propOrElse("SEARCH_API_HOST", "search-api.ndla-local")
