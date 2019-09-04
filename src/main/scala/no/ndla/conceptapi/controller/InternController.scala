@@ -61,7 +61,12 @@ trait InternController {
           val start = System.currentTimeMillis
           val forceUpdate = booleanOrDefault("forceUpdate", default = false)
           importService.importListings(forceUpdate) match {
-            case Success(value) =>
+            case Success(result) =>
+              if (result.numSuccessfullyImportedConcepts < result.totalAttemptedImportedConcepts) {
+                InternalServerError(result)
+              } else {
+                Ok(result)
+              }
             case Failure(ex) =>
               val errMsg =
                 s"Import of listings failed after ${System.currentTimeMillis - start} ms with error: ${ex.getMessage}\n"

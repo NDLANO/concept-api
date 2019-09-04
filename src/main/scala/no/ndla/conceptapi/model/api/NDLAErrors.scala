@@ -63,7 +63,7 @@ object Error {
 case class NotFoundException(message: String, supportedLanguages: Seq[String] = Seq.empty)
     extends RuntimeException(message)
 case class ConceptMissingIdException(message: String) extends RuntimeException(message)
-case class ConceptExistsAlready(message: String) extends RuntimeException(message)
+case class ConceptExistsAlreadyException(message: String) extends RuntimeException(message)
 case class ImportException(message: String) extends RuntimeException(message)
 
 class AccessDeniedException(message: String) extends RuntimeException(message)

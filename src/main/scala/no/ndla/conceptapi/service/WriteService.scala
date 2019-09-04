@@ -11,7 +11,7 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.repository.ConceptRepository
 import no.ndla.conceptapi.model.domain
 import no.ndla.conceptapi.model.api
-import no.ndla.conceptapi.model.api.{ConceptExistsAlready, NotFoundException}
+import no.ndla.conceptapi.model.api.{ConceptExistsAlreadyException, NotFoundException}
 import no.ndla.conceptapi.service.search.ConceptIndexService
 import no.ndla.conceptapi.validation._
 
@@ -25,11 +25,19 @@ trait WriteService {
 
     def insertListingImportedConcepts(conceptsWithListingId: Seq[(domain.Concept, Long)],
                                       forceUpdate: Boolean): Seq[Try[domain.Concept]] = {
-      ???
-//      conceptsWithListingId.map {
-//        case (concept, listingId) =>
-//          if (conceptRepository.withListingId(listingId).nonEmpty) {}
-//      }
+      conceptsWithListingId.map {
+        case (concept, listingId) =>
+          val existing = conceptRepository.withListingId(listingId).nonEmpty
+          if (existing && !forceUpdate) {
+            logger.warn(
+              s"Concept with listing_id of $listingId already exists, and forceUpdate was not 'true', skipping...")
+            Failure(ConceptExistsAlreadyException(s"the concept already exists with listing_id of $listingId."))
+          } else if (existing && forceUpdate) {
+            conceptRepository.updateWithListingId(concept, listingId)
+          } else {
+            Success(conceptRepository.insertwithListingId(concept, listingId))
+          }
+      }
     }
 
     def saveImportedConcepts(concepts: Seq[domain.Concept], forceUpdate: Boolean): Seq[Try[domain.Concept]] = {
@@ -45,7 +53,7 @@ trait WriteService {
                 Success(c)
             }
           } else {
-            Failure(ConceptExistsAlready("The concept already exists."))
+            Failure(ConceptExistsAlreadyException("The concept already exists."))
           }
         } else {
           conceptRepository.insertWithId(concept)

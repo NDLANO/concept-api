@@ -9,12 +9,17 @@ package no.ndla.conceptapi.service
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.auth.User
-import no.ndla.conceptapi.integration.{ArticleApiClient, ImageApiClient, ListingApiClient}
+import no.ndla.conceptapi.integration.{
+  ArticleApiClient,
+  DomainImageMeta,
+  ImageApiClient,
+  ListingApiClient,
+  TaxonomyApiClient
+}
 import no.ndla.conceptapi.model.api.{ConceptImportResults, ImportException}
 import no.ndla.conceptapi.model.api.listing.Cover
 import no.ndla.conceptapi.repository.ConceptRepository
 import no.ndla.conceptapi.model.domain
-
 import cats._
 import cats.data._
 import cats.implicits._
@@ -29,39 +34,37 @@ trait ImportService {
     with ConceptRepository
     with ArticleApiClient
     with ListingApiClient
-    with ImageApiClient =>
+    with ImageApiClient
+    with TaxonomyApiClient =>
   val importService: ImportService
 
   class ImportService extends LazyLogging {
 
-    private def getMetaImageInfo(imageId: Long, supportedLanguages: Set[String]) =
-      supportedLanguages
-        .map(lang => {
-          val altText = imageApiClient.getImageAltText(imageId, lang) match {
-            case Failure(exception) =>
-              logger.error("Something went wrong when fetching altText for meta image", exception)
-              ""
-            case Success(alt) => alt.alttext.alttext
-          }
-          domain.ConceptMetaImage(imageId.toString, altText, lang)
-        })
-        .toSeq
+    private def getConceptMetaImages(image: DomainImageMeta): Seq[domain.ConceptMetaImage] = {
+      image.alttext.map(alt => domain.ConceptMetaImage(image.id.toString, alt.alttext, alt.language))
+    }
 
     def convertListingToConcept(listing: Cover): Try[(domain.Concept, Long)] =
       listing.id match {
         case Some(coverId) =>
-          val coverPhotoId = imageApiClient.getImageId(listing.coverPhotoUrl)
+          val domainCoverImage = imageApiClient.getImage(listing.coverPhotoUrl)
 
           val titles = listing.title.map(t => domain.ConceptTitle(t.title, t.language))
           val contents = listing.description.map(c => domain.ConceptContent(c.description, c.language))
+          val metaImages = domainCoverImage.map(getConceptMetaImages).toOption.toSeq.flatten
+          val subjectIds = taxonomyApiClient.getSubjectIdsForIds(listing.oldNodeId, listing.articleApiId)
+
+          if (subjectIds.isEmpty) {
+            logger.warn(
+              s"Imported listing cover with id ${listing.id.getOrElse(-1)}, could not be connected to taxonomy...")
+          }
+
           val tags = listing.labels.flatMap(languageLabels => {
             val filteredTags = languageLabels.labels.filter(_.`type`.getOrElse("category") == "category")
             filteredTags.map(t => domain.ConceptTags(t.labels, languageLabels.language))
           })
 
-          coverPhotoId.map(metaImageId => {
-            val supportedLanguages = (contents union titles union tags).map(_.language).toSet
-            val metaImages = getMetaImageInfo(metaImageId, supportedLanguages)
+          Success(
             (
               domain.Concept(
                 id = None,
@@ -72,11 +75,10 @@ trait ImportService {
                 updated = listing.updated,
                 metaImage = metaImages,
                 tags = tags,
-                subjectIds = Set.empty
+                subjectIds = subjectIds
               ),
               coverId
-            )
-          })
+            ))
         case None =>
           val msg = "Could not import cover because it was missing an id."
           logger.error(msg)
@@ -89,12 +91,13 @@ trait ImportService {
       pageStream
         .map(page => {
           page.map(successfulPage => {
-            val imported = successfulPage.toList
-              .traverse(convertListingToConcept)
-              .map(converted => {
-                writeService.insertListingImportedConcepts(converted, forceUpdate)
-              })
-            val numSuccessfullySaved = imported.map(_.count(_.isSuccess)).getOrElse(0)
+            val convertedConcepts = successfulPage.toList.traverse(convertListingToConcept)
+
+            val inserted = convertedConcepts.map(converted => {
+              writeService.insertListingImportedConcepts(converted, forceUpdate)
+            })
+
+            val numSuccessfullySaved = inserted.map(_.count(_.isSuccess)).getOrElse(0)
             (numSuccessfullySaved, successfulPage.size)
           })
         })

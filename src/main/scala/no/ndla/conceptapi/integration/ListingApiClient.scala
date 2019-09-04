@@ -23,7 +23,7 @@ trait ListingApiClient {
   val listingApiClient: ListingApiClient
 
   class ListingApiClient {
-    val baseUrl = s"http://${ConceptApiProperties.ListingApiHost}/"
+    val baseUrl = s"http://${ConceptApiProperties.ListingApiHost}"
     val dumpDomainPath = "intern/dump/cover"
 
     def getChunks: Iterator[Try[Seq[Cover]]] = {
@@ -40,7 +40,7 @@ trait ListingApiClient {
 
           iterator
         case Failure(ex) =>
-          logger.error(s"Could not fetch initial chunk from $baseUrl/$dumpDomainPath")
+          logger.error(s"Could not fetch initial chunk from ${baseUrl / dumpDomainPath}")
           Iterator(Failure(ex))
       }
     }
@@ -62,7 +62,7 @@ trait ListingApiClient {
           Success(result)
         case Failure(ex) =>
           logger.error(
-            s"Could not fetch chunk on page: '$page', with pageSize: '$pageSize' from '$baseUrl/$dumpDomainPath'")
+            s"Could not fetch chunk on page: '$page', with pageSize: '$pageSize' from '${baseUrl / dumpDomainPath}'")
           Failure(ex)
       }
     }
