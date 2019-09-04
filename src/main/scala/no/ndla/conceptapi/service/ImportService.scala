@@ -44,7 +44,7 @@ trait ImportService {
       image.alttext.map(alt => domain.ConceptMetaImage(image.id.toString, alt.alttext, alt.language))
     }
 
-    def convertListingToConcept(listing: Cover): Try[(domain.Concept, Long)] =
+    def convertListingToConcept(listing: Cover): Try[(domain.Concept, Long, Option[String])] =
       listing.id match {
         case Some(coverId) =>
           val domainCoverImage = imageApiClient.getImage(listing.coverPhotoUrl)
@@ -54,10 +54,12 @@ trait ImportService {
           val metaImages = domainCoverImage.map(getConceptMetaImages).toOption.toSeq.flatten
           val subjectIds = taxonomyApiClient.getSubjectIdsForIds(listing.oldNodeId, listing.articleApiId)
 
-          if (subjectIds.isEmpty) {
-            logger.warn(
-              s"Imported listing cover with id ${listing.id.getOrElse(-1)}, could not be connected to taxonomy...")
-          }
+          val warning = if (subjectIds.isEmpty) {
+            val msg =
+              s"Imported listing cover with id ${listing.id.getOrElse(-1)}, could not be connected to taxonomy..."
+            logger.warn(msg)
+            msg.some
+          } else { None }
 
           val tags = listing.labels.flatMap(languageLabels => {
             val filteredTags = languageLabels.labels.filter(_.`type`.getOrElse("category") == "category")
@@ -77,7 +79,8 @@ trait ImportService {
                 tags = tags,
                 subjectIds = subjectIds
               ),
-              coverId
+              coverId,
+              warning
             ))
         case None =>
           val msg = "Could not import cover because it was missing an id."
@@ -89,21 +92,26 @@ trait ImportService {
       val start = System.currentTimeMillis()
       val pageStream = listingApiClient.getChunks
       pageStream
-        .map(page => {
-          page.map(successfulPage => {
-            val convertedConcepts = successfulPage.toList.traverse(convertListingToConcept)
-
-            val inserted = convertedConcepts.map(converted => {
-              writeService.insertListingImportedConcepts(converted, forceUpdate)
-            })
-
-            val numSuccessfullySaved = inserted.map(_.count(_.isSuccess)).getOrElse(0)
-            (numSuccessfullySaved, successfulPage.size)
-          })
-        })
+        .map(page => page.map(successfulPage => convertAndInsertSuccessfulPage(successfulPage, forceUpdate)))
         .toList
         .sequence
         .map(done => handleFinishedImport(start, done))
+    }
+
+    private def convertAndInsertSuccessfulPage(successfulPage: Seq[Cover], forceUpdate: Boolean) = {
+      val convertedConcepts = successfulPage.toList.map(convertListingToConcept)
+      val inserted = convertedConcepts.sequence.map(converted => {
+        val conceptsWithListingId = converted.map { case (concept, listingId, _) => (concept, listingId) }
+        writeService.insertListingImportedConcepts(conceptsWithListingId, forceUpdate)
+      })
+
+      val convertWarnings = convertedConcepts.collect { case Success((_, _, Some(warning))) => warning }
+      val convertFailWarnings = convertedConcepts.collect { case Failure(ex)                => ex.getMessage }
+      val insertWarnings = inserted.map(_.collect { case Failure(ex) => ex.getMessage }).getOrElse(Seq.empty)
+      val allWarnings = convertFailWarnings ++ convertWarnings ++ insertWarnings
+
+      val numSuccessfullySaved = inserted.map(_.count(_.isSuccess)).getOrElse(0)
+      (numSuccessfullySaved, successfulPage.size, allWarnings)
     }
 
     def importConcepts(forceUpdate: Boolean): Try[ConceptImportResults] = {
@@ -114,7 +122,8 @@ trait ImportService {
           page.map(successfulPage => {
             val saved = writeService.saveImportedConcepts(successfulPage, forceUpdate)
             val numSuccessfullySaved = saved.count(_.isSuccess)
-            (numSuccessfullySaved, successfulPage.size)
+            val warnings = saved.collect { case Failure(ex) => ex.getMessage }
+            (numSuccessfullySaved, successfulPage.size, warnings)
           })
         })
         .toList
@@ -122,16 +131,16 @@ trait ImportService {
         .map(done => handleFinishedImport(start, done))
     }
 
-    private def handleFinishedImport(startTime: Long, successfulPages: List[(Int, Int)]) = {
+    private def handleFinishedImport(startTime: Long, successfulPages: List[(Int, Int, Seq[String])]) = {
       conceptRepository.updateIdCounterToHighestId()
-      val (totalSaved, totalAttempted) = successfulPages.foldLeft((0, 0)) {
-        case ((tmpTotalSaved, tmpTotalAttempted), (pageSaved, pageAttempted)) =>
-          (tmpTotalSaved + pageSaved, tmpTotalAttempted + pageAttempted)
+      val (totalSaved, totalAttempted, allWarnings) = successfulPages.foldLeft((0, 0, Seq.empty[String])) {
+        case ((tmpTotalSaved, tmpTotalAttempted, tmpWarnings), (pageSaved, pageAttempted, pageWarnings)) =>
+          (tmpTotalSaved + pageSaved, tmpTotalAttempted + pageAttempted, tmpWarnings ++ pageWarnings)
       }
 
       val usedTime = System.currentTimeMillis() - startTime
       logger.info(s"Successfully saved $totalSaved out of $totalAttempted attempted imported concepts in $usedTime ms.")
-      ConceptImportResults(totalSaved, totalAttempted)
+      ConceptImportResults(totalSaved, totalAttempted, allWarnings)
     }
 
   }
