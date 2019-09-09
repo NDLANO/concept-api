@@ -59,9 +59,10 @@ class ImportServiceTest extends UnitSuite with TestEnvironment {
     domainCover.copy(id = Some(7), oldNodeId = Some(7777), articleApiId = 777),
     domainCover.copy(id = Some(8), oldNodeId = Some(8888), articleApiId = 888)
   )
-  val coverPages = Iterator(Success(coverPage1), Success(coverPage2))
 
   test("That correct number of imported covers are returned") {
+    reset(writeService)
+    val coverPages = Iterator(Success(coverPage1), Success(coverPage2))
 
     when(conceptRepository.updateIdCounterToHighestId()(any[DBSession])).thenReturn(0)
     when(listingApiClient.getChunks).thenReturn(coverPages)
@@ -88,6 +89,8 @@ class ImportServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That correct warnings of imported covers are returned") {
+    reset(writeService)
+    val coverPages = Iterator(Success(coverPage1), Success(coverPage2))
 
     when(conceptRepository.updateIdCounterToHighestId()(any[DBSession])).thenReturn(0)
     when(listingApiClient.getChunks).thenReturn(coverPages)
@@ -97,22 +100,25 @@ class ImportServiceTest extends UnitSuite with TestEnvironment {
       if (apiId == 666) Set.empty[String] else Set("urn:subject:5")
     })
 
-    var coverCheck = 0 // Just using this to fail one of the imported concepts
+    var coverCheckIdx = 0 // Just using this to fail one of the imported concepts
     when(writeService.insertListingImportedConcepts(any[Seq[(domain.Concept, Long)]], any[Boolean]))
       .thenAnswer((i: InvocationOnMock) => {
         val incConcepts = i.getArgument[Seq[(domain.Concept, Long)]](0)
         incConcepts.map(x => {
-          coverCheck += 1
-          if (coverCheck == 2) {
+          coverCheckIdx += 1
+          if (coverCheckIdx == 2) {
             Failure(ConceptExistsAlreadyException(s"The concept already exists with listing_id of ${x._2}."))
           } else { Success(x._1) }
         })
       })
 
+    val expectedWarnings = Seq(
+      "The concept already exists with listing_id of 2.",
+      "Imported listing cover with id 6, could not be connected to taxonomy..."
+    )
+
     val results = service.importListings(false)
-    results.get.warnings should be(
-      Seq("The concept already exists with listing_id of 2.",
-          "Imported listing cover with id 6, could not be connected to taxonomy..."))
+    results.get.warnings should be(expectedWarnings)
   }
 
 }
