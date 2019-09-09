@@ -73,6 +73,7 @@ trait ImportService {
                 title = titles,
                 content = contents,
                 copyright = None,
+                source = None,
                 created = listing.updated,
                 updated = listing.updated,
                 metaImage = metaImages,
