@@ -72,6 +72,7 @@ class ConceptRepositoryTest extends IntegrationSuite with TestEnvironment {
   }
 
   test("That getting subjects works as expected") {
+    assume(databaseIsAvailable, "Database is unavailable")
     val concept1 = domainConcept.copy(subjectIds = Set("urn:subject:1", "urn:subject:2"))
     val concept2 = domainConcept.copy(subjectIds = Set("urn:subject:1", "urn:subject:19"))
     val concept3 = domainConcept.copy(subjectIds = Set("urn:subject:12"))
