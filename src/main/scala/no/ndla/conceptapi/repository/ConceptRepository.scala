@@ -41,6 +41,40 @@ trait ConceptRepository {
       concept.copy(id = Some(conceptId))
     }
 
+    def insertwithListingId(concept: Concept, listingId: Long)(implicit session: DBSession = AutoSession): Concept = {
+      val dataObject = new PGobject()
+      dataObject.setType("jsonb")
+      dataObject.setValue(write(concept))
+
+      val conceptId: Long =
+        sql"""
+        insert into ${Concept.table} (listing_id, document)
+        values ($listingId, $dataObject)
+          """.updateAndReturnGeneratedKey.apply
+
+      logger.info(s"Inserted new concept: '$conceptId', with listing id '$listingId'")
+      concept.copy(id = Some(conceptId))
+    }
+
+    def updateWithListingId(concept: Concept, listingId: Long)(
+        implicit session: DBSession = AutoSession): Try[Concept] = {
+      val dataObject = new PGobject()
+      dataObject.setType("jsonb")
+      dataObject.setValue(write(concept))
+
+      Try(sql"""
+           update ${Concept.table} set document=${dataObject} where listing_id=${listingId}
+         """.updateAndReturnGeneratedKey.apply) match {
+        case Success(id) => Success(concept.copy(id = Some(id)))
+        case Failure(ex) =>
+          logger.warn(s"Failed to update concept with id ${concept.id} and listing id: $listingId: ${ex.getMessage}")
+          Failure(ex)
+      }
+    }
+
+    def withListingId(listingId: Long) =
+      conceptWhere(sqls"co.listing_id=$listingId")
+
     def insertWithId(concept: Concept)(implicit session: DBSession = AutoSession): Try[Concept] = {
       concept.id match {
         case Some(id) =>

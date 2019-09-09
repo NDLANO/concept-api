@@ -9,5 +9,6 @@ package no.ndla.conceptapi.model.api
 
 case class ConceptImportResults(
     numSuccessfullyImportedConcepts: Long,
-    totalAttemptedImportedConcepts: Long
+    totalAttemptedImportedConcepts: Long,
+    warnings: Seq[String]
 )

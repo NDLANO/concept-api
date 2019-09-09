@@ -11,7 +11,14 @@ import com.typesafe.scalalogging.LazyLogging
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.conceptapi.auth.User
 import no.ndla.conceptapi.controller.ConceptController
-import no.ndla.conceptapi.integration.{DataSource, Elastic4sClient, NdlaE4sClient}
+import no.ndla.conceptapi.integration.{
+  ArticleApiClient,
+  DataSource,
+  Elastic4sClient,
+  ImageApiClient,
+  ListingApiClient,
+  NdlaE4sClient
+}
 import no.ndla.conceptapi.repository.ConceptRepository
 import no.ndla.conceptapi.service.search.{
   ConceptIndexService,
@@ -20,8 +27,9 @@ import no.ndla.conceptapi.service.search.{
   SearchConverterService,
   SearchService
 }
-import no.ndla.conceptapi.service.{Clock, ConverterService, ReadService, WriteService}
+import no.ndla.conceptapi.service.{Clock, ConverterService, ImportService, ReadService, WriteService}
 import no.ndla.conceptapi.validation.ContentValidator
+import no.ndla.network.NdlaClient
 import org.scalatest.mockito.MockitoSugar
 
 trait TestEnvironment
@@ -40,6 +48,11 @@ trait TestEnvironment
     with ReadService
     with ConverterService
     with ContentValidator
+    with ImportService
+    with ArticleApiClient
+    with ListingApiClient
+    with ImageApiClient
+    with NdlaClient
     with Clock
     with User {
 
@@ -58,5 +71,11 @@ trait TestEnvironment
   val contentValidator = mock[ContentValidator]
   val clock = mock[SystemClock]
   val user = mock[User]
+  val importService = mock[ImportService]
+
+  val ndlaClient = mock[NdlaClient]
+  val articleApiClient = mock[ArticleApiClient]
+  val imageApiClient = mock[ImageApiClient]
+  val listingApiClient = mock[ListingApiClient]
 
 }
