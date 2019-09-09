@@ -9,13 +9,7 @@ package no.ndla.conceptapi.service
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.auth.User
-import no.ndla.conceptapi.integration.{
-  ArticleApiClient,
-  DomainImageMeta,
-  ImageApiClient,
-  ListingApiClient,
-  TaxonomyApiClient
-}
+import no.ndla.conceptapi.integration.{ArticleApiClient, DomainImageMeta, ImageApiClient, ListingApiClient}
 import no.ndla.conceptapi.model.api.{ConceptImportResults, ImportException}
 import no.ndla.conceptapi.model.api.listing.Cover
 import no.ndla.conceptapi.repository.ConceptRepository
@@ -34,14 +28,21 @@ trait ImportService {
     with ConceptRepository
     with ArticleApiClient
     with ListingApiClient
-    with ImageApiClient
-    with TaxonomyApiClient =>
+    with ImageApiClient =>
   val importService: ImportService
 
   class ImportService extends LazyLogging {
 
     private def getConceptMetaImages(image: DomainImageMeta): Seq[domain.ConceptMetaImage] = {
       image.alttext.map(alt => domain.ConceptMetaImage(image.id.toString, alt.alttext, alt.language))
+    }
+
+    private def getSubjectIdFromTheme(theme: String) = {
+      val themeMapping = Map(
+        "verktoy" -> "urn:subject:11",
+        "naturbruk" -> "urn:subject:13"
+      )
+      themeMapping.get(theme)
     }
 
     def convertListingToConcept(listing: Cover): Try[(domain.Concept, Long, Option[String])] =
@@ -52,7 +53,7 @@ trait ImportService {
           val titles = listing.title.map(t => domain.ConceptTitle(t.title, t.language))
           val contents = listing.description.map(c => domain.ConceptContent(c.description, c.language))
           val metaImages = domainCoverImage.map(getConceptMetaImages).toOption.toSeq.flatten
-          val subjectIds = taxonomyApiClient.getSubjectIdsForIds(listing.oldNodeId, listing.articleApiId)
+          val subjectIds = getSubjectIdFromTheme(listing.theme).toSet
 
           val warning = if (subjectIds.isEmpty) {
             val msg =

@@ -17,8 +17,7 @@ import no.ndla.conceptapi.integration.{
   Elastic4sClient,
   ImageApiClient,
   ListingApiClient,
-  NdlaE4sClient,
-  TaxonomyApiClient
+  NdlaE4sClient
 }
 import no.ndla.conceptapi.repository.ConceptRepository
 import no.ndla.conceptapi.service.search.{
@@ -53,7 +52,6 @@ trait TestEnvironment
     with ArticleApiClient
     with ListingApiClient
     with ImageApiClient
-    with TaxonomyApiClient
     with NdlaClient
     with Clock
     with User {
@@ -79,6 +77,5 @@ trait TestEnvironment
   val articleApiClient = mock[ArticleApiClient]
   val imageApiClient = mock[ImageApiClient]
   val listingApiClient = mock[ListingApiClient]
-  val taxonomyApiClient = mock[TaxonomyApiClient]
 
 }

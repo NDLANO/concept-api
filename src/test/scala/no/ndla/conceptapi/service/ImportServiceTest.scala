@@ -43,31 +43,31 @@ class ImportServiceTest extends UnitSuite with TestEnvironment {
     articleApiId = 15,
     updatedBy = "somefancyclientid",
     updated = TestData.today,
-    theme = "sometheme"
-  )
-
-  val coverPage1 = Seq(
-    domainCover.copy(id = Some(1), oldNodeId = Some(1111), articleApiId = 111),
-    domainCover.copy(id = Some(2), oldNodeId = Some(2222), articleApiId = 222),
-    domainCover.copy(id = Some(3), oldNodeId = Some(3333), articleApiId = 333),
-    domainCover.copy(id = Some(4), oldNodeId = Some(4444), articleApiId = 444)
-  )
-
-  val coverPage2 = Seq(
-    domainCover.copy(id = Some(5), oldNodeId = Some(5555), articleApiId = 555),
-    domainCover.copy(id = Some(6), oldNodeId = Some(6666), articleApiId = 666),
-    domainCover.copy(id = Some(7), oldNodeId = Some(7777), articleApiId = 777),
-    domainCover.copy(id = Some(8), oldNodeId = Some(8888), articleApiId = 888)
+    theme = "verktoy"
   )
 
   test("That correct number of imported covers are returned") {
     reset(writeService)
+
+    val coverPage1 = Seq(
+      domainCover.copy(id = Some(1)),
+      domainCover.copy(id = Some(2)),
+      domainCover.copy(id = Some(3)),
+      domainCover.copy(id = Some(4))
+    )
+
+    val coverPage2 = Seq(
+      domainCover.copy(id = Some(5)),
+      domainCover.copy(id = Some(6)),
+      domainCover.copy(id = Some(7)),
+      domainCover.copy(id = Some(8))
+    )
+
     val coverPages = Iterator(Success(coverPage1), Success(coverPage2))
 
     when(conceptRepository.updateIdCounterToHighestId()(any[DBSession])).thenReturn(0)
     when(listingApiClient.getChunks).thenReturn(coverPages)
     when(imageApiClient.getImage(any[String])).thenReturn(Failure(new RuntimeException("blabla")))
-    when(taxonomyApiClient.getSubjectIdsForIds(any[Option[Long]], any[Long])).thenReturn(Set.empty[String])
 
     var coverCheck = 0 // Just using this to fail one of the imported concepts
     when(writeService.insertListingImportedConcepts(any[Seq[(domain.Concept, Long)]], any[Boolean]))
@@ -90,15 +90,25 @@ class ImportServiceTest extends UnitSuite with TestEnvironment {
 
   test("That correct warnings of imported covers are returned") {
     reset(writeService)
+    val coverPage1 = Seq(
+      domainCover.copy(id = Some(1)),
+      domainCover.copy(id = Some(2)),
+      domainCover.copy(id = Some(3)),
+      domainCover.copy(id = Some(4))
+    )
+
+    val coverPage2 = Seq(
+      domainCover.copy(id = Some(5)),
+      domainCover.copy(id = Some(6), theme = "someunrecognizedtheme"),
+      domainCover.copy(id = Some(7)),
+      domainCover.copy(id = Some(8))
+    )
+
     val coverPages = Iterator(Success(coverPage1), Success(coverPage2))
 
     when(conceptRepository.updateIdCounterToHighestId()(any[DBSession])).thenReturn(0)
     when(listingApiClient.getChunks).thenReturn(coverPages)
     when(imageApiClient.getImage(any[String])).thenReturn(Failure(new RuntimeException("blabla")))
-    when(taxonomyApiClient.getSubjectIdsForIds(any[Option[Long]], any[Long])).thenAnswer((i: InvocationOnMock) => {
-      val apiId = i.getArgument[Long](1)
-      if (apiId == 666) Set.empty[String] else Set("urn:subject:5")
-    })
 
     var coverCheckIdx = 0 // Just using this to fail one of the imported concepts
     when(writeService.insertListingImportedConcepts(any[Seq[(domain.Concept, Long)]], any[Boolean]))
