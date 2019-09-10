@@ -92,6 +92,7 @@ class ConceptRepositoryTest extends IntegrationSuite with TestEnvironment {
   }
 
   test("Inserting and fetching with listing id works as expected") {
+    assume(databaseIsAvailable, "Database is unavailable")
     val concept1 = domainConcept.copy(title = Seq(domain.ConceptTitle("Really good title", "nb")))
     val concept2 = domainConcept.copy(title = Seq(domain.ConceptTitle("Not so bad title", "nb")))
     val concept3 = domainConcept.copy(title = Seq(domain.ConceptTitle("Whatchu doin", "nb")))
