@@ -17,7 +17,7 @@ import scalaj.http.Http
 import scala.util.Try
 
 case class ImageAltText(alttext: String, language: String)
-case class DomainImageMeta(id: Long, alttext: Seq[ImageAltText])
+case class DomainImageMeta(id: Long, alttexts: Seq[ImageAltText])
 
 trait ImageApiClient {
   this: NdlaClient with LazyLogging =>

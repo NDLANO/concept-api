@@ -34,7 +34,7 @@ trait ImportService {
   class ImportService extends LazyLogging {
 
     private def getConceptMetaImages(image: DomainImageMeta): Seq[domain.ConceptMetaImage] = {
-      image.alttext.map(alt => domain.ConceptMetaImage(image.id.toString, alt.alttext, alt.language))
+      image.alttexts.map(alt => domain.ConceptMetaImage(image.id.toString, alt.alttext, alt.language))
     }
 
     private def getSubjectIdFromTheme(theme: String) = {
@@ -45,7 +45,7 @@ trait ImportService {
       themeMapping.get(theme)
     }
 
-    def convertListingToConcept(listing: Cover): Try[(domain.Concept, Long, Option[String])] =
+    def convertListingToConcept(listing: Cover): Try[(domain.Concept, Long, Seq[String])] =
       listing.id match {
         case Some(coverId) =>
           val domainCoverImage = imageApiClient.getImage(listing.coverPhotoUrl)
@@ -55,7 +55,14 @@ trait ImportService {
           val metaImages = domainCoverImage.map(getConceptMetaImages).toOption.toSeq.flatten
           val subjectIds = getSubjectIdFromTheme(listing.theme).toSet
 
-          val warning = if (subjectIds.isEmpty) {
+          val metaImageWarning = if (metaImages.isEmpty) {
+            val msg =
+              s"Imported listing cover with id ${listing.id.getOrElse(-1)} does not have any meta images..."
+            logger.warn(msg)
+            msg.some
+          } else { None }
+
+          val taxonomyWarning = if (subjectIds.isEmpty) {
             val msg =
               s"Imported listing cover with id ${listing.id.getOrElse(-1)}, could not be connected to taxonomy..."
             logger.warn(msg)
@@ -82,7 +89,7 @@ trait ImportService {
                 subjectIds = subjectIds
               ),
               coverId,
-              warning
+              metaImageWarning.toSeq ++ taxonomyWarning.toSeq
             ))
         case None =>
           val msg = "Could not import cover because it was missing an id."
@@ -107,8 +114,8 @@ trait ImportService {
         writeService.insertListingImportedConcepts(conceptsWithListingId, forceUpdate)
       })
 
-      val convertWarnings = convertedConcepts.collect { case Success((_, _, Some(warning))) => warning }
-      val convertFailWarnings = convertedConcepts.collect { case Failure(ex)                => ex.getMessage }
+      val convertWarnings = convertedConcepts.collect { case Success((_, _, warnings)) => warnings }.flatten
+      val convertFailWarnings = convertedConcepts.collect { case Failure(ex) => ex.getMessage }
       val insertWarnings = inserted.map(_.collect { case Failure(ex) => ex.getMessage }).getOrElse(Seq.empty)
       val allWarnings = convertFailWarnings ++ convertWarnings ++ insertWarnings
 

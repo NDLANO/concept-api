@@ -9,6 +9,7 @@ package no.ndla.conceptapi.service
 
 import java.util.Date
 
+import no.ndla.conceptapi.integration.{DomainImageMeta, ImageAltText}
 import no.ndla.conceptapi.model.api.{ConceptExistsAlreadyException, Copyright, NotFoundException, UpdatedConcept}
 import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
@@ -67,7 +68,12 @@ class ImportServiceTest extends UnitSuite with TestEnvironment {
 
     when(conceptRepository.updateIdCounterToHighestId()(any[DBSession])).thenReturn(0)
     when(listingApiClient.getChunks).thenReturn(coverPages)
-    when(imageApiClient.getImage(any[String])).thenReturn(Failure(new RuntimeException("blabla")))
+    when(imageApiClient.getImage(any[String])).thenReturn(
+      Success(
+        DomainImageMeta(
+          id = 123,
+          alttexts = Seq(ImageAltText("blabla", "nb"))
+        )))
 
     var coverCheck = 0 // Just using this to fail one of the imported concepts
     when(writeService.insertListingImportedConcepts(any[Seq[(domain.Concept, Long)]], any[Boolean]))
@@ -108,7 +114,12 @@ class ImportServiceTest extends UnitSuite with TestEnvironment {
 
     when(conceptRepository.updateIdCounterToHighestId()(any[DBSession])).thenReturn(0)
     when(listingApiClient.getChunks).thenReturn(coverPages)
-    when(imageApiClient.getImage(any[String])).thenReturn(Failure(new RuntimeException("blabla")))
+    when(imageApiClient.getImage(any[String])).thenReturn(
+      Success(
+        DomainImageMeta(
+          id = 123,
+          alttexts = Seq(ImageAltText("blabla", "nb"))
+        )))
 
     var coverCheckIdx = 0 // Just using this to fail one of the imported concepts
     when(writeService.insertListingImportedConcepts(any[Seq[(domain.Concept, Long)]], any[Boolean]))
