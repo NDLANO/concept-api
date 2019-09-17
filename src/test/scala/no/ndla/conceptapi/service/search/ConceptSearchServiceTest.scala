@@ -170,7 +170,7 @@ class ConceptSearchServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That getStartAtAndNumResults returns SEARCH_MAX_PAGE_SIZE for value greater than SEARCH_MAX_PAGE_SIZE") {
-    conceptSearchService.getStartAtAndNumResults(0, 1001) should equal((0, ConceptApiProperties.MaxPageSize))
+    conceptSearchService.getStartAtAndNumResults(0, 20001) should equal((0, ConceptApiProperties.MaxPageSize))
   }
 
   test(

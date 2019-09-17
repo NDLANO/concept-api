@@ -78,7 +78,12 @@ trait ConceptSearchService {
         prevResults: List[SearchResult[api.ConceptSummary]] = List.empty
     ): Try[List[SearchResult[api.ConceptSummary]]] = {
       val page = prevResults.lastOption.flatMap(_.page).getOrElse(0) + 1
-      val result = this.all(searchSettings.copy(page = page))
+
+      val result = prevResults.lastOption.flatMap(_.scrollId) match {
+        case Some(scrollId) => this.scroll(scrollId, searchSettings.searchLanguage)
+        case None           => this.all(searchSettings.copy(page = page))
+      }
+
       result match {
         case Failure(ex)                                                        => Failure(ex)
         case Success(value) if value.results.size <= 0 || value.totalCount == 0 => Success(prevResults)
