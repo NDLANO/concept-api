@@ -34,7 +34,7 @@ lazy val concept_api = (project in file("."))
     javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
     scalacOptions := Seq("-target:jvm-1.8", "-unchecked", "-deprecation", "-feature", "-Ypartial-unification"),
     libraryDependencies ++= Seq(
-      "ndla" %% "network" % "0.38",
+      "ndla" %% "network" % "0.41",
       "ndla" %% "mapping" % "0.11",
       "ndla" %% "validation" % "0.31",
       "org.scalatra" %% "scalatra" % Scalatraversion,
