@@ -37,7 +37,7 @@ lazy val concept_api = (project in file("."))
     libraryDependencies ++= Seq(
       "ndla" %% "network" % "0.41",
       "ndla" %% "mapping" % "0.11",
-      "ndla" %% "validation" % "0.31",
+      "ndla" %% "validation" % "0.34",
       "org.scalatra" %% "scalatra" % Scalatraversion,
       "org.eclipse.jetty" % "jetty-webapp" % Jettyversion % "container;compile",
       "org.eclipse.jetty" % "jetty-plus" % Jettyversion % "container",
