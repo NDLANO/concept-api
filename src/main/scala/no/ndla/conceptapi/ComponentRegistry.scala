@@ -65,7 +65,7 @@ object ComponentRegistry
   lazy val conceptSearchService = new ConceptSearchService
   lazy val searchConverterService = new SearchConverterService
   lazy val conceptIndexService = new ConceptIndexService
-  lazy val e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient()
+  var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient()
 
   lazy val ndlaClient = new NdlaClient
   lazy val articleApiClient = new ArticleApiClient
