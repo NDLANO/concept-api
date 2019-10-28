@@ -61,7 +61,7 @@ trait TestEnvironment
   val searchConverterService = mock[SearchConverterService]
   val conceptIndexService = mock[ConceptIndexService]
   val conceptSearchService = mock[ConceptSearchService]
-  val e4sClient = mock[NdlaE4sClient]
+  var e4sClient = mock[NdlaE4sClient]
   val lazyLogging = mock[LazyLogging]
   val mockitoSugar = mock[MockitoSugar]
   val dataSource = mock[HikariDataSource]
