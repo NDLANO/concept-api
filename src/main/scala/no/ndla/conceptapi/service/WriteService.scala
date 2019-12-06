@@ -106,11 +106,8 @@ trait WriteService {
                 title = title,
                 content = content,
               )
-              conceptRepository
-                .update(newConcept)
-                .flatMap(
-                  converterService.toApiConcept(_, domain.Language.AllLanguages, false)
-                )
+              updateConcept(newConcept).flatMap(
+                converterService.toApiConcept(_, domain.Language.AllLanguages, fallback = false))
           }
         case None => Failure(NotFoundException("Concept does not exist"))
       }
