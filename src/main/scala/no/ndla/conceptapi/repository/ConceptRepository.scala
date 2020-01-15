@@ -11,10 +11,10 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.ConceptApiProperties
 import no.ndla.conceptapi.integration.DataSource
 import no.ndla.conceptapi.model.api.{ConceptMissingIdException, NotFoundException}
-import no.ndla.conceptapi.model.domain.Concept
+import no.ndla.conceptapi.model.domain.{Concept, ConceptTags}
 import org.json4s.Formats
 import org.postgresql.util.PGobject
-import org.json4s.native.Serialization.write
+import org.json4s.native.Serialization.{read, write}
 import scalikejdbc._
 
 import scala.util.{Failure, Success, Try}
@@ -189,6 +189,16 @@ trait ConceptRepository {
         s"${Concept.schemaName.getOrElse(ConceptApiProperties.MetaSchema)}.${Concept.tableName}_id_seq")
 
       sql"alter sequence $sequenceName restart with $idToStartAt;".executeUpdate().apply()
+    }
+
+    def everyTagFromEveryConcept(language: String)(implicit session: DBSession = ReadOnlyAutoSession) = {
+      sql"select distinct document#>'{tags}' as tags from ${Concept.table} where document#>'{tags,0}' notnull"
+        .map(rs => {
+          val jsonStr = rs.string("tags")
+          read[List[ConceptTags]](jsonStr)
+        })
+        .list
+        .apply()
     }
   }
 }

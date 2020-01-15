@@ -297,12 +297,16 @@ trait ConceptController {
     ) {
       val subjectIds = paramAsListOfString(this.subjectIds.paramName)
       val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
-      val fallback = booleanOrDefault(this.fallback.paramName, false)
+      val fallback = booleanOrDefault(this.fallback.paramName, default = false)
 
-      conceptSearchService.getTagsWithSubjects(subjectIds, language, fallback) match {
-        case Success(res) if res.size > 0 => Ok(res)
-        case Success(res)                 => errorHandler(NotFoundException("Could not find any tags in the specified subjects"))
-        case Failure(ex)                  => errorHandler(ex)
+      if (subjectIds.nonEmpty) {
+        conceptSearchService.getTagsWithSubjects(subjectIds, language, fallback) match {
+          case Success(res) if res.nonEmpty => Ok(res)
+          case Success(res)                 => errorHandler(NotFoundException("Could not find any tags in the specified subjects"))
+          case Failure(ex)                  => errorHandler(ex)
+        }
+      } else {
+        readService.allTagsFromConcepts(language, fallback)
       }
     }
 

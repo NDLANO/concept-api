@@ -10,6 +10,7 @@ package no.ndla.conceptapi.service
 import no.ndla.conceptapi.repository.ConceptRepository
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api.NotFoundException
+import no.ndla.conceptapi.model.domain.Language
 
 import scala.util.{Failure, Success, Try}
 
@@ -32,5 +33,15 @@ trait ReadService {
       if (subjectIds.size > 0) Success(subjectIds) else Failure(NotFoundException("Could not find any subjects"))
     }
 
+    def allTagsFromConcepts(language: String, fallback: Boolean): List[String] = {
+      val allConceptTags = conceptRepository.everyTagFromEveryConcept(language)
+      (if (fallback) {
+         allConceptTags.flatMap(t => {
+           Language.findByLanguageOrBestEffort(t, language)
+         })
+       } else {
+         allConceptTags.flatMap(_.filter(_.language == language))
+       }).flatMap(_.tags).distinct
+    }
   }
 }
