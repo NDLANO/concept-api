@@ -117,4 +117,49 @@ class ConceptRepositoryTest extends IntegrationSuite with TestEnvironment {
     result3 should be(expected3)
   }
 
+  test("Fetching concepts tags works as expected") {
+    assume(databaseIsAvailable, "Database is unavailable")
+    val concept1 =
+      domainConcept.copy(
+        tags = Seq(
+          domain.ConceptTags(Seq("konge", "bror"), "nb"),
+          domain.ConceptTags(Seq("konge", "brur"), "nn"),
+          domain.ConceptTags(Seq("king", "bro"), "en"),
+          domain.ConceptTags(Seq("zing", "xiongdi"), "zh")
+        ))
+    val concept2 =
+      domainConcept.copy(
+        tags = Seq(
+          domain.ConceptTags(Seq("konge", "lol", "meme"), "nb"),
+          domain.ConceptTags(Seq("konge", "lel", "meem"), "nn"),
+          domain.ConceptTags(Seq("king", "lul", "maymay"), "en"),
+          domain.ConceptTags(Seq("zing", "kek", "mimi"), "zh")
+        ))
+    val concept3 =
+      domainConcept.copy(
+        tags = Seq()
+      )
+
+    repository.insert(concept1)
+    repository.insert(concept2)
+    repository.insert(concept3)
+
+    repository.everyTagFromEveryConcept should be(
+      List(
+        List(
+          domain.ConceptTags(Seq("konge", "lol", "meme"), "nb"),
+          domain.ConceptTags(Seq("konge", "lel", "meem"), "nn"),
+          domain.ConceptTags(Seq("king", "lul", "maymay"), "en"),
+          domain.ConceptTags(Seq("zing", "kek", "mimi"), "zh")
+        ),
+        List(
+          domain.ConceptTags(Seq("konge", "bror"), "nb"),
+          domain.ConceptTags(Seq("konge", "brur"), "nn"),
+          domain.ConceptTags(Seq("king", "bro"), "en"),
+          domain.ConceptTags(Seq("zing", "xiongdi"), "zh"),
+        )
+      )
+    )
+  }
+
 }
