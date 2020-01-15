@@ -191,8 +191,8 @@ trait ConceptRepository {
       sql"alter sequence $sequenceName restart with $idToStartAt;".executeUpdate().apply()
     }
 
-    def everyTagFromEveryConcept(language: String)(implicit session: DBSession = ReadOnlyAutoSession) = {
-      sql"select distinct document#>'{tags}' as tags from ${Concept.table} where document#>'{tags,0}' notnull"
+    def everyTagFromEveryConcept(implicit session: DBSession = ReadOnlyAutoSession) = {
+      sql"select distinct document#>'{tags}' as tags from ${Concept.table} where jsonb_array_length(document#>'{tags}') > 0"
         .map(rs => {
           val jsonStr = rs.string("tags")
           read[List[ConceptTags]](jsonStr)
