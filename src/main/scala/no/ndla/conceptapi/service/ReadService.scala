@@ -35,7 +35,7 @@ trait ReadService {
 
     def allTagsFromConcepts(language: String, fallback: Boolean): List[String] = {
       val allConceptTags = conceptRepository.everyTagFromEveryConcept
-      (if (fallback) {
+      (if (fallback || language == Language.AllLanguages) {
          allConceptTags.flatMap(t => {
            Language.findByLanguageOrBestEffort(t, language)
          })
