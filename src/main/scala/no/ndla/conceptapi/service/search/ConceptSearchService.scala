@@ -24,7 +24,7 @@ import no.ndla.mapping.ISO639
 
 import scala.annotation.tailrec
 import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
+import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor, ExecutionContextExecutorService, Future}
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
@@ -44,7 +44,8 @@ trait ConceptSearchService {
       if (subjectIds.size <= 0) {
         Failure(OperationNotAllowedException("Will not generate list of subject tags with no specified subjectIds"))
       } else {
-        implicit val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(subjectIds.size))
+        implicit val ec: ExecutionContextExecutor =
+          ExecutionContext.fromExecutor(Executors.newFixedThreadPool(subjectIds.size))
         val searches = subjectIds.traverse(subjectId => searchSubjectIdTags(subjectId, language, fallback))
         Await.result(searches, 1 minute).sequence.map(_.flatten)
       }

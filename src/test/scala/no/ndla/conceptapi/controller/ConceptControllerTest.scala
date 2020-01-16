@@ -33,7 +33,8 @@ class ConceptControllerTest extends UnitSuite with ScalatraFunSuite with TestEnv
   }
 
   test("/<concept_id> should return 200 if the concept was found") {
-    when(readService.conceptWithId(conceptId, lang, fallback = false)).thenReturn(Success(TestData.sampleNbApiConcept))
+    when(readService.conceptWithId(conceptId, lang, fallback = false))
+      .thenReturn(Success(TestData.sampleNbApiConcept))
 
     get(s"/test/$conceptId?language=$lang") {
       status should equal(200)
@@ -52,6 +53,15 @@ class ConceptControllerTest extends UnitSuite with ScalatraFunSuite with TestEnv
   test("/<concept_id> should return 400 if the concept was not found") {
     get(s"/test/one") {
       status should equal(400)
+    }
+  }
+
+  test("GET /tags should return 200 on getting all tags") {
+    when(readService.allTagsFromConcepts(lang, fallback = false))
+      .thenReturn(List("tag1", "tag2"))
+
+    get(s"/test/tags/?language=$lang") {
+      status should equal(200)
     }
   }
 
@@ -92,6 +102,7 @@ class ConceptControllerTest extends UnitSuite with ScalatraFunSuite with TestEnv
       status should equal(200)
     }
   }
+
   test("PATCH / should return 403 if no write role") {
     when(user.getUser).thenReturn(TestData.userWithNoRoles)
     when(
@@ -103,5 +114,4 @@ class ConceptControllerTest extends UnitSuite with ScalatraFunSuite with TestEnv
       status should equal(403)
     }
   }
-
 }
