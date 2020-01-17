@@ -45,7 +45,8 @@ object TestData {
     Some(Set("urn:subject:3", "urn:subject:4")),
     yesterday,
     today,
-    Set("nn", "nb")
+    Set("nn", "nb"),
+    Some(42)
   )
 
   val sampleNbDomainConcept = domain.Concept(
@@ -58,7 +59,8 @@ object TestData {
     updated = today,
     metaImage = Seq(domain.ConceptMetaImage("1", "Hei", "nb")),
     tags = Seq(domain.ConceptTags(Seq("stor", "kaktus"), "nb")),
-    subjectIds = Set("urn:subject:3", "urn:subject:4")
+    subjectIds = Set("urn:subject:3", "urn:subject:4"),
+    articleId = Some(42)
   )
 
   val sampleConcept = domain.Concept(
@@ -71,7 +73,8 @@ object TestData {
     updated = DateTime.now().minusDays(2).toDate,
     metaImage = Seq(domain.ConceptMetaImage("1", "Hei", "nb")),
     tags = Seq(domain.ConceptTags(Seq("liten", "fisk"), "nb")),
-    subjectIds = Set("urn:subject:3", "urn:subject:4")
+    subjectIds = Set("urn:subject:3", "urn:subject:4"),
+    articleId = Some(42)
   )
 
   val domainConcept = domain.Concept(
@@ -84,7 +87,8 @@ object TestData {
     updated = today,
     metaImage = Seq(domain.ConceptMetaImage("1", "Hei", "nb"), domain.ConceptMetaImage("2", "Hej", "nn")),
     tags = Seq(domain.ConceptTags(Seq("stor", "kaktus"), "nb"), domain.ConceptTags(Seq("liten", "fisk"), "nn")),
-    subjectIds = Set("urn:subject:3", "urn:subject:4")
+    subjectIds = Set("urn:subject:3", "urn:subject:4"),
+    articleId = Some(42)
   )
 
   val sampleNnApiConcept = api.Concept(
@@ -98,10 +102,10 @@ object TestData {
     Some(Set("urn:subject:3", "urn:subject:4")),
     yesterday,
     today,
-    Set("nn", "nb")
+    Set("nn", "nb"),
+    Some(42)
   )
 
-  val sampleNewConcept = api.NewConcept("nb", "Tittel", Some("Innhold"), None, None, None, None, None)
-  val updatedConcept = api.UpdatedConcept("nb", None, Some("Innhold"), None, None, None, None, None)
-
+  val sampleNewConcept = api.NewConcept("nb", "Tittel", Some("Innhold"), None, None, None, None, None, Some(42))
+  val updatedConcept = api.UpdatedConcept("nb", None, Some("Innhold"), None, None, None, None, None, Right(Some(12L)))
 }
