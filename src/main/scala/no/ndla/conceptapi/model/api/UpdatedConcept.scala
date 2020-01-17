@@ -23,5 +23,8 @@ case class UpdatedConcept(
     @(ApiModelProperty @field)(description = "URL for the source of the concept'") source: Option[String],
     @(ApiModelProperty @field)(description = "A list of searchable tags") tags: Option[Seq[String]],
     @(ApiModelProperty @field)(description = "A list of taxonomy subject ids the concept is connected to") subjectIds: Option[
-      Seq[String]]
+      Seq[String]],
+    @(ApiModelProperty @field)(description = "Article id to which the concept is connected to") articleId: Either[
+      Null,
+      Option[Long]] // We use this type to make json4s understand the difference between null and missing fields
 )

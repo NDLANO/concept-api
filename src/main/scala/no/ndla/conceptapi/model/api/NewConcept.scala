@@ -23,5 +23,6 @@ case class NewConcept(
       NewConceptMetaImage],
     @(ApiModelProperty @field)(description = "A list of searchable tags") tags: Option[Seq[String]],
     @(ApiModelProperty @field)(description = "A list of taxonomy subject ids the concept is connected to") subjectIds: Option[
-      Seq[String]]
+      Seq[String]],
+    @(ApiModelProperty @field)(description = "Article id to which the concept is connected to") articleId: Option[Long]
 )
