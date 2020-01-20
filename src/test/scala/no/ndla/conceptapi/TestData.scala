@@ -91,6 +91,20 @@ object TestData {
     articleId = Some(42)
   )
 
+  val domainConcept_toDomainUpdateWithId = domain.Concept(
+    id = Some(112),
+    title = Seq(domain.ConceptTitle("Tittel", "nb")),
+    content = Seq(domain.ConceptContent("Innhold", "nb")),
+    copyright = None,
+    source = None,
+    created = today,
+    updated = today,
+    metaImage = Seq(domain.ConceptMetaImage("1", "Hei", "nb")),
+    tags = Seq(domain.ConceptTags(Seq("stor", "kaktus"), "nb")),
+    subjectIds = Set("urn:subject:3"),
+    articleId = Some(42)
+  )
+
   val sampleNnApiConcept = api.Concept(
     1.toLong,
     Some(api.ConceptTitle("Tittelur", "nn")),

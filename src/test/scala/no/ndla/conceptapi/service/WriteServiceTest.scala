@@ -62,10 +62,11 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("That update function updates only content properly") {
     val newContent = "NewContentTest"
     val updatedApiConcept =
-      api.UpdatedConcept("en", None, content = Some(newContent), None, None, None, None, None, Right(Some(42L)))
+      api.UpdatedConcept("en", None, content = Some(newContent), None, None, None, None, None, Left(null))
     val expectedConcept = concept.copy(content = Option(api.ConceptContent(newContent, "en")),
                                        updated = today,
-                                       supportedLanguages = Set("nb", "en"))
+                                       supportedLanguages = Set("nb", "en"),
+                                       articleId = None)
     val result = service.updateConcept(conceptId, updatedApiConcept).get
     result should equal(expectedConcept)
   }
@@ -73,10 +74,11 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("That update function updates only title properly") {
     val newTitle = "NewTitleTest"
     val updatedApiConcept =
-      api.UpdatedConcept("nn", title = Some(newTitle), None, None, None, None, None, None, Right(Some(42L)))
+      api.UpdatedConcept("nn", title = Some(newTitle), None, None, None, None, None, None, Left(null))
     val expectedConcept = concept.copy(title = Option(api.ConceptTitle(newTitle, "nn")),
                                        updated = today,
-                                       supportedLanguages = Set("nb", "nn"))
+                                       supportedLanguages = Set("nb", "nn"),
+                                       articleId = None)
     service.updateConcept(conceptId, updatedApiConcept).get should equal(expectedConcept)
   }
 
@@ -97,7 +99,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       Some(updatedSource),
       Some(Seq("Nye", "Tags")),
       Some(Seq("urn:subject:900")),
-      Right(Some(42L))
+      Right(Some(69L))
     )
 
     val expectedConcept = concept.copy(
@@ -109,7 +111,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       source = Some("https://www.ndla.no"),
       supportedLanguages = Set("nb", "en"),
       tags = Some(api.ConceptTags(Seq("Nye", "Tags"), "en")),
-      subjectIds = Some(Set("urn:subject:900"))
+      subjectIds = Some(Set("urn:subject:900")),
+      articleId = Some(69L)
     )
 
     service.updateConcept(conceptId, updatedApiConcept) should equal(Success(expectedConcept))

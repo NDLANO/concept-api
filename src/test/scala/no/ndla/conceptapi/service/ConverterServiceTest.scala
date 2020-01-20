@@ -146,4 +146,95 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     )
   }
 
+  test("toDomainConcept deletes articleId when getting null as a parameter") {
+    val updated = new Date()
+    when(clock.now()).thenReturn(updated)
+
+    val updateWith =
+      UpdatedConcept("nb", None, None, None, None, None, None, None, Left(null))
+    service.toDomainConcept(TestData.domainConcept, updateWith) should be(
+      TestData.domainConcept.copy(
+        articleId = None,
+        updated = updated
+      )
+    )
+  }
+
+  test("toDomainConcept updates articleId when getting new articleId as a parameter") {
+    val updated = new Date()
+    when(clock.now()).thenReturn(updated)
+
+    val updateWith =
+      UpdatedConcept("nb", None, None, None, None, None, None, None, Right(Some(55)))
+    service.toDomainConcept(TestData.domainConcept, updateWith) should be(
+      TestData.domainConcept.copy(
+        articleId = Some(55L),
+        updated = updated
+      )
+    )
+  }
+
+  test("toDomainConcept does nothing to articleId when getting None as a parameter") {
+    val updated = new Date()
+    when(clock.now()).thenReturn(updated)
+
+    val updateWith =
+      UpdatedConcept("nb", None, None, None, None, None, None, None, Right(None))
+    service.toDomainConcept(TestData.domainConcept, updateWith) should be(
+      TestData.domainConcept.copy(
+        updated = updated
+      )
+    )
+  }
+
+  test("toDomainConcept update concept with ID updates articleId when getting new articleId as a parameter") {
+    val today = new Date()
+    when(clock.now()).thenReturn(today)
+
+    val updateWith =
+      UpdatedConcept(
+        "nb",
+        Some("Tittel"),
+        Some("Innhold"),
+        Some(api.NewConceptMetaImage("1", "Hei")),
+        None,
+        None,
+        Some(Seq("stor", "kaktus")),
+        Some(Seq("urn:subject:3")),
+        Right(Some(13L))
+      )
+    service.toDomainConcept(112L, updateWith) should be(
+      TestData.domainConcept_toDomainUpdateWithId.copy(
+        created = today,
+        updated = today,
+        articleId = Some(13L),
+      )
+    )
+  }
+
+  test("toDomainConcept update concept with ID sets articleId to None when articleId is not specified") {
+    val today = new Date()
+    when(clock.now()).thenReturn(today)
+
+    val updateWith =
+      UpdatedConcept(
+        "nb",
+        Some("Tittel"),
+        Some("Innhold"),
+        Some(api.NewConceptMetaImage("1", "Hei")),
+        None,
+        None,
+        Some(Seq("stor", "kaktus")),
+        Some(Seq("urn:subject:3")),
+        Left(null)
+      )
+    service.toDomainConcept(112L, updateWith) should be(
+      TestData.domainConcept_toDomainUpdateWithId.copy(
+        created = today,
+        updated = today,
+        articleId = None,
+      )
+    )
+  }
+
 }
