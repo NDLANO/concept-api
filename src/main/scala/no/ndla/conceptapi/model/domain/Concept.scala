@@ -24,7 +24,8 @@ case class Concept(id: Option[Long],
                    updated: Date,
                    metaImage: Seq[ConceptMetaImage],
                    tags: Seq[ConceptTags],
-                   subjectIds: Set[String]) {
+                   subjectIds: Set[String],
+                   articleId: Option[Long]) {
   lazy val supportedLanguages: Set[String] =
     (content union title).map(_.language).toSet
 }
@@ -43,8 +44,9 @@ object Concept extends SQLSyntaxSupport[Concept] {
             copyright: Option[Copyright],
             source: Option[String],
             created: Date,
-            updated: Date): Concept = {
-    new Concept(id, title, content, copyright, source, created, updated, Seq.empty, Seq.empty, Set.empty)
+            updated: Date,
+            articleId: Option[Long]): Concept = {
+    new Concept(id, title, content, copyright, source, created, updated, Seq.empty, Seq.empty, Set.empty, None)
   }
 
   def apply(lp: SyntaxProvider[Concept])(rs: WrappedResultSet): Concept =
@@ -62,7 +64,8 @@ object Concept extends SQLSyntaxSupport[Concept] {
       meta.updated,
       meta.metaImage,
       meta.tags,
-      meta.subjectIds
+      meta.subjectIds,
+      meta.articleId
     )
   }
 

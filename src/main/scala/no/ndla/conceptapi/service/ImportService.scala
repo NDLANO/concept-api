@@ -86,7 +86,8 @@ trait ImportService {
                 updated = listing.updated,
                 metaImage = metaImages,
                 tags = tags,
-                subjectIds = subjectIds
+                subjectIds = subjectIds,
+                articleId = None
               ),
               coverId,
               metaImageWarning.toSeq ++ taxonomyWarning.toSeq

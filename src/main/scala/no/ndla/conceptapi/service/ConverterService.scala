@@ -53,6 +53,7 @@ trait ConverterService {
             concept.created,
             concept.updated,
             concept.supportedLanguages,
+            concept.articleId
           )
         )
       } else {
@@ -116,7 +117,8 @@ trait ConverterService {
           updated = clock.now(),
           metaImage = concept.metaImage.map(m => domain.ConceptMetaImage(m.id, m.alt, concept.language)).toSeq,
           tags = concept.tags.map(t => toDomainTags(t, concept.language)).getOrElse(Seq.empty),
-          subjectIds = concept.subjectIds.getOrElse(Seq.empty).toSet
+          subjectIds = concept.subjectIds.getOrElse(Seq.empty).toSet,
+          articleId = concept.articleId
         ))
     }
 
@@ -136,6 +138,12 @@ trait ConverterService {
 
       val domainTags = updateConcept.tags.map(t => domain.ConceptTags(t, updateConcept.language)).toSeq
 
+      val newArticleId = updateConcept.articleId match {
+        case Left(_)                => None
+        case Right(Some(articleId)) => Some(articleId)
+        case Right(None)            => toMergeInto.articleId
+      }
+
       toMergeInto.copy(
         title = mergeLanguageFields(toMergeInto.title, domainTitle),
         content = mergeLanguageFields(toMergeInto.content, domainContent),
@@ -147,12 +155,18 @@ trait ConverterService {
         updated = clock.now(),
         metaImage = mergeLanguageFields(toMergeInto.metaImage, domainMetaImage),
         tags = mergeLanguageFields(toMergeInto.tags, domainTags),
-        subjectIds = updateConcept.subjectIds.map(_.toSet).getOrElse(toMergeInto.subjectIds)
+        subjectIds = updateConcept.subjectIds.map(_.toSet).getOrElse(toMergeInto.subjectIds),
+        articleId = newArticleId
       )
     }
 
     def toDomainConcept(id: Long, concept: api.UpdatedConcept): domain.Concept = {
       val lang = concept.language
+
+      val newArticleId = concept.articleId match {
+        case Right(Some(articleId)) => Some(articleId)
+        case _                      => None
+      }
 
       domain.Concept(
         id = Some(id),
@@ -164,7 +178,8 @@ trait ConverterService {
         updated = clock.now(),
         metaImage = concept.metaImage.map(m => domain.ConceptMetaImage(m.id, m.alt, lang)).toSeq,
         tags = concept.tags.map(t => toDomainTags(t, concept.language)).getOrElse(Seq.empty),
-        subjectIds = concept.subjectIds.getOrElse(Seq.empty).toSet
+        subjectIds = concept.subjectIds.getOrElse(Seq.empty).toSet,
+        articleId = newArticleId
       )
     }
 
