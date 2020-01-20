@@ -12,7 +12,6 @@ import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.domain
 import no.ndla.conceptapi.model.domain.{ConceptContent, ConceptTitle, Copyright}
 import org.joda.time.DateTime
-import org.parboiled2.RuleTrace.Optional
 
 object TestData {
 

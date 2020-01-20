@@ -12,7 +12,7 @@ import no.ndla.conceptapi.UnitSuite
 import org.json4s.DefaultFormats
 import org.json4s.native.Serialization.write
 import org.mockito.ArgumentMatchers.{any, eq => eqTo}
-import org.mockito.Mockito.when
+import org.mockito.Mockito._
 import org.scalatra.test.scalatest.ScalatraFunSuite
 
 import scala.util.{Failure, Success}
@@ -92,7 +92,7 @@ class ConceptControllerTest extends UnitSuite with ScalatraFunSuite with TestEnv
     }
   }
 
-  test("PATCH / should return 200 on created") {
+  test("PATCH / should return 200 on updated") {
     when(
       writeService
         .updateConcept(eqTo(1.toLong), any[UpdatedConcept]))
@@ -112,6 +112,37 @@ class ConceptControllerTest extends UnitSuite with ScalatraFunSuite with TestEnv
 
     patch("/test/1", write(TestData.updatedConcept), headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(403)
+    }
+  }
+
+  test("PATCH / should return 200 on updated, checking json4s deserializer of Either[Null, Option[Long]]") {
+    when(
+      writeService
+        .updateConcept(eqTo(1.toLong), any[UpdatedConcept]))
+      .thenReturn(Success(TestData.sampleNbApiConcept))
+
+    val missing = """{"language":"nb"}"""
+    val missingExpected = UpdatedConcept("nb", None, None, None, None, None, None, None, Right(None))
+
+    val nullArtId = """{"language":"nb","articleId":null}"""
+    val nullExpected = UpdatedConcept("nb", None, None, None, None, None, None, None, Left(null))
+
+    val existingArtId = """{"language":"nb","articleId":10}"""
+    val existingExpected = UpdatedConcept("nb", None, None, None, None, None, None, None, Right(Some(10)))
+
+    patch("/test/1", missing, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
+      status should equal(200)
+      verify(writeService, times(1)).updateConcept(1, missingExpected)
+    }
+
+    patch("/test/1", nullArtId, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
+      status should equal(200)
+      verify(writeService, times(1)).updateConcept(1, nullExpected)
+    }
+
+    patch("/test/1", existingArtId, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
+      status should equal(200)
+      verify(writeService, times(1)).updateConcept(1, existingExpected)
     }
   }
 }
