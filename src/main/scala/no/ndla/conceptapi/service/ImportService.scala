@@ -87,8 +87,6 @@ trait ImportService {
                 metaImage = metaImages,
                 tags = tags,
                 subjectIds = subjectIds,
-                // We don't know if articleIds in (listing/cover)?
-                // are up to date so we don't want to introduce bunch of dead-links, since the "None" status
                 articleId = None
               ),
               coverId,
