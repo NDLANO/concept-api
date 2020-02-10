@@ -80,7 +80,7 @@ trait ConceptController {
         pageSize: Int,
         idList: List[Long],
         fallback: Boolean,
-        subjectIds: Set[String],
+        subjects: Set[String],
         tagsToFilterBy: Set[String]
     ) = {
       val settings = SearchSettings(
@@ -90,7 +90,7 @@ trait ConceptController {
         pageSize = pageSize,
         sort = sort.getOrElse(Sort.ByRelevanceDesc),
         fallback = fallback,
-        subjectIds = subjectIds,
+        subjects = subjects,
         tagsToFilterBy = tagsToFilterBy
       )
 
@@ -196,7 +196,7 @@ trait ConceptController {
             asQueryParam(sort),
             asQueryParam(fallback),
             asQueryParam(scrollId),
-            asQueryParam(subjectIds)
+            asQueryParam(subjects)
         )
           authorizations "oauth2"
           responseMessages response500)
@@ -211,10 +211,10 @@ trait ConceptController {
         val page = intOrDefault(this.pageNo.paramName, 1)
         val idList = paramAsListOfLong(this.conceptIds.paramName)
         val fallback = booleanOrDefault(this.fallback.paramName, default = false)
-        val subjectIds = paramAsListOfString(this.subjectIds.paramName)
+        val subjects = paramAsListOfString(this.subjects.paramName)
         val tagsToFilterBy = paramAsListOfString(this.tagsToFilterBy.paramName)
 
-        search(query, sort, language, page, pageSize, idList, fallback, subjectIds.toSet, tagsToFilterBy.toSet)
+        search(query, sort, language, page, pageSize, idList, fallback, subjects.toSet, tagsToFilterBy.toSet)
 
       }
     }
@@ -246,10 +246,10 @@ trait ConceptController {
             val page = searchParams.page.getOrElse(1)
             val idList = searchParams.idList
             val fallback = searchParams.fallback.getOrElse(false)
-            val subjectIds = searchParams.subjectIds
+            val subjects = searchParams.subjects
             val tagsToFilterBy = searchParams.tags
 
-            search(query, sort, language, page, pageSize, idList, fallback, subjectIds, tagsToFilterBy)
+            search(query, sort, language, page, pageSize, idList, fallback, subjects, tagsToFilterBy)
           case Failure(ex) => errorHandler(ex)
         }
       }
@@ -290,17 +290,17 @@ trait ConceptController {
             asHeaderParam(correlationId),
             asQueryParam(language),
             asQueryParam(fallback),
-            asQueryParam(subjectIds)
+            asQueryParam(subjects)
         )
           authorizations "oauth2"
           responseMessages (response400, response403, response404, response500))
     ) {
-      val subjectIds = paramAsListOfString(this.subjectIds.paramName)
+      val subjects = paramAsListOfString(this.subjects.paramName)
       val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
       val fallback = booleanOrDefault(this.fallback.paramName, default = false)
 
-      if (subjectIds.nonEmpty) {
-        conceptSearchService.getTagsWithSubjects(subjectIds, language, fallback) match {
+      if (subjects.nonEmpty) {
+        conceptSearchService.getTagsWithSubjects(subjects, language, fallback) match {
           case Success(res) if res.nonEmpty => Ok(res)
           case Success(res)                 => errorHandler(NotFoundException("Could not find any tags in the specified subjects"))
           case Failure(ex)                  => errorHandler(ex)

@@ -55,7 +55,7 @@ trait ConceptSearchService {
         implicit executor: ExecutionContext): Future[Try[List[SubjectTags]]] =
       Future {
         val settings = SearchSettings.empty.copy(
-          subjectIds = Set(subjectId),
+          subjects = Set(subjectId),
           searchLanguage = language,
           fallback = fallback
         )
@@ -127,12 +127,12 @@ trait ConceptSearchService {
       }
 
       val subjectFilter =
-        if (settings.subjectIds.isEmpty) None
+        if (settings.subjects.isEmpty) None
         else
           Some(
             boolQuery()
               .should(
-                settings.subjectIds.map(
+                settings.subjects.map(
                   si => termQuery("subjectIds", si)
                 )
               ))

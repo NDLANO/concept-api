@@ -410,7 +410,7 @@ class ConceptSearchServiceTest extends IntegrationSuite with TestEnvironment {
 
   test("that filtering with subject id should work as expected") {
     val Success(search) =
-      conceptSearchService.all(searchSettings.copy(subjectIds = Set("urn:subject:1", "urn:subject:2")))
+      conceptSearchService.all(searchSettings.copy(subjects = Set("urn:subject:1", "urn:subject:2")))
 
     search.totalCount should be(2)
     search.results.map(_.id) should be(Seq(9, 10))
