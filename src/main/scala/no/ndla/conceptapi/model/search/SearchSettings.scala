@@ -10,7 +10,7 @@ case class SearchSettings(
     pageSize: Int,
     sort: Sort.Value,
     fallback: Boolean,
-    subjectIds: Set[String],
+    subjects: Set[String],
     tagsToFilterBy: Set[String]
 )
 
@@ -24,7 +24,7 @@ object SearchSettings {
       pageSize = ConceptApiProperties.MaxPageSize,
       sort = Sort.ByRelevanceDesc,
       fallback = false,
-      subjectIds = Set.empty,
+      subjects = Set.empty,
       tagsToFilterBy = Set.empty
     )
   }

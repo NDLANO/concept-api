@@ -112,8 +112,8 @@ abstract class NdlaController() extends ScalatraServlet with NativeJsonSupport w
        |Used to enable scrolling past $ElasticSearchIndexMaxResultWindow results.
       """.stripMargin
   )
-  protected val subjectIds =
-    Param[Option[String]]("subjectIds", "A comma-separated list of subjectIds that should appear in the search.")
+  protected val subjects =
+    Param[Option[String]]("subjects", "A comma-separated list of subjects that should appear in the search.")
   protected val tagsToFilterBy =
     Param[Option[String]]("tags", "A comma-separated list of tags to filter the search by.")
 
