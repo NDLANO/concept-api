@@ -18,6 +18,7 @@ import no.ndla.conceptapi.model.api.{
   NewConcept,
   NotFoundException,
   SubjectTags,
+  TagsSearchResult,
   UpdatedConcept,
   ValidationError
 }
@@ -307,6 +308,39 @@ trait ConceptController {
         }
       } else {
         readService.allTagsFromConcepts(language, fallback)
+      }
+    }
+
+    get(
+      "/tag-search/",
+      operation(
+        apiOperation[TagsSearchResult]("getTags-paginated")
+          summary "Retrieves a list of all previously used tags in concepts"
+          description "Retrieves a list of all previously used tags in concepts"
+          parameters (
+            asHeaderParam(correlationId),
+            asQueryParam(query),
+            asQueryParam(pageSize),
+            asQueryParam(pageNo),
+            asQueryParam(language)
+        )
+          responseMessages (response403, response500)
+          authorizations "oauth2")
+    ) {
+      val userInfo = user.getUser
+      doOrAccessDenied(userInfo.canWrite) {
+        val query = paramOrDefault(this.query.paramName, "")
+        val pageSize = intOrDefault(this.pageSize.paramName, ConceptApiProperties.DefaultPageSize) match {
+          case tooSmall if tooSmall < 1 => ConceptApiProperties.DefaultPageSize
+          case x                        => x
+        }
+        val pageNo = intOrDefault(this.pageNo.paramName, 1) match {
+          case tooSmall if tooSmall < 1 => 1
+          case x                        => x
+        }
+        val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
+
+        readService.getAllTags(query, pageSize, pageNo, language)
       }
     }
 

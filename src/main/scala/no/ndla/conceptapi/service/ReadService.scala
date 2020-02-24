@@ -43,5 +43,10 @@ trait ReadService {
          allConceptTags.flatMap(_.filter(_.language == language))
        }).flatMap(_.tags).distinct
     }
+
+    def getAllTags(input: String, pageSize: Int, offset: Int, language: String): api.TagsSearchResult = {
+      val (tags, tagsCount) = conceptRepository.getTags(input, pageSize, (offset - 1) * pageSize, language)
+      converterService.toApiConceptTags(tags, tagsCount, pageSize, offset, language)
+    }
   }
 }
