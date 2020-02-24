@@ -96,7 +96,8 @@ fmt := {
 assembly / assemblyJarName := "concept-api.jar"
 assembly / mainClass := Some("no.ndla.conceptapi.JettyLauncher")
 assembly / assemblyMergeStrategy := {
-  case "mime.types" => MergeStrategy.filterDistinctLines
+  case "module-info.class" => MergeStrategy.discard
+  case "mime.types"        => MergeStrategy.filterDistinctLines
   case PathList("org", "joda", "convert", "ToString.class") =>
     MergeStrategy.first
   case PathList("org", "joda", "convert", "FromString.class") =>
