@@ -155,13 +155,4 @@ class ConceptControllerTest extends UnitSuite with ScalatraFunSuite with TestEnv
     }
   }
 
-  test("tags should return 403 Forbidden if user has no access role") {
-    when(user.getUser).thenReturn(TestData.userWithNoRoles)
-    when(readService.getAllTags(anyString, anyInt, anyInt, anyString))
-      .thenReturn(TestData.sampleApiTagsSearchResult.copy(results = Seq.empty))
-
-    get("/test/tag-search/") {
-      status should equal(403)
-    }
-  }
 }
