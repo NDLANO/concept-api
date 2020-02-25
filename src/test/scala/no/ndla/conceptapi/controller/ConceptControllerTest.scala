@@ -11,7 +11,7 @@ import no.ndla.conceptapi.{ConceptSwagger, TestData, TestEnvironment}
 import no.ndla.conceptapi.UnitSuite
 import org.json4s.DefaultFormats
 import org.json4s.native.Serialization.write
-import org.mockito.ArgumentMatchers.{any, eq => eqTo}
+import org.mockito.ArgumentMatchers.{any, eq => eqTo, _}
 import org.mockito.Mockito._
 import org.scalatra.test.scalatest.ScalatraFunSuite
 
@@ -145,4 +145,14 @@ class ConceptControllerTest extends UnitSuite with ScalatraFunSuite with TestEnv
       verify(writeService, times(1)).updateConcept(1, existingExpected)
     }
   }
+
+  test("tags should return 200 OK if the result was not empty") {
+    when(readService.getAllTags(anyString, anyInt, anyInt, anyString))
+      .thenReturn(TestData.sampleApiTagsSearchResult)
+
+    get("/test/tag-search/") {
+      status should equal(200)
+    }
+  }
+
 }
