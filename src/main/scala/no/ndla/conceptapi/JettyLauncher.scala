@@ -59,7 +59,7 @@ object JettyLauncher extends LazyLogging {
     server
   }
 
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
     val server = startServer(ConceptApiProperties.ApplicationPort)
     server.join()
   }

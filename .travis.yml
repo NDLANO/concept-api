@@ -19,8 +19,7 @@ matrix:
 
       language: scala
       dist: trusty
-      scala:
-          - 2.12.10
+      scala: 2.13.1
       jdk:
         - oraclejdk8
       cache:

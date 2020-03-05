@@ -27,7 +27,7 @@ case class Concept(id: Option[Long],
                    subjectIds: Set[String],
                    articleId: Option[Long]) {
   lazy val supportedLanguages: Set[String] =
-    (content union title).map(_.language).toSet
+    (content concat title).map(_.language).toSet
 }
 
 object Concept extends SQLSyntaxSupport[Concept] {

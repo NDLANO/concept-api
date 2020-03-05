@@ -131,7 +131,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
                                           title = Seq(ConceptTitle("title", "nb"), ConceptTitle("title", "nn")))
     val conceptCaptor: ArgumentCaptor[Concept] = ArgumentCaptor.forClass(classOf[Concept])
 
-    when(conceptRepository.withId(anyLong())).thenReturn(Some(concept))
+    when(conceptRepository.withId(anyLong)).thenReturn(Some(concept))
 
     service.deleteLanguage(concept.id.get, "nn")
     verify(conceptRepository).update(conceptCaptor.capture())
