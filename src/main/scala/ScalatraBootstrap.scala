@@ -11,7 +11,7 @@ import org.scalatra.LifeCycle
 
 class ScalatraBootstrap extends LifeCycle {
 
-  override def init(context: ServletContext) {
+  override def init(context: ServletContext): Unit = {
     context.mount(conceptController, "/concept-api/v1/concepts", "concept")
     context.mount(resourcesApp, "/concept-api/api-docs")
     context.mount(healthController, "/health")

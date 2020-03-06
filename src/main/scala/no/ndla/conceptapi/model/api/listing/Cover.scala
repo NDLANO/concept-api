@@ -14,7 +14,7 @@ case class Cover(id: Option[Long],
                  updated: Date,
                  theme: String) {
   lazy val supportedLanguages: Set[String] =
-    (title union description union labels).map(_.language).toSet
+    (title concat description concat labels).map(_.language).toSet
 }
 
 trait LanguageField[T] {

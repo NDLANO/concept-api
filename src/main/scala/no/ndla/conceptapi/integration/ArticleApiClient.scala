@@ -39,7 +39,7 @@ trait ArticleApiClient {
           val numPages = ceil(dbCount.toDouble / pageSize.toDouble).toInt
           val pages = Seq.range(1, numPages + 1)
 
-          val iterator: Iterator[Try[Seq[domain.Concept]]] = pages.toIterator.map(p => {
+          val iterator: Iterator[Try[Seq[domain.Concept]]] = pages.iterator.map(p => {
             getChunk(p, pageSize).map(_.results)
           })
 

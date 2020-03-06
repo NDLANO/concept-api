@@ -30,7 +30,7 @@ import no.ndla.conceptapi.service.search.{
 import no.ndla.conceptapi.service.{Clock, ConverterService, ImportService, ReadService, WriteService}
 import no.ndla.conceptapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
-import org.scalatest.mockito.MockitoSugar
+import org.mockito.scalatest.MockitoSugar
 
 trait TestEnvironment
     extends ConceptRepository
