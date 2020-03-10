@@ -42,7 +42,8 @@ trait ConceptIndexService {
             keywordField("imageId"),
             keywordField("altText"),
             keywordField("language")
-          )
+          ),
+          dateField("lastUpdated")
         ) ++
           generateLanguageSupportedFieldList("title", keepRaw = true) ++
           generateLanguageSupportedFieldList("content") ++
