@@ -17,6 +17,7 @@ import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.search._
 import no.ndla.conceptapi.service.ConverterService
 import no.ndla.mapping.ISO639
+import org.joda.time.DateTime
 import org.json4s._
 import org.json4s.native.Serialization.read
 
@@ -42,7 +43,8 @@ trait SearchConverterService {
         defaultTitle = defaultTitle.map(_.title),
         metaImage = c.metaImage,
         tags = SearchableLanguageList(c.tags.map(tag => LanguageValue(tag.language, tag.tags))),
-        subjectIds = c.subjectIds.toSeq
+        subjectIds = c.subjectIds.toSeq,
+        lastUpdated = new DateTime(c.updated)
       )
     }
 
@@ -77,7 +79,8 @@ trait SearchConverterService {
         metaImage = metaImage,
         tags = tag,
         subjectIds = subjectIds,
-        supportedLanguages = supportedLanguages
+        supportedLanguages = supportedLanguages,
+        lastUpdated = searchableConcept.lastUpdated.toDate
       )
     }
 

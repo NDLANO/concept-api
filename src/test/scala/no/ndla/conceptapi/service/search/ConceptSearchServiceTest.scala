@@ -127,6 +127,7 @@ class ConceptSearchServiceTest extends IntegrationSuite with TestEnvironment {
     title = List(ConceptTitle("Unrelated", "en"), ConceptTitle("Urelatert", "nb")),
     content = List(ConceptContent("Pompel", "en"), ConceptContent("Pilt", "nb")),
     tags = Seq(ConceptTags(Seq("cageowl"), "en"), ConceptTags(Seq("burugle"), "nb")),
+    updated = DateTime.now().minusDays(1).toDate,
     subjectIds = Set("urn:subject:2")
   )
 
@@ -244,6 +245,24 @@ class ConceptSearchServiceTest extends IntegrationSuite with TestEnvironment {
     hits(7).id should be(1)
     hits(8).id should be(9)
     hits.last.id should be(8)
+
+  }
+
+  test("That all returns all documents ordered by lastUpdated descending") {
+    val Success(results) =
+      conceptSearchService.all(searchSettings.copy(sort = Sort.ByLastUpdatedDesc))
+    val hits = results.results
+    results.totalCount should be(10)
+    hits.head.id should be(10)
+    hits(1).id should be(5)
+    hits(2).id should be(8)
+    hits(3).id should be(9)
+    hits(4).id should be(2)
+    hits(5).id should be(4)
+    hits(6).id should be(6)
+    hits(7).id should be(1)
+    hits(8).id should be(7)
+    hits.last.id should be(3)
 
   }
 
