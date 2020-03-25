@@ -16,8 +16,9 @@ case class UpdatedConcept(
     @(ApiModelProperty @field)(description = "The language of this concept") language: String,
     @(ApiModelProperty @field)(description = "Available titles for the concept") title: Option[String],
     @(ApiModelProperty @field)(description = "The content of the concept") content: Option[String],
-    @(ApiModelProperty @field)(description = "An image-api ID for the concept meta image") metaImage: Option[
-      NewConceptMetaImage],
+    @(ApiModelProperty @field)(description = "An image-api ID for the concept meta image") metaImage: Either[
+      Null,
+      Option[NewConceptMetaImage]], // We use this type to make json4s understand the difference between null and missing fields
     @(ApiModelProperty @field)(description = "Describes the copyright information for the concept") copyright: Option[
       Copyright],
     @(ApiModelProperty @field)(description = "URL for the source of the concept'") source: Option[String],

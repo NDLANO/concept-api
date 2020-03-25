@@ -9,6 +9,7 @@ package no.ndla.conceptapi.controller
 import no.ndla.conceptapi.model.api.{NewConcept, NotFoundException, UpdatedConcept}
 import no.ndla.conceptapi.{ConceptSwagger, TestData, TestEnvironment}
 import no.ndla.conceptapi.UnitSuite
+import no.ndla.conceptapi.model.api
 import org.json4s.DefaultFormats
 import org.json4s.native.Serialization.write
 import org.mockito.ArgumentMatchers.{any, eq => eqTo, _}
@@ -122,13 +123,13 @@ class ConceptControllerTest extends UnitSuite with ScalatraFunSuite with TestEnv
       .thenReturn(Success(TestData.sampleNbApiConcept))
 
     val missing = """{"language":"nb"}"""
-    val missingExpected = UpdatedConcept("nb", None, None, None, None, None, None, None, Right(None))
+    val missingExpected = UpdatedConcept("nb", None, None, Right(None), None, None, None, None, Right(None))
 
     val nullArtId = """{"language":"nb","articleId":null}"""
-    val nullExpected = UpdatedConcept("nb", None, None, None, None, None, None, None, Left(null))
+    val nullExpected = UpdatedConcept("nb", None, None, Right(None), None, None, None, None, Left(null))
 
     val existingArtId = """{"language":"nb","articleId":10}"""
-    val existingExpected = UpdatedConcept("nb", None, None, None, None, None, None, None, Right(Some(10)))
+    val existingExpected = UpdatedConcept("nb", None, None, Right(None), None, None, None, None, Right(Some(10)))
 
     patch("/test/1", missing, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(200)
@@ -152,6 +153,47 @@ class ConceptControllerTest extends UnitSuite with ScalatraFunSuite with TestEnv
 
     get("/test/tag-search/") {
       status should equal(200)
+    }
+  }
+
+  test(
+    "PATCH / should return 200 on updated, checking json4s deserializer of Either[Null, Option[NewConceptMetaImage]]") {
+    when(
+      writeService
+        .updateConcept(eqTo(1.toLong), any[UpdatedConcept]))
+      .thenReturn(Success(TestData.sampleNbApiConcept))
+
+    val missing = """{"language":"nb"}"""
+    val missingExpected = UpdatedConcept("nb", None, None, Right(None), None, None, None, None, Right(None))
+
+    val nullArtId = """{"language":"nb","metaImage":null}"""
+    val nullExpected = UpdatedConcept("nb", None, None, Left(null), None, None, None, None, Right(None))
+
+    val existingArtId = """{"language":"nb","metaImage": {"id": "1",
+                          |		"alt": "beskrivende tekst"}}""".stripMargin
+    val existingExpected = UpdatedConcept("nb",
+                                          None,
+                                          None,
+                                          Right(Some(api.NewConceptMetaImage("1", "beskrivende tekst"))),
+                                          None,
+                                          None,
+                                          None,
+                                          None,
+                                          Right(None))
+
+    patch("/test/1", missing, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
+      status should equal(200)
+      verify(writeService, times(2)).updateConcept(1, missingExpected)
+    }
+
+    patch("/test/1", nullArtId, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
+      status should equal(200)
+      verify(writeService, times(1)).updateConcept(1, nullExpected)
+    }
+
+    patch("/test/1", existingArtId, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
+      status should equal(200)
+      verify(writeService, times(1)).updateConcept(1, existingExpected)
     }
   }
 
