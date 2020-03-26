@@ -142,14 +142,12 @@ trait ConverterService {
       }
 
       val newMetaImage = updateConcept.metaImage match {
-        case Left(_)     => Seq.empty
-        case Right(None) => toMergeInto.metaImage
-        case Right(Some(_)) => {
-          val domainMetaImage = updateConcept.metaImage
-            .map(m => domain.ConceptMetaImage(m.get.id, m.get.alt, updateConcept.language))
+        case Left(_) => toMergeInto.metaImage.filterNot(_.language == updateConcept.language)
+        case Right(meta) =>
+          val domainMetaImage = meta
+            .map(m => domain.ConceptMetaImage(m.id, m.alt, updateConcept.language))
             .toSeq
           mergeLanguageFields(toMergeInto.metaImage, domainMetaImage)
-        }
       }
 
       toMergeInto.copy(
@@ -177,9 +175,8 @@ trait ConverterService {
       }
 
       val newMetaImage = concept.metaImage match {
-        case Right(Some(_)) =>
-          concept.metaImage.map(m => domain.ConceptMetaImage(m.get.id, m.get.alt, lang)).toSeq
-        case _ => Seq.empty
+        case Right(meta) => meta.map(m => domain.ConceptMetaImage(m.id, m.alt, lang)).toSeq
+        case Left(_)     => Seq.empty
       }
 
       domain.Concept(

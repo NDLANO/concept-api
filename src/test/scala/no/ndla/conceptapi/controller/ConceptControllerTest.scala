@@ -117,19 +117,20 @@ class ConceptControllerTest extends UnitSuite with ScalatraFunSuite with TestEnv
   }
 
   test("PATCH / should return 200 on updated, checking json4s deserializer of Either[Null, Option[Long]]") {
+    reset(writeService)
     when(
       writeService
         .updateConcept(eqTo(1.toLong), any[UpdatedConcept]))
       .thenReturn(Success(TestData.sampleNbApiConcept))
 
     val missing = """{"language":"nb"}"""
-    val missingExpected = UpdatedConcept("nb", None, None, Right(None), None, None, None, None, Right(None))
+    val missingExpected = TestData.emptyApiUpdatedConcept.copy(language = "nb", articleId = Right(None))
 
     val nullArtId = """{"language":"nb","articleId":null}"""
-    val nullExpected = UpdatedConcept("nb", None, None, Right(None), None, None, None, None, Left(null))
+    val nullExpected = TestData.emptyApiUpdatedConcept.copy(language = "nb", articleId = Left(null))
 
     val existingArtId = """{"language":"nb","articleId":10}"""
-    val existingExpected = UpdatedConcept("nb", None, None, Right(None), None, None, None, None, Right(Some(10)))
+    val existingExpected = TestData.emptyApiUpdatedConcept.copy(language = "nb", articleId = Right(Some(10)))
 
     patch("/test/1", missing, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(200)
@@ -158,29 +159,22 @@ class ConceptControllerTest extends UnitSuite with ScalatraFunSuite with TestEnv
 
   test(
     "PATCH / should return 200 on updated, checking json4s deserializer of Either[Null, Option[NewConceptMetaImage]]") {
-    reset(writeService);
+    reset(writeService)
     when(
       writeService
         .updateConcept(eqTo(1.toLong), any[UpdatedConcept]))
       .thenReturn(Success(TestData.sampleNbApiConcept))
 
     val missing = """{"language":"nb"}"""
-    val missingExpected = UpdatedConcept("nb", None, None, Right(None), None, None, None, None, Right(None))
+    val missingExpected = TestData.emptyApiUpdatedConcept.copy(language = "nb", metaImage = Right(None))
 
     val nullArtId = """{"language":"nb","metaImage":null}"""
-    val nullExpected = UpdatedConcept("nb", None, None, Left(null), None, None, None, None, Right(None))
+    val nullExpected = TestData.emptyApiUpdatedConcept.copy(language = "nb", metaImage = Left(null))
 
     val existingArtId = """{"language":"nb","metaImage": {"id": "1",
-                          |		"alt": "beskrivende tekst"}}""".stripMargin
-    val existingExpected = UpdatedConcept("nb",
-                                          None,
-                                          None,
-                                          Right(Some(api.NewConceptMetaImage("1", "beskrivende tekst"))),
-                                          None,
-                                          None,
-                                          None,
-                                          None,
-                                          Right(None))
+                          |		"alt": "alt-text"}}""".stripMargin
+    val existingExpected = TestData.emptyApiUpdatedConcept
+      .copy(language = "nb", metaImage = Right(Some(api.NewConceptMetaImage("1", "alt-text"))))
 
     patch("/test/1", missing, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(200)
