@@ -158,6 +158,7 @@ class ConceptControllerTest extends UnitSuite with ScalatraFunSuite with TestEnv
 
   test(
     "PATCH / should return 200 on updated, checking json4s deserializer of Either[Null, Option[NewConceptMetaImage]]") {
+    reset(writeService);
     when(
       writeService
         .updateConcept(eqTo(1.toLong), any[UpdatedConcept]))
@@ -183,7 +184,7 @@ class ConceptControllerTest extends UnitSuite with ScalatraFunSuite with TestEnv
 
     patch("/test/1", missing, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(200)
-      verify(writeService, times(2)).updateConcept(1, missingExpected)
+      verify(writeService, times(1)).updateConcept(1, missingExpected)
     }
 
     patch("/test/1", nullArtId, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
