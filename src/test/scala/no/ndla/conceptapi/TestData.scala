@@ -9,6 +9,7 @@ package no.ndla.conceptapi
 
 import no.ndla.conceptapi.auth.{Role, UserInfo}
 import no.ndla.conceptapi.model.api
+import no.ndla.conceptapi.model.api.UpdatedConcept
 import no.ndla.conceptapi.model.domain
 import no.ndla.conceptapi.model.domain.{ConceptContent, ConceptTitle, Copyright}
 import org.joda.time.DateTime
@@ -91,17 +92,17 @@ object TestData {
   )
 
   val domainConcept_toDomainUpdateWithId = domain.Concept(
-    id = Some(112),
-    title = Seq(domain.ConceptTitle("Tittel", "nb")),
-    content = Seq(domain.ConceptContent("Innhold", "nb")),
+    id = None,
+    title = Seq.empty,
+    content = Seq.empty,
     copyright = None,
     source = None,
     created = today,
     updated = today,
-    metaImage = Seq(domain.ConceptMetaImage("1", "Hei", "nb")),
-    tags = Seq(domain.ConceptTags(Seq("stor", "kaktus"), "nb")),
-    subjectIds = Set("urn:subject:3"),
-    articleId = Some(42)
+    metaImage = Seq.empty,
+    tags = Seq.empty,
+    subjectIds = Set.empty,
+    articleId = None,
   )
 
   val sampleNnApiConcept = api.Concept(
@@ -119,7 +120,21 @@ object TestData {
     Some(42)
   )
 
+  val emptyApiUpdatedConcept = api.UpdatedConcept(
+    language = "",
+    title = None,
+    content = None,
+    metaImage = Right(None),
+    copyright = None,
+    source = None,
+    tags = None,
+    subjectIds = None,
+    articleId = Right(None),
+  )
+
   val sampleNewConcept = api.NewConcept("nb", "Tittel", Some("Innhold"), None, None, None, None, None, Some(42))
-  val updatedConcept = api.UpdatedConcept("nb", None, Some("Innhold"), None, None, None, None, None, Right(Some(12L)))
+
+  val updatedConcept =
+    api.UpdatedConcept("nb", None, Some("Innhold"), Right(None), None, None, None, None, Right(Some(12L)))
   val sampleApiTagsSearchResult = api.TagsSearchResult(10, 1, 1, "nb", Seq("a", "b"))
 }

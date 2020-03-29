@@ -132,9 +132,6 @@ trait ConverterService {
       val domainContent = updateConcept.content
         .map(c => domain.ConceptContent(c, updateConcept.language))
         .toSeq
-      val domainMetaImage = updateConcept.metaImage
-        .map(m => domain.ConceptMetaImage(m.id, m.alt, updateConcept.language))
-        .toSeq
 
       val domainTags = updateConcept.tags.map(t => domain.ConceptTags(t, updateConcept.language)).toSeq
 
@@ -142,6 +139,15 @@ trait ConverterService {
         case Left(_)                => None
         case Right(Some(articleId)) => Some(articleId)
         case Right(None)            => toMergeInto.articleId
+      }
+
+      val newMetaImage = updateConcept.metaImage match {
+        case Left(_) => toMergeInto.metaImage.filterNot(_.language == updateConcept.language)
+        case Right(meta) =>
+          val domainMetaImage = meta
+            .map(m => domain.ConceptMetaImage(m.id, m.alt, updateConcept.language))
+            .toSeq
+          mergeLanguageFields(toMergeInto.metaImage, domainMetaImage)
       }
 
       toMergeInto.copy(
@@ -153,7 +159,7 @@ trait ConverterService {
         source = updateConcept.source,
         created = toMergeInto.created,
         updated = clock.now(),
-        metaImage = mergeLanguageFields(toMergeInto.metaImage, domainMetaImage),
+        metaImage = newMetaImage,
         tags = mergeLanguageFields(toMergeInto.tags, domainTags),
         subjectIds = updateConcept.subjectIds.map(_.toSet).getOrElse(toMergeInto.subjectIds),
         articleId = newArticleId
@@ -168,6 +174,11 @@ trait ConverterService {
         case _                      => None
       }
 
+      val newMetaImage = concept.metaImage match {
+        case Right(meta) => meta.map(m => domain.ConceptMetaImage(m.id, m.alt, lang)).toSeq
+        case Left(_)     => Seq.empty
+      }
+
       domain.Concept(
         id = Some(id),
         title = concept.title.map(t => domain.ConceptTitle(t, lang)).toSeq,
@@ -176,7 +187,7 @@ trait ConverterService {
         source = concept.source,
         created = clock.now(),
         updated = clock.now(),
-        metaImage = concept.metaImage.map(m => domain.ConceptMetaImage(m.id, m.alt, lang)).toSeq,
+        metaImage = newMetaImage,
         tags = concept.tags.map(t => toDomainTags(t, concept.language)).getOrElse(Seq.empty),
         subjectIds = concept.subjectIds.getOrElse(Seq.empty).toSet,
         articleId = newArticleId
