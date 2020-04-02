@@ -98,7 +98,7 @@ trait ConceptRepository {
       dataObject.setValue(write(concept))
 
       Try(
-        sql"update ${Concept.table} set document=${dataObject} where id=${concept.id.get}".updateAndReturnGeneratedKey.apply) match {
+        sql"update ${Concept.table} set document=${dataObject} where concept_id=${concept.id.get}".updateAndReturnGeneratedKey.apply) match {
         case Success(id) => Success(concept.copy(id = Some(id)))
         case Failure(ex) =>
           logger.warn(s"Failed to update concept with id ${concept.id}: ${ex.getMessage}")
@@ -107,11 +107,11 @@ trait ConceptRepository {
     }
 
     def withId(id: Long): Option[Concept] =
-      conceptWhere(sqls"co.id=${id.toInt}")
+      conceptWhere(sqls"co.concept_id=${id.toInt} ORDER BY revision DESC LIMIT 1")
 
     def exists(id: Long)(implicit session: DBSession = AutoSession): Boolean = {
-      sql"select id from ${Concept.table} where id=${id}"
-        .map(rs => rs.long("id"))
+      sql"select id from ${Concept.table} where concept_id=${id} order by "
+        .map(rs => rs.long("concept_id"))
         .single
         .apply()
         .isDefined

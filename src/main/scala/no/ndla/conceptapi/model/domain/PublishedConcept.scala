@@ -14,38 +14,17 @@ import org.json4s.{DefaultFormats, FieldSerializer}
 import org.json4s.FieldSerializer._
 import org.json4s.native.Serialization._
 import scalikejdbc._
+import no.ndla.conceptapi.model.domain.ConceptT
 
-trait ConceptT {
-  val id: Option[Long]
-  val title: Seq[ConceptTitle]
-  val content: Seq[ConceptContent]
-  val copyright: Option[Copyright]
-  val source: Option[String]
-  val created: Date
-  val updated: Date
-  val metaImage: Seq[ConceptMetaImage]
-  val tags: Seq[ConceptTags]
-  val subjectIds: Set[String]
-  val articleId: Option[Long]
-}
-case class Concept(id: Option[Long],
-                   title: Seq[ConceptTitle],
-                   content: Seq[ConceptContent],
-                   copyright: Option[Copyright],
-                   source: Option[String],
-                   created: Date,
-                   updated: Date,
-                   metaImage: Seq[ConceptMetaImage],
-                   tags: Seq[ConceptTags],
-                   subjectIds: Set[String],
-                   articleId: Option[Long]) {
+case class PublishedConcept() extends ConceptT {
+
   lazy val supportedLanguages: Set[String] =
     (content concat title).map(_.language).toSet
 }
 
-object Concept extends SQLSyntaxSupport[Concept] {
+object PublishedConcept extends SQLSyntaxSupport[PublishedConcept] {
   implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
-  override val tableName = "conceptdata"
+  override val tableName = "publishedconceptdata"
   override val schemaName = Some(ConceptApiProperties.MetaSchema)
 
   // This Constructor is needed since json4s doesn't understand that it shouldn't attempt the other constructors if some fields are missing
@@ -58,16 +37,16 @@ object Concept extends SQLSyntaxSupport[Concept] {
             source: Option[String],
             created: Date,
             updated: Date,
-            articleId: Option[Long]): Concept = {
-    new Concept(id, title, content, copyright, source, created, updated, Seq.empty, Seq.empty, Set.empty, None)
+            articleId: Option[Long]): PublishedConcept = {
+    new PublishedConcept(id, title, content, copyright, source, created, updated, Seq.empty, Seq.empty, Set.empty, None)
   }
 
-  def apply(lp: SyntaxProvider[Concept])(rs: WrappedResultSet): Concept =
+  def apply(lp: SyntaxProvider[Concept])(rs: WrappedResultSet): PublishedConcept =
     apply(lp.resultName)(rs)
 
-  def apply(lp: ResultName[Concept])(rs: WrappedResultSet): Concept = {
+  def apply(lp: ResultName[Concept])(rs: WrappedResultSet): PublishedConcept = {
     val meta = read[Concept](rs.string(lp.c("document")))
-    Concept(
+    PublishedConcept(
       Some(rs.long(lp.c("id"))),
       meta.title,
       meta.content,
