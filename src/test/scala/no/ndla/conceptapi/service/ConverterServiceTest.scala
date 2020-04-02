@@ -333,14 +333,5 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     service.toDomainCopyright(updateWith) should be(beforeUpdate.copy(license = Some("newLicense")))
   }
-  /*
-  test("toDomainCopyright does nothing to license when getting None as a parameter") {
-    val beforeUpdate = TestData.emptyDomainCopyright.copy(license = Some("license"))
-    val updateWith =
-      TestData.emptyApiCopyright.copy(license = Right(None))
-
-    service.toDomainCopyright(updateWith) should be(beforeUpdate.copy(license = Some("license")))
-  }
- */
 
 }
