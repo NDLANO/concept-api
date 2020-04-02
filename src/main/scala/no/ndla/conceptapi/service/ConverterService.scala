@@ -71,8 +71,10 @@ trait ConverterService {
     }
 
     def toApiCopyright(copyright: domain.Copyright): api.Copyright = {
+      val newLicense = Right(copyright.license.map(toApiLicense))
+
       api.Copyright(
-        copyright.license.map(toApiLicense),
+        newLicense,
         copyright.origin,
         copyright.creators.map(toApiAuthor),
         copyright.processors.map(toApiAuthor),
@@ -195,8 +197,13 @@ trait ConverterService {
     }
 
     def toDomainCopyright(copyright: api.Copyright): domain.Copyright = {
+      val newLicense = copyright.license match {
+        case Right(license) => license.map(_.license)
+        case Left(_)        => None
+      }
+
       domain.Copyright(
-        copyright.license.map(_.license),
+        newLicense,
         copyright.origin,
         copyright.creators.map(toDomainAuthor),
         copyright.processors.map(toDomainAuthor),

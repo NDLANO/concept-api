@@ -110,7 +110,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       Right(None),
       Option(
         Copyright(
-          None,
+          Right(None),
           None,
           Seq(api.Author("Photographer", "Photographer")),
           Seq(api.Author("Photographer", "Photographer")),
@@ -318,5 +318,29 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       afterUpdate
     )
   }
+
+  test("toDomainCopyright deletes license when getting null as a parameter") {
+    val beforeUpdate = TestData.emptyDomainCopyright.copy(license = Some("license"))
+    val updateWith = TestData.emptyApiCopyright.copy(license = Left(null))
+
+    service.toDomainCopyright(updateWith) should be(beforeUpdate.copy(license = None))
+  }
+
+  test("toDomainCopyright updates license when getting new license as a parameter") {
+    val beforeUpdate = TestData.emptyDomainCopyright.copy(license = Some("license"))
+    val updateWith =
+      TestData.emptyApiCopyright.copy(license = Right(Some(TestData.emptyApiLicense.copy(license = "newLicense"))))
+
+    service.toDomainCopyright(updateWith) should be(beforeUpdate.copy(license = Some("newLicense")))
+  }
+  /*
+  test("toDomainCopyright does nothing to license when getting None as a parameter") {
+    val beforeUpdate = TestData.emptyDomainCopyright.copy(license = Some("license"))
+    val updateWith =
+      TestData.emptyApiCopyright.copy(license = Right(None))
+
+    service.toDomainCopyright(updateWith) should be(beforeUpdate.copy(license = Some("license")))
+  }
+ */
 
 }

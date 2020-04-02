@@ -132,6 +132,46 @@ object TestData {
     articleId = Right(None),
   )
 
+  val emptyDomainCopyright = domain.Copyright(
+    license = None,
+    origin = None,
+    creators = Seq.empty,
+    processors = Seq.empty,
+    rightsholders = Seq.empty,
+    agreementId = None,
+    validFrom = None,
+    validTo = None
+  )
+
+  val emptyApiCopyright = api.Copyright(
+    license = Right(None),
+    origin = None,
+    creators = Seq.empty,
+    processors = Seq.empty,
+    rightsholders = Seq.empty,
+    agreementId = None,
+    validFrom = None,
+    validTo = None
+  )
+
+  val emptyApiLicense = api.License(
+    license = "",
+    description = None,
+    url = None
+  )
+
+  val emptyApiNewConcept = api.NewConcept(
+    language = "",
+    title = "",
+    content = None,
+    copyright = None,
+    source = None,
+    metaImage = None,
+    tags = None,
+    subjectIds = None,
+    articleId = None
+  )
+
   val sampleNewConcept = api.NewConcept("nb", "Tittel", Some("Innhold"), None, None, None, None, None, Some(42))
 
   val updatedConcept =

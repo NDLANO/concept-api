@@ -192,4 +192,103 @@ class ConceptControllerTest extends UnitSuite with ScalatraFunSuite with TestEnv
     }
   }
 
+  test("PATCH / should return 200 on updated, checking json4s deserializer of Either[Null, Option[License]]") {
+    reset(writeService)
+    when(
+      writeService
+        .updateConcept(eqTo(1.toLong), any[UpdatedConcept]))
+      .thenReturn(Success(TestData.sampleNbApiConcept.copy(copyright = Some(TestData.emptyApiCopyright))))
+
+    val missing = """{"language":"nb", "copyright":{} }""".stripMargin
+    val missingExpected =
+      TestData.emptyApiUpdatedConcept.copy(language = "nb",
+                                           copyright = Some(TestData.emptyApiCopyright.copy(license = Right(None))))
+
+    val nullArtId = """{"language":"nb", "copyright": {
+                      |		"license": null}}""".stripMargin
+    val nullExpected =
+      TestData.emptyApiUpdatedConcept.copy(language = "nb",
+                                           copyright = Some(TestData.emptyApiCopyright.copy(license = Left(null))))
+
+    val existingArtId = """{"language":"nb", "copyright": {
+                          |		"license": {
+                          |				"license": "CCC",
+                          |      "description": "license description",
+                          |      "url": "license url"
+                          |	}}}""".stripMargin
+    val existingExpected = TestData.emptyApiUpdatedConcept
+      .copy(
+        language = "nb",
+        copyright = Some(
+          TestData.emptyApiCopyright.copy(license =
+            Right(Some(TestData.emptyApiLicense.copy("CCC", Some("license description"), Some("license url"))))))
+      )
+
+    patch("/test/1", missing, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
+      status should equal(200)
+      verify(writeService, times(1)).updateConcept(1, missingExpected)
+    }
+
+    patch("/test/1", nullArtId, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
+      status should equal(200)
+      verify(writeService, times(1)).updateConcept(1, nullExpected)
+    }
+
+    patch("/test/1", existingArtId, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
+      status should equal(200)
+      verify(writeService, times(1)).updateConcept(1, existingExpected)
+    }
+  }
+
+  test("POST / should return 201 on created, checking json4s deserializer of Either[Null, Option[License]]") {
+    reset(writeService)
+    when(
+      writeService
+        .newConcept(any[NewConcept]))
+      .thenReturn(Success(TestData.sampleNbApiConcept.copy(copyright = Some(TestData.emptyApiCopyright))))
+
+    val missing = """{"language":"nb", "title":"test", "copyright":{} }""".stripMargin
+    val missingExpected =
+      TestData.emptyApiNewConcept.copy(language = "nb",
+                                       title = "test",
+                                       copyright = Some(TestData.emptyApiCopyright.copy(license = Right(None))))
+
+    val nullArtId = """{"language":"nb", "title":"test", "copyright": {
+                      |		"license": null}}""".stripMargin
+    val nullExpected =
+      TestData.emptyApiNewConcept.copy(language = "nb",
+                                       title = "test",
+                                       copyright = Some(TestData.emptyApiCopyright.copy(license = Left(null))))
+
+    val existingArtId = """{"language":"nb", "title":"test", "copyright": {
+                          |		"license": {
+                          |				"license": "CCC",
+                          |      "description": "license description",
+                          |      "url": "license url"
+                          |	}}}""".stripMargin
+    val existingExpected = TestData.emptyApiNewConcept
+      .copy(
+        language = "nb",
+        title = "test",
+        copyright = Some(
+          TestData.emptyApiCopyright.copy(license =
+            Right(Some(TestData.emptyApiLicense.copy("CCC", Some("license description"), Some("license url"))))))
+      )
+
+    post("/test/", missing, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
+      status should equal(201)
+      verify(writeService, times(1)).newConcept(missingExpected)
+    }
+
+    post("/test/", nullArtId, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
+      status should equal(201)
+      verify(writeService, times(1)).newConcept(nullExpected)
+    }
+
+    post("/test/", existingArtId, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
+      status should equal(201)
+      verify(writeService, times(1)).newConcept(existingExpected)
+    }
+  }
+
 }
