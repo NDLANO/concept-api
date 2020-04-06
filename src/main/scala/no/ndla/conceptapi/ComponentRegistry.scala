@@ -20,7 +20,7 @@ import no.ndla.conceptapi.integration.{
   ListingApiClient,
   NdlaE4sClient
 }
-import no.ndla.conceptapi.repository.ConceptRepository
+import no.ndla.conceptapi.repository.{ConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.service.search.{
   ConceptIndexService,
   ConceptSearchService,
@@ -42,6 +42,7 @@ object ComponentRegistry
     with ReadService
     with ConverterService
     with ConceptRepository
+    with PublishedConceptRepository
     with DataSource
     with LazyLogging
     with HealthController
@@ -59,12 +60,16 @@ object ComponentRegistry
     with NdlaClient {
 
   lazy val conceptController = new ConceptController
-  lazy val conceptRepository = new ConceptRepository
   lazy val healthController = new HealthController
   lazy val internController = new InternController
+
+  lazy val conceptRepository = new ConceptRepository
+  lazy val publishedConceptRepository = new PublishedConceptRepository
+
   lazy val conceptSearchService = new ConceptSearchService
   lazy val searchConverterService = new SearchConverterService
   lazy val conceptIndexService = new ConceptIndexService
+
   var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient()
 
   lazy val ndlaClient = new NdlaClient

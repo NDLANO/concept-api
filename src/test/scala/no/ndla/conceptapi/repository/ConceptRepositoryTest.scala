@@ -224,4 +224,29 @@ class ConceptRepositoryTest extends IntegrationSuite with TestEnvironment {
     tagsCount9 should be(2)
   }
 
+  test("Inserting and updating concept sets correct revision") {
+    assume(databaseIsAvailable, "Database is unavailable")
+    val art1 = domainConcept.copy(revision = None)
+    val art2 = domainConcept.copy(revision = None)
+    val art3 = domainConcept.copy(revision = None)
+
+    val id1 = repository.insert(art1).id.get
+    val id2 = repository.insert(art2).id.get
+    val id3 = repository.insert(art3).id.get
+
+    repository.withId(id1).get.revision should be(Some(1L))
+
+    val updatedContent = Seq(domain.ConceptContent("Updatedpls", "nb"))
+    repository.update(art1.copy(id = Some(id1), content = updatedContent))
+
+    repository.withId(id1).get.content should be(updatedContent)
+    repository.withId(id1).get.revision should be(Some(2L))
+    repository.withId(id2).get.revision should be(Some(1L))
+    repository.withId(id3).get.revision should be(Some(1L))
+  }
+
+  test("Revision mismatch fail with optimistic lock exception") {
+    ???
+  }
+
 }

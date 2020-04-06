@@ -11,7 +11,7 @@ import no.ndla.conceptapi.auth.{Role, UserInfo}
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api.UpdatedConcept
 import no.ndla.conceptapi.model.domain
-import no.ndla.conceptapi.model.domain.{ConceptContent, ConceptTitle, Copyright}
+import no.ndla.conceptapi.model.domain.{ConceptContent, ConceptTitle, Copyright, Status}
 import org.joda.time.DateTime
 
 object TestData {
@@ -51,6 +51,7 @@ object TestData {
 
   val sampleNbDomainConcept = domain.Concept(
     id = Some(1),
+    revision = Some(1),
     title = Seq(domain.ConceptTitle("Tittel", "nb")),
     content = Seq(domain.ConceptContent("Innhold", "nb")),
     copyright = None,
@@ -60,11 +61,13 @@ object TestData {
     metaImage = Seq(domain.ConceptMetaImage("1", "Hei", "nb")),
     tags = Seq(domain.ConceptTags(Seq("stor", "kaktus"), "nb")),
     subjectIds = Set("urn:subject:3", "urn:subject:4"),
-    articleId = Some(42)
+    articleId = Some(42),
+    status = Status.default
   )
 
   val sampleConcept = domain.Concept(
     id = Some(1),
+    revision = Some(1),
     title = Seq(ConceptTitle("Tittel for begrep", "nb")),
     content = Seq(ConceptContent("Innhold for begrep", "nb")),
     copyright = Some(Copyright(Some("publicdomain"), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None, None)),
@@ -74,11 +77,13 @@ object TestData {
     metaImage = Seq(domain.ConceptMetaImage("1", "Hei", "nb")),
     tags = Seq(domain.ConceptTags(Seq("liten", "fisk"), "nb")),
     subjectIds = Set("urn:subject:3", "urn:subject:4"),
-    articleId = Some(42)
+    articleId = Some(42),
+    status = Status.default
   )
 
   val domainConcept = domain.Concept(
     id = Some(1),
+    revision = Some(1),
     title = Seq(domain.ConceptTitle("Tittel", "nb"), domain.ConceptTitle("Tittelur", "nn")),
     content = Seq(domain.ConceptContent("Innhold", "nb"), domain.ConceptContent("Innhald", "nn")),
     copyright = None,
@@ -88,11 +93,13 @@ object TestData {
     metaImage = Seq(domain.ConceptMetaImage("1", "Hei", "nb"), domain.ConceptMetaImage("2", "Hej", "nn")),
     tags = Seq(domain.ConceptTags(Seq("stor", "kaktus"), "nb"), domain.ConceptTags(Seq("liten", "fisk"), "nn")),
     subjectIds = Set("urn:subject:3", "urn:subject:4"),
-    articleId = Some(42)
+    articleId = Some(42),
+    status = Status.default
   )
 
   val domainConcept_toDomainUpdateWithId = domain.Concept(
     id = None,
+    revision = None,
     title = Seq.empty,
     content = Seq.empty,
     copyright = None,
@@ -103,6 +110,7 @@ object TestData {
     tags = Seq.empty,
     subjectIds = Set.empty,
     articleId = None,
+    status = Status.default
   )
 
   val sampleNnApiConcept = api.Concept(

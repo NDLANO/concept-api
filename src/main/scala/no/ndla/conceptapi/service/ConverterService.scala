@@ -13,7 +13,7 @@ import no.ndla.conceptapi.model.domain
 import no.ndla.conceptapi.model.domain.Language._
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api.NotFoundException
-import no.ndla.conceptapi.model.domain.LanguageField
+import no.ndla.conceptapi.model.domain.{ConceptStatus, LanguageField, Status}
 import no.ndla.mapping.License.getLicense
 import no.ndla.conceptapi.ConceptApiProperties._
 
@@ -107,6 +107,7 @@ trait ConverterService {
       Success(
         domain.Concept(
           id = None,
+          revision = None,
           title = Seq(domain.ConceptTitle(concept.title, concept.language)),
           content = concept.content
             .map(content => Seq(domain.ConceptContent(content, concept.language)))
@@ -118,7 +119,8 @@ trait ConverterService {
           metaImage = concept.metaImage.map(m => domain.ConceptMetaImage(m.id, m.alt, concept.language)).toSeq,
           tags = concept.tags.map(t => toDomainTags(t, concept.language)).getOrElse(Seq.empty),
           subjectIds = concept.subjectIds.getOrElse(Seq.empty).toSet,
-          articleId = concept.articleId
+          articleId = concept.articleId,
+          status = Status.default
         ))
     }
 
@@ -181,6 +183,7 @@ trait ConverterService {
 
       domain.Concept(
         id = Some(id),
+        revision = None, // TODO: Consider optimistic lock?
         title = concept.title.map(t => domain.ConceptTitle(t, lang)).toSeq,
         content = concept.content.map(c => domain.ConceptContent(c, lang)).toSeq,
         copyright = concept.copyright.map(toDomainCopyright),
@@ -190,7 +193,8 @@ trait ConverterService {
         metaImage = newMetaImage,
         tags = concept.tags.map(t => toDomainTags(t, concept.language)).getOrElse(Seq.empty),
         subjectIds = concept.subjectIds.getOrElse(Seq.empty).toSet,
-        articleId = newArticleId
+        articleId = newArticleId,
+        status = Status.default // TODO: State machine stuff here?
       )
     }
 

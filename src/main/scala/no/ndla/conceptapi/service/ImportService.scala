@@ -17,6 +17,7 @@ import no.ndla.conceptapi.model.domain
 import cats._
 import cats.data._
 import cats.implicits._
+import no.ndla.conceptapi.model.domain.Status
 
 import scala.util.{Failure, Success, Try}
 
@@ -78,6 +79,7 @@ trait ImportService {
             (
               domain.Concept(
                 id = None,
+                revision = None,
                 title = titles,
                 content = contents,
                 copyright = None,
@@ -87,7 +89,8 @@ trait ImportService {
                 metaImage = metaImages,
                 tags = tags,
                 subjectIds = subjectIds,
-                articleId = None
+                articleId = None,
+                status = Status.default
               ),
               coverId,
               metaImageWarning.toSeq ++ taxonomyWarning.toSeq

@@ -19,7 +19,7 @@ import no.ndla.conceptapi.integration.{
   ListingApiClient,
   NdlaE4sClient
 }
-import no.ndla.conceptapi.repository.ConceptRepository
+import no.ndla.conceptapi.repository.{ConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.service.search.{
   ConceptIndexService,
   ConceptSearchService,
@@ -34,6 +34,7 @@ import org.mockito.scalatest.MockitoSugar
 
 trait TestEnvironment
     extends ConceptRepository
+    with PublishedConceptRepository
     with ConceptController
     with SearchConverterService
     with ConceptIndexService
@@ -57,6 +58,7 @@ trait TestEnvironment
     with User {
 
   val conceptRepository = mock[ConceptRepository]
+  val publishedConceptRepository = mock[PublishedConceptRepository]
   val conceptController = mock[ConceptController]
   val searchConverterService = mock[SearchConverterService]
   val conceptIndexService = mock[ConceptIndexService]

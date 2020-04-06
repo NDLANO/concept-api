@@ -10,11 +10,11 @@ package no.ndla.conceptapi.repository
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.ConceptApiProperties
 import no.ndla.conceptapi.integration.DataSource
-import no.ndla.conceptapi.model.api.{ConceptMissingIdException, NotFoundException}
+import no.ndla.conceptapi.model.api.ConceptMissingIdException
 import no.ndla.conceptapi.model.domain.{Concept, ConceptTags}
 import org.json4s.Formats
-import org.postgresql.util.PGobject
 import org.json4s.native.Serialization.{read, write}
+import org.postgresql.util.PGobject
 import scalikejdbc._
 
 import scala.util.{Failure, Success, Try}
@@ -24,7 +24,7 @@ trait ConceptRepository {
   val conceptRepository: ConceptRepository
 
   class ConceptRepository extends LazyLogging with Repository[Concept] {
-    implicit val formats: Formats = org.json4s.DefaultFormats + Concept.JSonSerializer
+    implicit val formats: Formats = Concept.JSonSerializer
 
     def insert(concept: Concept)(implicit session: DBSession = AutoSession): Concept = {
       val dataObject = new PGobject()
@@ -97,9 +97,21 @@ trait ConceptRepository {
       dataObject.setType("jsonb")
       dataObject.setValue(write(concept))
 
-      Try(
-        sql"update ${Concept.table} set document=${dataObject} where concept_id=${concept.id.get}".updateAndReturnGeneratedKey.apply) match {
-        case Success(id) => Success(concept.copy(id = Some(id)))
+      val newRevision = concept.revision.getOrElse(0) + 1 // TODO: Get this from existing
+
+      Try(sql"""
+              update ${Concept.table} 
+              set 
+                document=${dataObject}, 
+                revision=$newRevision
+              where id=${concept.id.get}
+             """.updateAndReturnGeneratedKey.apply) match {
+        case Success(id) =>
+          Success(
+            concept.copy(
+              id = Some(id),
+              revision = Some(newRevision)
+            ))
         case Failure(ex) =>
           logger.warn(s"Failed to update concept with id ${concept.id}: ${ex.getMessage}")
           Failure(ex)
@@ -107,11 +119,11 @@ trait ConceptRepository {
     }
 
     def withId(id: Long): Option[Concept] =
-      conceptWhere(sqls"co.concept_id=${id.toInt} ORDER BY revision DESC LIMIT 1")
+      conceptWhere(sqls"co.id=${id.toInt} ORDER BY revision DESC LIMIT 1")
 
     def exists(id: Long)(implicit session: DBSession = AutoSession): Boolean = {
-      sql"select id from ${Concept.table} where concept_id=${id} order by "
-        .map(rs => rs.long("concept_id"))
+      sql"select id from ${Concept.table} where id=${id} order by "
+        .map(rs => rs.long("id"))
         .single
         .apply()
         .isDefined
