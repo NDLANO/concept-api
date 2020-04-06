@@ -8,20 +8,17 @@
 package no.ndla.conceptapi.repository
 
 import java.net.Socket
-import java.util.Date
 
-import no.ndla.conceptapi.model.domain
-import no.ndla.conceptapi.{ConceptApiProperties, DBMigrator, IntegrationSuite, TestData, TestEnvironment}
-import scalikejdbc.{ConnectionPool, DB, DataSourceConnectionPool}
 import no.ndla.conceptapi.TestData._
-import no.ndla.conceptapi.model.api.OptimisticLockException
+import no.ndla.conceptapi.model.domain
+import no.ndla.conceptapi._
+import scalikejdbc.{ConnectionPool, DB, DataSourceConnectionPool, _}
 
-import scala.util.{Failure, Success, Try}
-import scalikejdbc._
+import scala.util.{Success, Try}
 
-class ConceptRepositoryTest extends IntegrationSuite with TestEnvironment {
+class PublishedConceptRepositoryTest extends IntegrationSuite with TestEnvironment {
 
-  val repository: ConceptRepository = new ConceptRepository
+  val repository: PublishedConceptRepository = new PublishedConceptRepository
   def databaseIsAvailable: Boolean = Try(repository.conceptCount).isSuccess
 
   def emptyTestDatabase = {
@@ -54,6 +51,7 @@ class ConceptRepositoryTest extends IntegrationSuite with TestEnvironment {
       case _ => false
     }
   }
+  /*
 
   test("Inserting and Updating an concept should work as expected") {
     assume(databaseIsAvailable, "Database is unavailable")
@@ -226,37 +224,31 @@ class ConceptRepositoryTest extends IntegrationSuite with TestEnvironment {
     tagsCount9 should be(2)
   }
 
-  test("Revision mismatch fail with optimistic lock exception") {
+  test("Inserting and updating concept sets correct revision") {
     assume(databaseIsAvailable, "Database is unavailable")
+    val art1 = domainConcept.copy(revision = None)
+    val art2 = domainConcept.copy(revision = None)
+    val art3 = domainConcept.copy(revision = None)
 
-    val art1 = domainConcept.copy(
-      revision = None,
-      content = Seq(domain.ConceptContent("Originalpls", "nb")),
-      created = new Date(0),
-      updated = new Date(0)
-    )
+    val id1 = repository.insert(art1).id.get
+    val id2 = repository.insert(art2).id.get
+    val id3 = repository.insert(art3).id.get
 
-    val insertedConcept = repository.insert(art1)
-    val insertedId = insertedConcept.id.get
-
-    repository.withId(insertedId).get.revision should be(Some(1))
+    repository.withId(id1).get.revision should be(Some(1L))
 
     val updatedContent = Seq(domain.ConceptContent("Updatedpls", "nb"))
-    val updatedArt1 = art1.copy(revision = Some(10), id = Some(insertedId), content = updatedContent)
+    repository.update(art1.copy(id = Some(id1), content = updatedContent))
 
-    val updateResult1 = repository.update(updatedArt1)
-    updateResult1 should be(Failure(new OptimisticLockException))
-
-    val fetched1 = repository.withId(insertedId).get
-    fetched1 should be(insertedConcept)
-
-    val updatedArt2 = fetched1.copy(content = updatedContent)
-    val updateResult2 = repository.update(updatedArt2)
-    updateResult2 should be(Success(updatedArt2.copy(revision = Some(2))))
-
-    val fetched2 = repository.withId(insertedId).get
-    fetched2.revision should be(Some(2))
-    fetched2.content should be(updatedContent)
+    repository.withId(id1).get.content should be(updatedContent)
+    repository.withId(id1).get.revision should be(Some(2L))
+    repository.withId(id2).get.revision should be(Some(1L))
+    repository.withId(id3).get.revision should be(Some(1L))
   }
+
+  test("Revision mismatch fail with optimistic lock exception") {
+    ???
+  }
+
+ */
 
 }

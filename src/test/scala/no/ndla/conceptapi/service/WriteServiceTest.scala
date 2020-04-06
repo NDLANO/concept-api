@@ -139,4 +139,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     conceptCaptor.getValue.title.length should be(1)
   }
 
+  test("That updating concepts updates revision") {
+    ???
+  }
+
 }

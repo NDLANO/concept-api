@@ -119,7 +119,8 @@ object PublishedConcept extends SQLSyntaxSupport[Concept] {
 
 object ConceptStatus extends Enumeration {
 
-  val DRAFT, PUBLISHED, UNPUBLISHED, ARCHIVED = Value
+  val DRAFT, PUBLISHED, QUEUED_FOR_PUBLISHING, QUEUED_FOR_LANGUAGE, TRANSLATED, AWAITING_UNPUBLISHING, UNPUBLISHED,
+  ARCHIVED = Value
 
   def valueOfOrError(s: String): Try[ConceptStatus.Value] =
     valueOf(s) match {

@@ -10,7 +10,7 @@ package no.ndla.conceptapi.repository
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.ConceptApiProperties
 import no.ndla.conceptapi.integration.DataSource
-import no.ndla.conceptapi.model.api.ConceptMissingIdException
+import no.ndla.conceptapi.model.api.{ConceptMissingIdException, NotFoundException, OptimisticLockException}
 import no.ndla.conceptapi.model.domain.{Concept, ConceptTags}
 import org.json4s.Formats
 import org.json4s.native.Serialization.{read, write}
@@ -31,14 +31,19 @@ trait ConceptRepository {
       dataObject.setType("jsonb")
       dataObject.setValue(write(concept))
 
+      val newRevision = 1
+
       val conceptId: Long =
         sql"""
-        insert into ${Concept.table} (document)
-        values (${dataObject})
+        insert into ${Concept.table} (document, revision)
+        values (${dataObject}, $newRevision)
           """.updateAndReturnGeneratedKey.apply
 
       logger.info(s"Inserted new concept: $conceptId")
-      concept.copy(id = Some(conceptId))
+      concept.copy(
+        id = Some(conceptId),
+        revision = Some(newRevision)
+      )
     }
 
     def insertwithListingId(concept: Concept, listingId: Long)(implicit session: DBSession = AutoSession): Concept = {
@@ -97,26 +102,41 @@ trait ConceptRepository {
       dataObject.setType("jsonb")
       dataObject.setValue(write(concept))
 
-      val newRevision = concept.revision.getOrElse(0) + 1 // TODO: Get this from existing
+      concept.id match {
+        case None => Failure(new NotFoundException("Can not update "))
+        case Some(conceptId) =>
+          val newRevision = concept.revision.getOrElse(0) + 1
+          val oldRevision = concept.revision
 
-      Try(sql"""
+          Try(
+            sql"""
               update ${Concept.table} 
               set 
                 document=${dataObject}, 
                 revision=$newRevision
-              where id=${concept.id.get}
-             """.updateAndReturnGeneratedKey.apply) match {
-        case Success(id) =>
-          Success(
-            concept.copy(
-              id = Some(id),
-              revision = Some(newRevision)
-            ))
-        case Failure(ex) =>
-          logger.warn(s"Failed to update concept with id ${concept.id}: ${ex.getMessage}")
-          Failure(ex)
+              where id=$conceptId
+              and revision=$oldRevision
+              and revision=(select max(revision) from ${Concept.table} where id=$conceptId)
+            """.update.apply
+          ) match {
+            case Success(updatedRows) => failIfRevisionMismatch(updatedRows, concept, newRevision)
+            case Failure(ex) =>
+              logger.warn(s"Failed to update concept with id ${concept.id}: ${ex.getMessage}")
+              Failure(ex)
+          }
       }
     }
+
+    private def failIfRevisionMismatch(count: Int, concept: Concept, newRevision: Int): Try[Concept] =
+      if (count != 1) {
+        val message = s"Found revision mismatch when attempting to update concept ${concept.id}"
+        logger.info(message)
+        Failure(new OptimisticLockException)
+      } else {
+        logger.info(s"Updated concept ${concept.id}")
+        val updatedConcept = concept.copy(revision = Some(newRevision))
+        Success(updatedConcept)
+      }
 
     def withId(id: Long): Option[Concept] =
       conceptWhere(sqls"co.id=${id.toInt} ORDER BY revision DESC LIMIT 1")

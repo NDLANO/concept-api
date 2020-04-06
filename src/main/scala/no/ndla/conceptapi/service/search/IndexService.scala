@@ -16,9 +16,10 @@ import com.sksamuel.elastic4s.mappings.{FieldDefinition, MappingDefinition}
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.ConceptApiProperties
 import no.ndla.conceptapi.integration.Elastic4sClient
+import no.ndla.conceptapi.model.api.ElasticIndexingException
+import no.ndla.conceptapi.model.domain.Language.languageAnalyzers
 import no.ndla.conceptapi.model.domain.{Concept, ReindexResult}
 import no.ndla.conceptapi.repository.Repository
-import no.ndla.conceptapi.model.domain.Language.languageAnalyzers
 
 import scala.util.{Failure, Success, Try}
 
@@ -31,7 +32,7 @@ trait IndexService {
     val repository: Repository[D]
 
     def getMapping: MappingDefinition
-    def createIndexRequest(domainModel: D, indexName: String): IndexRequest
+    def createIndexRequest(domainModel: D, indexName: String): Try[IndexRequest]
 
     def indexDocument(imported: D): Try[D] = {
       for {
@@ -39,7 +40,8 @@ trait IndexService {
           case Some(index) => Success(index)
           case None        => createIndexWithGeneratedName.map(newIndex => updateAliasTarget(None, newIndex))
         }
-        _ <- e4sClient.execute(createIndexRequest(imported, searchIndex))
+        request <- createIndexRequest(imported, searchIndex)
+        _ <- e4sClient.execute(request)
       } yield imported
     }
 
@@ -94,17 +96,25 @@ trait IndexService {
       if (contents.isEmpty) {
         Success(0)
       } else {
-        val response = e4sClient.execute {
-          bulk(contents.map(content => {
-            createIndexRequest(content, indexName)
-          }))
-        }
+        val req = contents.map(content => createIndexRequest(content, indexName))
+        val indexRequests = req.collect { case Success(indexRequest) => indexRequest }
+        val failedToCreateRequests = req.collect { case Failure(ex)  => Failure(ex) }
 
-        response match {
-          case Success(r) =>
-            logger.info(s"Indexed ${contents.size} documents. No of failed items: ${r.result.failures.size}")
-            Success(contents.size)
-          case Failure(ex) => Failure(ex)
+        if (indexRequests.nonEmpty) {
+          val response = e4sClient.execute {
+            bulk(indexRequests)
+          }
+
+          response match {
+            case Success(r) =>
+              val numFailed = r.result.failures.size + failedToCreateRequests.size
+              logger.info(s"Indexed ${contents.size} documents ($documentType). No of failed items: $numFailed")
+              Success(contents.size - numFailed)
+            case Failure(ex) => Failure(ex)
+          }
+        } else {
+          logger.error(s"All ${contents.size} requests failed to be created.")
+          Failure(ElasticIndexingException("No indexReqeusts were created successfully."))
         }
       }
     }

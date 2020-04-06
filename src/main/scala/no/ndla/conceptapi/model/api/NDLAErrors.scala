@@ -65,10 +65,12 @@ case class NotFoundException(message: String, supportedLanguages: Seq[String] = 
 case class ConceptMissingIdException(message: String) extends RuntimeException(message)
 case class ConceptExistsAlreadyException(message: String) extends RuntimeException(message)
 case class ImportException(message: String) extends RuntimeException(message)
+case class ElasticIndexingException(message: String) extends RuntimeException(message)
 
 class AccessDeniedException(message: String) extends RuntimeException(message)
 case class OperationNotAllowedException(message: String) extends RuntimeException(message)
-class OptimisticLockException(message: String = Error.RESOURCE_OUTDATED_DESCRIPTION) extends RuntimeException(message)
+case class OptimisticLockException(message: String = Error.RESOURCE_OUTDATED_DESCRIPTION)
+    extends RuntimeException(message)
 
 class ResultWindowTooLargeException(message: String = Error.WINDOW_TOO_LARGE_DESCRIPTION)
     extends RuntimeException(message)
