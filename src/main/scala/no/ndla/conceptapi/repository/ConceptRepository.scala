@@ -51,10 +51,12 @@ trait ConceptRepository {
       dataObject.setType("jsonb")
       dataObject.setValue(write(concept))
 
+      val newRevision = 1
+
       val conceptId: Long =
         sql"""
-        insert into ${Concept.table} (listing_id, document)
-        values ($listingId, $dataObject)
+        insert into ${Concept.table} (listing_id, document, revision)
+        values ($listingId, $dataObject, $newRevision)
           """.updateAndReturnGeneratedKey.apply
 
       logger.info(s"Inserted new concept: '$conceptId', with listing id '$listingId'")
@@ -67,9 +69,13 @@ trait ConceptRepository {
       dataObject.setType("jsonb")
       dataObject.setValue(write(concept))
 
-      Try(sql"""
-           update ${Concept.table} set document=${dataObject} where listing_id=${listingId}
-         """.updateAndReturnGeneratedKey.apply) match {
+      Try(
+        sql"""
+           update ${Concept.table} 
+           set document=${dataObject} 
+           where listing_id=${listingId}
+         """.updateAndReturnGeneratedKey.apply
+      ) match {
         case Success(id) => Success(concept.copy(id = Some(id)))
         case Failure(ex) =>
           logger.warn(s"Failed to update concept with id ${concept.id} and listing id: $listingId: ${ex.getMessage}")
@@ -87,8 +93,14 @@ trait ConceptRepository {
           dataObject.setType("jsonb")
           dataObject.setValue(write(concept))
 
-          Try(sql"""insert into ${Concept.table} (id, document)
-                    values ($id, ${dataObject})""".update.apply)
+          val newRevision = 1
+
+          Try(
+            sql"""
+                  insert into ${Concept.table} (id, document, revision)
+                  values ($id, ${dataObject}, $newRevision)
+               """.update.apply
+          )
 
           logger.info(s"Inserted new concept: $id")
           Success(concept)

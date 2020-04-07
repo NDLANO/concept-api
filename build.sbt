@@ -66,6 +66,7 @@ lazy val concept_api = (project in file("."))
       "com.sksamuel.elastic4s" %% "elastic4s-core" % Elastic4sVersion,
       "com.sksamuel.elastic4s" %% "elastic4s-http" % Elastic4sVersion,
       "org.typelevel" %% "cats-core" % CatsEffectVersion,
+      "org.typelevel" %% "cats-effect" % CatsEffectVersion,
       "org.testcontainers" % "elasticsearch" % TestContainersVersion % "test",
       "org.testcontainers" % "testcontainers" % TestContainersVersion % "test",
       "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.22",

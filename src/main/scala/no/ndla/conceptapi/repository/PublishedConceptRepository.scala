@@ -11,7 +11,11 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.integration.DataSource
 import no.ndla.conceptapi.model.domain.{Concept, PublishedConcept}
 import org.json4s.Formats
+import org.postgresql.util.PGobject
 import scalikejdbc._
+import org.json4s.native.Serialization.write
+
+import scala.util.{Failure, Success, Try}
 
 trait PublishedConceptRepository {
   this: DataSource =>
@@ -19,6 +23,34 @@ trait PublishedConceptRepository {
 
   class PublishedConceptRepository extends LazyLogging with Repository[Concept] {
     implicit val formats: Formats = Concept.JSonSerializer
+
+    def insertOrUpdate(concept: Concept)(implicit session: DBSession = AutoSession): Try[Concept] = {
+      val dataObject = new PGobject()
+      dataObject.setType("jsonb")
+      dataObject.setValue(write(concept))
+
+      Try {
+        sql"""update ${PublishedConcept.table}
+              set 
+                document=$dataObject,
+                revision=${concept.revision}
+              where id=${concept.id}
+          """.update.apply
+      } match {
+        case Success(count) if count == 1 =>
+          logger.info(s"Updated published concept ${concept.id}")
+          Success(concept)
+        case Success(_) =>
+          logger.info(s"No published concept with id ${concept.id} exists, creating...")
+          Try {
+            sql"""
+                  insert into ${PublishedConcept.table} (id, document, revision)
+                  values (${concept.id}, $dataObject, ${concept.revision})
+              """.updateAndReturnGeneratedKey().apply
+          }.map(_ => concept)
+        case Failure(ex) => Failure(ex)
+      }
+    }
 
     def withId(id: Long): Option[Concept] = conceptWhere(sqls"co.id=${id.toInt}")
 

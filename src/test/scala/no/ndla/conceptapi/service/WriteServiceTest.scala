@@ -35,19 +35,22 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   val domainConcept: domain.Concept = TestData.sampleNbDomainConcept.copy(id = Some(conceptId.toLong))
 
-  override def beforeEach(): Unit = {
-    Mockito.reset(conceptRepository)
-
-    when(conceptRepository.withId(conceptId)).thenReturn(Option(domainConcept))
+  def mockWithConcept(concept: domain.Concept) = {
+    when(conceptRepository.withId(conceptId)).thenReturn(Option(concept))
     when(conceptRepository.update(any[Concept])(any[DBSession]))
-      .thenAnswer((invocation: InvocationOnMock) => {
+      .thenAnswer((invocation: InvocationOnMock) => Try(invocation.getArgument[Concept](0)))
 
-        Try(invocation.getArgument[Concept](0))
-      })
-    when(contentValidator.validateConcept(any[Concept], any[Boolean])).thenReturn(Success(domainConcept))
+    when(contentValidator.validateConcept(any[Concept], any[Boolean])).thenAnswer((invocation: InvocationOnMock) =>
+      Try(invocation.getArgument[Concept](0)))
+
     when(conceptIndexService.indexDocument(any[Concept])).thenAnswer((invocation: InvocationOnMock) =>
       Try(invocation.getArgument[Concept](0)))
     when(clock.now()).thenReturn(today)
+  }
+
+  override def beforeEach(): Unit = {
+    Mockito.reset(conceptRepository)
+    mockWithConcept(domainConcept)
   }
 
   test("newConcept should insert a given Concept") {
@@ -140,7 +143,28 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   }
 
   test("That updating concepts updates revision") {
-    ???
+    reset(conceptRepository)
+
+    val conceptToUpdate = domainConcept.copy(
+      revision = Some(951),
+      title = Seq(domain.ConceptTitle("Yolo", "en")),
+      updated = new Date(0),
+      created = new Date(0)
+    )
+
+    mockWithConcept(conceptToUpdate)
+
+    val updatedTitle = "NyTittelTestJee"
+    val updatedApiConcept = TestData.emptyApiUpdatedConcept.copy(language = "en", title = Some(updatedTitle))
+
+    val conceptCaptor: ArgumentCaptor[Concept] = ArgumentCaptor.forClass(classOf[Concept])
+
+    service.updateConcept(conceptId, updatedApiConcept)
+
+    verify(conceptRepository).update(conceptCaptor.capture())(any[DBSession])
+
+    conceptCaptor.getValue.revision should be(Some(951))
+    conceptCaptor.getValue.title should be(Seq(domain.ConceptTitle(updatedTitle, "en")))
   }
 
 }
