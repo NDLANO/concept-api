@@ -7,9 +7,13 @@
 
 package no.ndla.conceptapi.service
 
+import java.util.Date
+
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.conceptapi.repository.ConceptRepository
+import no.ndla.conceptapi.auth.UserInfo
+import no.ndla.conceptapi.repository.{ConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.model.domain
+import no.ndla.conceptapi.model.domain.ConceptStatus._
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api.{ConceptExistsAlreadyException, NotFoundException}
 import no.ndla.conceptapi.service.search.ConceptIndexService
@@ -18,7 +22,12 @@ import no.ndla.conceptapi.validation._
 import scala.util.{Failure, Success, Try}
 
 trait WriteService {
-  this: ConceptRepository with ConverterService with ContentValidator with ConceptIndexService with LazyLogging =>
+  this: ConceptRepository
+    with PublishedConceptRepository
+    with ConverterService
+    with ContentValidator
+    with ConceptIndexService
+    with LazyLogging =>
   val writeService: WriteService
 
   class WriteService {
@@ -42,21 +51,22 @@ trait WriteService {
 
     def saveImportedConcepts(concepts: Seq[domain.Concept], forceUpdate: Boolean): Seq[Try[domain.Concept]] = {
       concepts.map(concept => {
-        if (concept.id.exists(conceptRepository.exists)) {
-          if (forceUpdate) {
-            updateConcept(concept) match {
-              case Failure(ex) =>
-                logger.error(s"Could not update concept with id '${concept.id.getOrElse(-1)}' when importing.")
-                Failure(ex)
-              case Success(c) =>
-                logger.info(s"Updated concept with id '${c.id.getOrElse(-1)}' successfully during import.")
-                Success(c)
+        concept.id match {
+          case Some(id) if conceptRepository.exists(id) =>
+            if (forceUpdate) {
+              val existing = conceptRepository.withId(id)
+              updateConcept(concept) match {
+                case Failure(ex) =>
+                  logger.error(s"Could not update concept with id '${concept.id.getOrElse(-1)}' when importing.")
+                  Failure(ex)
+                case Success(c) =>
+                  logger.info(s"Updated concept with id '${c.id.getOrElse(-1)}' successfully during import.")
+                  Success(c)
+              }
+            } else {
+              Failure(ConceptExistsAlreadyException("The concept already exists."))
             }
-          } else {
-            Failure(ConceptExistsAlreadyException("The concept already exists."))
-          }
-        } else {
-          conceptRepository.insertWithId(concept)
+          case None => conceptRepository.insertWithId(concept)
         }
       })
     }
@@ -71,6 +81,34 @@ trait WriteService {
       } yield apiC
     }
 
+    private def shouldUpdateStatus(existing: domain.Concept, changed: domain.Concept): Boolean = {
+      // Function that sets values we don't want to include when comparing concepts to check if we should update status
+      val withComparableValues =
+        (concept: domain.Concept) =>
+          concept.copy(
+            revision = None,
+            created = new Date(0),
+            updated = new Date(0)
+        )
+      withComparableValues(existing) != withComparableValues(changed)
+    }
+
+    private def updateStatusIfNeeded(existing: domain.Concept, changed: domain.Concept, user: UserInfo) = {
+      if (!shouldUpdateStatus(existing, changed)) {
+        Success(changed)
+      } else {
+        val oldStatus = existing.status.current
+        val newStatus = if (oldStatus == PUBLISHED) DRAFT else oldStatus
+
+        converterService
+          .updateStatus(newStatus, changed, user)
+          .attempt
+          .unsafeRunSync()
+          .toTry
+          .flatten
+      }
+    }
+
     private def updateConcept(toUpdate: domain.Concept): Try[domain.Concept] = {
       for {
         _ <- contentValidator.validateConcept(toUpdate, allowUnknownLanguage = true)
@@ -79,40 +117,54 @@ trait WriteService {
       } yield domainConcept
     }
 
-    def updateConcept(id: Long, updatedConcept: api.UpdatedConcept): Try[api.Concept] = {
+    def updateConcept(id: Long, updatedConcept: api.UpdatedConcept, userInfo: UserInfo): Try[api.Concept] = {
       conceptRepository.withId(id) match {
-        case Some(concept) =>
-          val domainConcept = converterService.toDomainConcept(concept, updatedConcept)
-          updateConcept(domainConcept).flatMap(x =>
-            converterService.toApiConcept(x, updatedConcept.language, fallback = true))
+        case Some(existingConcept) =>
+          val domainConcept = converterService.toDomainConcept(existingConcept, updatedConcept)
+
+          for {
+            withStatus <- updateStatusIfNeeded(existingConcept, domainConcept, userInfo)
+            updated <- updateConcept(withStatus)
+            converted <- converterService.toApiConcept(updated, updatedConcept.language, fallback = true)
+          } yield converted
+
         case None if conceptRepository.exists(id) =>
           val concept = converterService.toDomainConcept(id, updatedConcept)
-          updateConcept(concept)
-            .flatMap(concept => converterService.toApiConcept(concept, updatedConcept.language, fallback = true))
+          for {
+            updated <- updateConcept(concept)
+            converted <- converterService.toApiConcept(updated, updatedConcept.language, fallback = true)
+          } yield converted
         case None =>
           Failure(NotFoundException(s"Concept with id $id does not exist"))
       }
     }
 
-    def deleteLanguage(id: Long, language: String): Try[api.Concept] = {
+    def deleteLanguage(id: Long, language: String, userInfo: UserInfo): Try[api.Concept] = {
       conceptRepository.withId(id) match {
-        case Some(concept) =>
-          concept.title.size match {
+        case Some(existingConcept) =>
+          existingConcept.title.size match {
             case 1 => Failure(api.OperationNotAllowedException("Only one language left"))
             case _ =>
-              val title = concept.title.filter(_.language != language)
-              val content = concept.content.filter(_.language != language)
-              val newConcept = concept.copy(
+              val title = existingConcept.title.filter(_.language != language)
+              val content = existingConcept.content.filter(_.language != language)
+              val newConcept = existingConcept.copy(
                 title = title,
                 content = content,
               )
-              updateConcept(newConcept).flatMap(
-                converterService.toApiConcept(_, domain.Language.AllLanguages, fallback = false))
+
+              for {
+                withStatus <- updateStatusIfNeeded(existingConcept, newConcept, userInfo)
+                updated <- updateConcept(withStatus)
+                converted <- converterService.toApiConcept(updated, domain.Language.AllLanguages, fallback = false)
+              } yield converted
           }
         case None => Failure(NotFoundException("Concept does not exist"))
       }
 
     }
 
+    def publishConcept(concept: domain.Concept): Try[domain.Concept] = {
+      publishedConceptRepository.insertOrUpdate(concept)
+    }
   }
 }

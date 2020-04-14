@@ -9,6 +9,7 @@ package no.ndla.conceptapi.service
 
 import java.util.Date
 
+import no.ndla.conceptapi.auth.UserInfo
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.domain
 import no.ndla.conceptapi.model.domain._
@@ -29,6 +30,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   val yesterday: Date = DateTime.now().minusDays(1).toDate
   val service = new WriteService()
   val conceptId = 13
+  val userInfo = UserInfo.SystemUser
 
   val concept: api.Concept =
     TestData.sampleNbApiConcept.copy(id = conceptId.toLong, updated = today, supportedLanguages = Set("nb"))
@@ -70,7 +72,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
                                        updated = today,
                                        supportedLanguages = Set("nb", "en"),
                                        articleId = None)
-    val result = service.updateConcept(conceptId, updatedApiConcept).get
+    val result = service.updateConcept(conceptId, updatedApiConcept, userInfo).get
     result should equal(expectedConcept)
   }
 
@@ -82,7 +84,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
                                        updated = today,
                                        supportedLanguages = Set("nb", "nn"),
                                        articleId = None)
-    service.updateConcept(conceptId, updatedApiConcept).get should equal(expectedConcept)
+    service.updateConcept(conceptId, updatedApiConcept, userInfo).get should equal(expectedConcept)
   }
 
   test("That updateConcept updates multiple fields properly") {
@@ -118,12 +120,12 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       articleId = Some(69L)
     )
 
-    service.updateConcept(conceptId, updatedApiConcept) should equal(Success(expectedConcept))
+    service.updateConcept(conceptId, updatedApiConcept, userInfo) should equal(Success(expectedConcept))
 
   }
 
   test("That delete concept should fail when only one language") {
-    val Failure(result) = service.deleteLanguage(concept.id, "nb")
+    val Failure(result) = service.deleteLanguage(concept.id, "nb", userInfo)
 
     result.getMessage should equal("Only one language left")
   }
@@ -136,7 +138,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     when(conceptRepository.withId(anyLong)).thenReturn(Some(concept))
 
-    service.deleteLanguage(concept.id.get, "nn")
+    service.deleteLanguage(concept.id.get, "nn", userInfo)
     verify(conceptRepository).update(conceptCaptor.capture())
 
     conceptCaptor.getValue.title.length should be(1)
@@ -159,7 +161,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     val conceptCaptor: ArgumentCaptor[Concept] = ArgumentCaptor.forClass(classOf[Concept])
 
-    service.updateConcept(conceptId, updatedApiConcept)
+    service.updateConcept(conceptId, updatedApiConcept, userInfo)
 
     verify(conceptRepository).update(conceptCaptor.capture())(any[DBSession])
 

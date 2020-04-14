@@ -7,6 +7,7 @@
 
 package no.ndla.conceptapi.service
 
+import cats.effect.IO
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.repository.ConceptRepository
 import no.ndla.conceptapi.model.domain
@@ -16,11 +17,12 @@ import no.ndla.conceptapi.model.api.NotFoundException
 import no.ndla.conceptapi.model.domain.{ConceptStatus, LanguageField, Status}
 import no.ndla.mapping.License.getLicense
 import no.ndla.conceptapi.ConceptApiProperties._
+import no.ndla.conceptapi.auth.UserInfo
 
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
-  this: Clock with ConceptRepository =>
+  this: Clock with ConceptRepository with StateTransitionRules =>
   val converterService: ConverterService
 
   class ConverterService extends LazyLogging {
@@ -167,6 +169,9 @@ trait ConverterService {
         articleId = newArticleId
       )
     }
+
+    def updateStatus(status: ConceptStatus.Value, concept: domain.Concept, user: UserInfo): IO[Try[domain.Concept]] =
+      StateTransitionRules.doTransition(concept, status, user)
 
     def toDomainConcept(id: Long, concept: api.UpdatedConcept): domain.Concept = {
       val lang = concept.language

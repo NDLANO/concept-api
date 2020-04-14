@@ -7,7 +7,7 @@
 
 package no.ndla.conceptapi.service
 
-import no.ndla.conceptapi.repository.ConceptRepository
+import no.ndla.conceptapi.repository.{ConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api.NotFoundException
 import no.ndla.conceptapi.model.domain.Language
@@ -15,7 +15,7 @@ import no.ndla.conceptapi.model.domain.Language
 import scala.util.{Failure, Success, Try}
 
 trait ReadService {
-  this: ConceptRepository with ConceptRepository with ConverterService =>
+  this: ConceptRepository with PublishedConceptRepository with ConverterService =>
   val readService: ReadService
 
   class ReadService {
@@ -26,6 +26,14 @@ trait ReadService {
           converterService.toApiConcept(concept, language, fallback)
         case None =>
           Failure(NotFoundException(s"Concept with id $id was not found with language '$language' in database."))
+      }
+
+    def publishedConceptWithId(id: Long, language: String, fallback: Boolean): Try[api.Concept] =
+      publishedConceptRepository.withId(id) match {
+        case Some(concept) =>
+          converterService.toApiConcept(concept, language, fallback)
+        case None =>
+          Failure(NotFoundException(s"A published Concept with id $id was not found with language '$language'."))
       }
 
     def allSubjects(): Try[Set[String]] = {

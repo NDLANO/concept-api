@@ -9,7 +9,7 @@ package no.ndla.conceptapi
 
 import com.typesafe.scalalogging.LazyLogging
 import com.zaxxer.hikari.HikariDataSource
-import no.ndla.conceptapi.controller.{ConceptController, HealthController, InternController}
+import no.ndla.conceptapi.controller.{ConceptController, HealthController, InternController, PublishedConceptController}
 import no.ndla.conceptapi.auth.User
 import no.ndla.conceptapi.integration.{
   ArticleApiClient,
@@ -25,33 +25,46 @@ import no.ndla.conceptapi.service.search.{
   ConceptIndexService,
   ConceptSearchService,
   IndexService,
+  PublishedConceptIndexService,
+  PublishedConceptSearchService,
   SearchConverterService,
   SearchService
 }
-import no.ndla.conceptapi.service.{Clock, ConverterService, ImportService, ReadService, WriteService}
+import no.ndla.conceptapi.service.{
+  Clock,
+  ConverterService,
+  ImportService,
+  ReadService,
+  StateTransitionRules,
+  WriteService
+}
 import no.ndla.conceptapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
 object ComponentRegistry
     extends ConceptController
+    with PublishedConceptController
     with Clock
     with User
     with WriteService
     with ContentValidator
     with ReadService
     with ConverterService
+    with StateTransitionRules
     with ConceptRepository
     with PublishedConceptRepository
     with DataSource
     with LazyLogging
     with HealthController
     with ConceptSearchService
+    with PublishedConceptSearchService
     with ImportService
     with SearchService
     with SearchConverterService
     with Elastic4sClient
     with ConceptIndexService
+    with PublishedConceptIndexService
     with IndexService
     with InternController
     with ArticleApiClient
@@ -60,6 +73,7 @@ object ComponentRegistry
     with NdlaClient {
 
   lazy val conceptController = new ConceptController
+  lazy val publishedConceptController = new PublishedConceptController
   lazy val healthController = new HealthController
   lazy val internController = new InternController
 
@@ -69,6 +83,8 @@ object ComponentRegistry
   lazy val conceptSearchService = new ConceptSearchService
   lazy val searchConverterService = new SearchConverterService
   lazy val conceptIndexService = new ConceptIndexService
+  lazy val publishedConceptIndexService = new PublishedConceptIndexService
+  lazy val publishedConceptSearchService = new PublishedConceptSearchService
 
   var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient()
 

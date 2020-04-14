@@ -24,10 +24,19 @@ import no.ndla.conceptapi.service.search.{
   ConceptIndexService,
   ConceptSearchService,
   IndexService,
+  PublishedConceptIndexService,
+  PublishedConceptSearchService,
   SearchConverterService,
   SearchService
 }
-import no.ndla.conceptapi.service.{Clock, ConverterService, ImportService, ReadService, WriteService}
+import no.ndla.conceptapi.service.{
+  Clock,
+  ConverterService,
+  ImportService,
+  ReadService,
+  StateTransitionRules,
+  WriteService
+}
 import no.ndla.conceptapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
 import org.mockito.scalatest.MockitoSugar
@@ -37,6 +46,8 @@ trait TestEnvironment
     with PublishedConceptRepository
     with ConceptController
     with SearchConverterService
+    with PublishedConceptSearchService
+    with PublishedConceptIndexService
     with ConceptIndexService
     with ConceptSearchService
     with IndexService
@@ -48,6 +59,7 @@ trait TestEnvironment
     with WriteService
     with ReadService
     with ConverterService
+    with StateTransitionRules
     with ContentValidator
     with ImportService
     with ArticleApiClient
@@ -63,6 +75,8 @@ trait TestEnvironment
   val searchConverterService = mock[SearchConverterService]
   val conceptIndexService = mock[ConceptIndexService]
   val conceptSearchService = mock[ConceptSearchService]
+  val publishedConceptIndexService = mock[PublishedConceptIndexService]
+  val publishedConceptSearchService = mock[PublishedConceptSearchService]
   var e4sClient = mock[NdlaE4sClient]
   val lazyLogging = mock[LazyLogging]
   val mockitoSugar = mock[MockitoSugar]
