@@ -18,14 +18,18 @@ import no.ndla.conceptapi.ConceptApiProperties.{
   ElasticSearchIndexMaxResultWindow,
   ElasticSearchScrollKeepAlive
 }
+import no.ndla.conceptapi.auth.User
 import no.ndla.conceptapi.model.api.{
+  Concept,
   Error,
+  NewConcept,
   NotFoundException,
+  OperationNotAllowedException,
   OptimisticLockException,
   ResultWindowTooLargeException,
-  OperationNotAllowedException,
   ValidationError
 }
+import no.ndla.conceptapi.service.WriteService
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
 import no.ndla.network.model.HttpRequestException
 import no.ndla.validation.{ValidationException, ValidationMessage}
@@ -37,7 +41,7 @@ import org.postgresql.util.PSQLException
 import org.scalatra._
 import org.scalatra.json.NativeJsonSupport
 import org.scalatra.util.NotNothing
-import org.scalatra.swagger.{ParamType, Parameter, SwaggerSupport}
+import org.scalatra.swagger.{ParamType, Parameter, ResponseMessage, SwaggerSupport}
 
 import scala.util.{Failure, Success, Try}
 
@@ -88,6 +92,22 @@ abstract class NdlaController() extends ScalatraServlet with NativeJsonSupport w
       InternalServerError(body = Error.GenericError)
   }
 
+  // Additional models used in error responses
+  registerModel[ValidationError]()
+  registerModel[Error]()
+
+  val response400 = ResponseMessage(400, "Validation Error", Some("ValidationError"))
+  val response403 = ResponseMessage(403, "Access Denied", Some("Error"))
+  val response404 = ResponseMessage(404, "Not found", Some("Error"))
+  val response500 = ResponseMessage(500, "Unknown error", Some("Error"))
+
+  protected val query =
+    Param[Option[String]]("query", "Return only concepts with content matching the specified query.")
+  protected val conceptId =
+    Param[Long]("concept_id", "Id of the concept that is to be returned")
+  protected val conceptIds = Param[Option[Seq[Long]]](
+    "ids",
+    "Return only concepts that have one of the provided ids. To provide multiple ids, separate by comma (,).")
   protected val correlationId =
     Param[Option[String]]("X-Correlation-ID", "User supplied correlation-id. May be omitted.")
   protected val pageNo = Param[Option[Int]]("page", "The page number of the search hits to display.")

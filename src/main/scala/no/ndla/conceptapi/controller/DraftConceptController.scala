@@ -32,32 +32,13 @@ import org.scalatra.{Created, NotFound, Ok}
 
 import scala.util.{Failure, Success}
 
-trait ConceptController {
+trait DraftConceptController {
   this: WriteService with ReadService with User with ConceptSearchService with SearchConverterService =>
   val conceptController: ConceptController
 
   class ConceptController(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport with LazyLogging {
     protected implicit override val jsonFormats: Formats = DefaultFormats
-    private val conceptId =
-      Param[Long]("concept_id", "Id of the concept that is to be returned")
-
     val applicationDescription = "This is the Api for concepts"
-
-    // Additional models used in error responses
-    registerModel[ValidationError]()
-    registerModel[Error]()
-
-    val response400 =
-      ResponseMessage(400, "Validation Error", Some("ValidationError"))
-    val response403 = ResponseMessage(403, "Access Denied", Some("Error"))
-    val response404 = ResponseMessage(404, "Not found", Some("Error"))
-    val response500 = ResponseMessage(500, "Unknown error", Some("Error"))
-
-    private val query =
-      Param[Option[String]]("query", "Return only concepts with content matching the specified query.")
-    private val conceptIds = Param[Option[Seq[Long]]](
-      "ids",
-      "Return only concepts that have one of the provided ids. To provide multiple ids, separate by comma (,).")
 
     private def scrollSearchOr(scrollId: Option[String], language: String)(orFunction: => Any): Any =
       scrollId match {
@@ -107,53 +88,6 @@ trait ConceptController {
         case Failure(ex) => errorHandler(ex)
       }
 
-    }
-
-    post(
-      "/",
-      operation(
-        apiOperation[Concept]("newConceptById")
-          summary "Create new concept"
-          description "Create new concept"
-          parameters (
-            asHeaderParam(correlationId),
-            bodyParam[NewConcept]
-        )
-          authorizations "oauth2"
-          responseMessages (response400, response403, response500))
-    ) {
-      doOrAccessDenied(user.getUser.canWrite) {
-        val body = extract[NewConcept](request.body)
-        body.flatMap(writeService.newConcept) match {
-          case Success(c)  => Created(c)
-          case Failure(ex) => errorHandler(ex)
-        }
-      }
-    }
-
-    patch(
-      "/:concept_id",
-      operation(
-        apiOperation[Concept]("updateConceptById")
-          summary "Update a concept"
-          description "Update a concept"
-          parameters (
-            asHeaderParam(correlationId),
-            bodyParam[UpdatedConcept],
-            asPathParam(conceptId)
-        )
-          authorizations "oauth2"
-          responseMessages (response400, response403, response404, response500))
-    ) {
-      val userInfo = user.getUser
-      doOrAccessDenied(userInfo.canWrite) {
-        val body = extract[UpdatedConcept](request.body)
-        val conceptId = long(this.conceptId.paramName)
-        body.flatMap(writeService.updateConcept(conceptId, _, userInfo)) match {
-          case Success(c)  => Ok(c)
-          case Failure(ex) => errorHandler(ex)
-        }
-      }
     }
 
     get(
@@ -358,6 +292,53 @@ trait ConceptController {
       readService.allSubjects() match {
         case Success(subjects) => Ok(subjects)
         case Failure(ex)       => errorHandler(ex)
+      }
+    }
+
+    post(
+      "/",
+      operation(
+        apiOperation[Concept]("newConceptById")
+          summary "Create new concept"
+          description "Create new concept"
+          parameters (
+            asHeaderParam(correlationId),
+            bodyParam[NewConcept]
+        )
+          authorizations "oauth2"
+          responseMessages (response400, response403, response500))
+    ) {
+      doOrAccessDenied(user.getUser.canWrite) {
+        val body = extract[NewConcept](request.body)
+        body.flatMap(writeService.newConcept) match {
+          case Success(c)  => Created(c)
+          case Failure(ex) => errorHandler(ex)
+        }
+      }
+    }
+
+    patch(
+      "/:concept_id",
+      operation(
+        apiOperation[Concept]("updateConceptById")
+          summary "Update a concept"
+          description "Update a concept"
+          parameters (
+            asHeaderParam(correlationId),
+            bodyParam[UpdatedConcept],
+            asPathParam(conceptId)
+        )
+          authorizations "oauth2"
+          responseMessages (response400, response403, response404, response500))
+    ) {
+      val userInfo = user.getUser
+      doOrAccessDenied(userInfo.canWrite) {
+        val body = extract[UpdatedConcept](request.body)
+        val conceptId = long(this.conceptId.paramName)
+        body.flatMap(writeService.updateConcept(conceptId, _, userInfo)) match {
+          case Success(c)  => Ok(c)
+          case Failure(ex) => errorHandler(ex)
+        }
       }
     }
   }

@@ -10,7 +10,7 @@ package no.ndla.conceptapi
 import com.typesafe.scalalogging.LazyLogging
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.conceptapi.auth.User
-import no.ndla.conceptapi.controller.ConceptController
+import no.ndla.conceptapi.controller.DraftConceptController
 import no.ndla.conceptapi.integration.{
   ArticleApiClient,
   DataSource,
@@ -44,7 +44,7 @@ import org.mockito.scalatest.MockitoSugar
 trait TestEnvironment
     extends ConceptRepository
     with PublishedConceptRepository
-    with ConceptController
+    with DraftConceptController
     with SearchConverterService
     with PublishedConceptSearchService
     with PublishedConceptIndexService

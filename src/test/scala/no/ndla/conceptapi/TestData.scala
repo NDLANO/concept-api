@@ -8,9 +8,7 @@
 package no.ndla.conceptapi
 
 import no.ndla.conceptapi.auth.{Role, UserInfo}
-import no.ndla.conceptapi.model.api
-import no.ndla.conceptapi.model.api.UpdatedConcept
-import no.ndla.conceptapi.model.domain
+import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.model.domain.{ConceptContent, ConceptTitle, Copyright, Status}
 import org.joda.time.DateTime
 
@@ -46,7 +44,11 @@ object TestData {
     yesterday,
     today,
     Set("nn", "nb"),
-    Some(42)
+    Some(42),
+    api.Status(
+      current = "DRAFT",
+      other = Seq.empty
+    )
   )
 
   val sampleNbDomainConcept = domain.Concept(
@@ -125,7 +127,11 @@ object TestData {
     yesterday,
     today,
     Set("nn", "nb"),
-    Some(42)
+    Some(42),
+    api.Status(
+      current = "DRAFT",
+      other = Seq.empty
+    )
   )
 
   val emptyApiUpdatedConcept = api.UpdatedConcept(

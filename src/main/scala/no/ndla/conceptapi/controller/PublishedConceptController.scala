@@ -10,19 +10,34 @@ package no.ndla.conceptapi.controller
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.ConceptApiProperties
 import no.ndla.conceptapi.auth.User
-import no.ndla.conceptapi.model.api.{ConceptSearchParams, ConceptSearchResult, Error, ValidationError}
+import no.ndla.conceptapi.model.api.{
+  Concept,
+  ConceptSearchParams,
+  ConceptSearchResult,
+  NewConcept,
+  NotFoundException,
+  SubjectTags,
+  TagsSearchResult,
+  UpdatedConcept
+}
 import no.ndla.conceptapi.model.domain.{Language, SearchResult, Sort}
 import no.ndla.conceptapi.model.search.SearchSettings
-import no.ndla.conceptapi.service.search.{PublishedConceptSearchService, SearchConverterService}
+import no.ndla.conceptapi.service.search.{ConceptSearchService, PublishedConceptSearchService, SearchConverterService}
 import no.ndla.conceptapi.service.{ReadService, WriteService}
 import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.Ok
-import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
+import org.scalatra.{Created, Ok}
+import org.scalatra.swagger.{Swagger, SwaggerSupport}
 
 import scala.util.{Failure, Success}
 
 trait PublishedConceptController {
-  this: WriteService with ReadService with User with PublishedConceptSearchService with SearchConverterService =>
+  this: WriteService
+    with ReadService
+    with User
+    with DraftConceptController
+    with PublishedConceptSearchService
+    with ConceptSearchService
+    with SearchConverterService =>
   val publishedConceptController: PublishedConceptController
 
   class PublishedConceptController(implicit val swagger: Swagger)
@@ -30,26 +45,8 @@ trait PublishedConceptController {
       with SwaggerSupport
       with LazyLogging {
     protected implicit override val jsonFormats: Formats = DefaultFormats
-    private val conceptId =
-      Param[Long]("concept_id", "Id of the concept that is to be returned")
 
     val applicationDescription = "This is the Api for concepts"
-
-    // Additional models used in error responses
-    registerModel[ValidationError]()
-    registerModel[Error]()
-
-    val response400 =
-      ResponseMessage(400, "Validation Error", Some("ValidationError"))
-    val response403 = ResponseMessage(403, "Access Denied", Some("Error"))
-    val response404 = ResponseMessage(404, "Not found", Some("Error"))
-    val response500 = ResponseMessage(500, "Unknown error", Some("Error"))
-
-    private val query =
-      Param[Option[String]]("query", "Return only concepts with content matching the specified query.")
-    private val conceptIds = Param[Option[Seq[Long]]](
-      "ids",
-      "Return only concepts that have one of the provided ids. To provide multiple ids, separate by comma (,).")
 
     private def scrollSearchOr(scrollId: Option[String], language: String)(orFunction: => Any): Any =
       scrollId match {
@@ -202,7 +199,68 @@ trait PublishedConceptController {
       }
     }
 
-    get(
+    get( // TODO: Remove this endpoint from published controller when frontend starts using [[DraftConceptController]] version
+      "/tags/",
+      operation(
+        apiOperation[List[SubjectTags]]("getTags")
+          summary "Returns a list of all tags in the specified subjects"
+          description "Returns a list of all tags in the specified subjects"
+          parameters (
+            asHeaderParam(correlationId),
+            asQueryParam(language),
+            asQueryParam(fallback),
+            asQueryParam(subjects)
+        )
+          authorizations "oauth2"
+          responseMessages (response400, response403, response404, response500))
+    ) {
+      val subjects = paramAsListOfString(this.subjects.paramName)
+      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
+      val fallback = booleanOrDefault(this.fallback.paramName, default = false)
+
+      if (subjects.nonEmpty) {
+        conceptSearchService.getTagsWithSubjects(subjects, language, fallback) match {
+          case Success(res) if res.nonEmpty => Ok(res)
+          case Success(res)                 => errorHandler(NotFoundException("Could not find any tags in the specified subjects"))
+          case Failure(ex)                  => errorHandler(ex)
+        }
+      } else {
+        readService.allTagsFromConcepts(language, fallback)
+      }
+    }
+
+    get( // TODO: Remove this endpoint from published controller when frontend starts using [[DraftConceptController]] version
+      "/tag-search/",
+      operation(
+        apiOperation[TagsSearchResult]("getTags-paginated")
+          summary "Retrieves a list of all previously used tags in concepts"
+          description "Retrieves a list of all previously used tags in concepts"
+          parameters (
+            asHeaderParam(correlationId),
+            asQueryParam(query),
+            asQueryParam(pageSize),
+            asQueryParam(pageNo),
+            asQueryParam(language)
+        )
+          responseMessages response500
+          authorizations "oauth2")
+    ) {
+
+      val query = paramOrDefault(this.query.paramName, "")
+      val pageSize = intOrDefault(this.pageSize.paramName, ConceptApiProperties.DefaultPageSize) match {
+        case tooSmall if tooSmall < 1 => ConceptApiProperties.DefaultPageSize
+        case x                        => x
+      }
+      val pageNo = intOrDefault(this.pageNo.paramName, 1) match {
+        case tooSmall if tooSmall < 1 => 1
+        case x                        => x
+      }
+      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
+
+      readService.getAllTags(query, pageSize, pageNo, language)
+    }
+
+    get( // TODO: Remove this endpoint from published controller when frontend starts using [[DraftConceptController]] version
       "/subjects/",
       operation(
         apiOperation[List[String]]("getSubjects")
@@ -217,6 +275,53 @@ trait PublishedConceptController {
       readService.allSubjects() match {
         case Success(subjects) => Ok(subjects)
         case Failure(ex)       => errorHandler(ex)
+      }
+    }
+
+    post( // TODO: Remove this endpoint from published controller when frontend starts using [[DraftConceptController]] version
+      "/",
+      operation(
+        apiOperation[Concept]("newConceptById")
+          summary "Create new concept"
+          description "Create new concept"
+          parameters (
+            asHeaderParam(correlationId),
+            bodyParam[NewConcept]
+        )
+          authorizations "oauth2"
+          responseMessages (response400, response403, response500))
+    ) {
+      doOrAccessDenied(user.getUser.canWrite) {
+        val body = extract[NewConcept](request.body)
+        body.flatMap(writeService.newConcept) match {
+          case Success(c)  => Created(c)
+          case Failure(ex) => errorHandler(ex)
+        }
+      }
+    }
+
+    patch( // TODO: Remove this endpoint from published controller when frontend starts using [[DraftConceptController]] version
+      "/:concept_id",
+      operation(
+        apiOperation[Concept]("updateConceptById")
+          summary "Update a concept"
+          description "Update a concept"
+          parameters (
+            asHeaderParam(correlationId),
+            bodyParam[UpdatedConcept],
+            asPathParam(conceptId)
+        )
+          authorizations "oauth2"
+          responseMessages (response400, response403, response404, response500))
+    ) {
+      val userInfo = user.getUser
+      doOrAccessDenied(userInfo.canWrite) {
+        val body = extract[UpdatedConcept](request.body)
+        val conceptId = long(this.conceptId.paramName)
+        body.flatMap(writeService.updateConcept(conceptId, _, userInfo)) match {
+          case Success(c)  => Ok(c)
+          case Failure(ex) => errorHandler(ex)
+        }
       }
     }
   }

@@ -55,7 +55,8 @@ trait ConverterService {
             concept.created,
             concept.updated,
             concept.supportedLanguages,
-            concept.articleId
+            concept.articleId,
+            toApiStatus(concept.status)
           )
         )
       } else {
@@ -63,6 +64,13 @@ trait ConverterService {
           NotFoundException(s"The concept with id ${concept.id.getOrElse(-1)} and language '$language' was not found.",
                             concept.supportedLanguages.toSeq))
       }
+    }
+
+    def toApiStatus(status: domain.Status) = {
+      api.Status(
+        current = status.current.toString,
+        other = status.other.map(_.toString).toSeq
+      )
     }
 
     def toApiTags(tags: domain.ConceptTags) = {

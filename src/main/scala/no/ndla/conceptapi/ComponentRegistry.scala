@@ -9,7 +9,13 @@ package no.ndla.conceptapi
 
 import com.typesafe.scalalogging.LazyLogging
 import com.zaxxer.hikari.HikariDataSource
-import no.ndla.conceptapi.controller.{ConceptController, HealthController, InternController, PublishedConceptController}
+import no.ndla.conceptapi.controller.{
+  DraftConceptController,
+  HealthController,
+  InternController,
+  NdlaController,
+  PublishedConceptController
+}
 import no.ndla.conceptapi.auth.User
 import no.ndla.conceptapi.integration.{
   ArticleApiClient,
@@ -43,7 +49,7 @@ import no.ndla.network.NdlaClient
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
 object ComponentRegistry
-    extends ConceptController
+    extends DraftConceptController
     with PublishedConceptController
     with Clock
     with User
