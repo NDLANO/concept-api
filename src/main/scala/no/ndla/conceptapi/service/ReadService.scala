@@ -7,7 +7,7 @@
 
 package no.ndla.conceptapi.service
 
-import no.ndla.conceptapi.repository.{ConceptRepository, PublishedConceptRepository}
+import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api.NotFoundException
 import no.ndla.conceptapi.model.domain.Language
@@ -15,13 +15,13 @@ import no.ndla.conceptapi.model.domain.Language
 import scala.util.{Failure, Success, Try}
 
 trait ReadService {
-  this: ConceptRepository with PublishedConceptRepository with ConverterService =>
+  this: DraftConceptRepository with PublishedConceptRepository with ConverterService =>
   val readService: ReadService
 
   class ReadService {
 
     def conceptWithId(id: Long, language: String, fallback: Boolean): Try[api.Concept] =
-      conceptRepository.withId(id) match {
+      draftConceptRepository.withId(id) match {
         case Some(concept) =>
           converterService.toApiConcept(concept, language, fallback)
         case None =>
@@ -37,12 +37,12 @@ trait ReadService {
       }
 
     def allSubjects(): Try[Set[String]] = {
-      val subjectIds = conceptRepository.allSubjectIds
+      val subjectIds = draftConceptRepository.allSubjectIds
       if (subjectIds.nonEmpty) Success(subjectIds) else Failure(NotFoundException("Could not find any subjects"))
     }
 
     def allTagsFromConcepts(language: String, fallback: Boolean): List[String] = {
-      val allConceptTags = conceptRepository.everyTagFromEveryConcept
+      val allConceptTags = draftConceptRepository.everyTagFromEveryConcept
       (if (fallback || language == Language.AllLanguages) {
          allConceptTags.flatMap(t => {
            Language.findByLanguageOrBestEffort(t, language)
@@ -53,7 +53,7 @@ trait ReadService {
     }
 
     def getAllTags(input: String, pageSize: Int, offset: Int, language: String): api.TagsSearchResult = {
-      val (tags, tagsCount) = conceptRepository.getTags(input, pageSize, (offset - 1) * pageSize, language)
+      val (tags, tagsCount) = draftConceptRepository.getTags(input, pageSize, (offset - 1) * pageSize, language)
       converterService.toApiConceptTags(tags, tagsCount, pageSize, offset, language)
     }
   }

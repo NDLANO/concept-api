@@ -11,22 +11,22 @@ import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.auth.UserInfo
-import no.ndla.conceptapi.repository.{ConceptRepository, PublishedConceptRepository}
+import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.model.domain
 import no.ndla.conceptapi.model.domain.ConceptStatus._
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api.{ConceptExistsAlreadyException, NotFoundException}
-import no.ndla.conceptapi.service.search.ConceptIndexService
+import no.ndla.conceptapi.service.search.DraftConceptIndexService
 import no.ndla.conceptapi.validation._
 
 import scala.util.{Failure, Success, Try}
 
 trait WriteService {
-  this: ConceptRepository
+  this: DraftConceptRepository
     with PublishedConceptRepository
     with ConverterService
     with ContentValidator
-    with ConceptIndexService
+    with DraftConceptIndexService
     with LazyLogging =>
   val writeService: WriteService
 
@@ -36,15 +36,15 @@ trait WriteService {
                                       forceUpdate: Boolean): Seq[Try[domain.Concept]] = {
       conceptsWithListingId.map {
         case (concept, listingId) =>
-          val existing = conceptRepository.withListingId(listingId).nonEmpty
+          val existing = draftConceptRepository.withListingId(listingId).nonEmpty
           if (existing && !forceUpdate) {
             logger.warn(
               s"Concept with listing_id of $listingId already exists, and forceUpdate was not 'true', skipping...")
             Failure(ConceptExistsAlreadyException(s"the concept already exists with listing_id of $listingId."))
           } else if (existing && forceUpdate) {
-            conceptRepository.updateWithListingId(concept, listingId)
+            draftConceptRepository.updateWithListingId(concept, listingId)
           } else {
-            Success(conceptRepository.insertwithListingId(concept, listingId))
+            Success(draftConceptRepository.insertwithListingId(concept, listingId))
           }
       }
     }
@@ -52,9 +52,9 @@ trait WriteService {
     def saveImportedConcepts(concepts: Seq[domain.Concept], forceUpdate: Boolean): Seq[Try[domain.Concept]] = {
       concepts.map(concept => {
         concept.id match {
-          case Some(id) if conceptRepository.exists(id) =>
+          case Some(id) if draftConceptRepository.exists(id) =>
             if (forceUpdate) {
-              val existing = conceptRepository.withId(id)
+              val existing = draftConceptRepository.withId(id)
               updateConcept(concept) match {
                 case Failure(ex) =>
                   logger.error(s"Could not update concept with id '${concept.id.getOrElse(-1)}' when importing.")
@@ -66,7 +66,7 @@ trait WriteService {
             } else {
               Failure(ConceptExistsAlreadyException("The concept already exists."))
             }
-          case None => conceptRepository.insertWithId(concept)
+          case None => draftConceptRepository.insertWithId(concept)
         }
       })
     }
@@ -75,8 +75,8 @@ trait WriteService {
       for {
         concept <- converterService.toDomainConcept(newConcept)
         _ <- contentValidator.validateConcept(concept, allowUnknownLanguage = false)
-        persistedConcept <- Try(conceptRepository.insert(concept))
-        _ <- conceptIndexService.indexDocument(persistedConcept)
+        persistedConcept <- Try(draftConceptRepository.insert(concept))
+        _ <- draftConceptIndexService.indexDocument(persistedConcept)
         apiC <- converterService.toApiConcept(persistedConcept, newConcept.language, fallback = true)
       } yield apiC
     }
@@ -112,13 +112,13 @@ trait WriteService {
     private def updateConcept(toUpdate: domain.Concept): Try[domain.Concept] = {
       for {
         _ <- contentValidator.validateConcept(toUpdate, allowUnknownLanguage = true)
-        domainConcept <- conceptRepository.update(toUpdate)
-        _ <- conceptIndexService.indexDocument(domainConcept)
+        domainConcept <- draftConceptRepository.update(toUpdate)
+        _ <- draftConceptIndexService.indexDocument(domainConcept)
       } yield domainConcept
     }
 
     def updateConcept(id: Long, updatedConcept: api.UpdatedConcept, userInfo: UserInfo): Try[api.Concept] = {
-      conceptRepository.withId(id) match {
+      draftConceptRepository.withId(id) match {
         case Some(existingConcept) =>
           val domainConcept = converterService.toDomainConcept(existingConcept, updatedConcept)
 
@@ -128,7 +128,7 @@ trait WriteService {
             converted <- converterService.toApiConcept(updated, updatedConcept.language, fallback = true)
           } yield converted
 
-        case None if conceptRepository.exists(id) =>
+        case None if draftConceptRepository.exists(id) =>
           val concept = converterService.toDomainConcept(id, updatedConcept)
           for {
             updated <- updateConcept(concept)
@@ -140,7 +140,7 @@ trait WriteService {
     }
 
     def deleteLanguage(id: Long, language: String, userInfo: UserInfo): Try[api.Concept] = {
-      conceptRepository.withId(id) match {
+      draftConceptRepository.withId(id) match {
         case Some(existingConcept) =>
           existingConcept.title.size match {
             case 1 => Failure(api.OperationNotAllowedException("Only one language left"))

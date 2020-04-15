@@ -19,10 +19,10 @@ import no.ndla.conceptapi.integration.{
   ListingApiClient,
   NdlaE4sClient
 }
-import no.ndla.conceptapi.repository.{ConceptRepository, PublishedConceptRepository}
+import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.service.search.{
-  ConceptIndexService,
-  ConceptSearchService,
+  DraftConceptIndexService,
+  DraftConceptSearchService,
   IndexService,
   PublishedConceptIndexService,
   PublishedConceptSearchService,
@@ -42,7 +42,7 @@ import no.ndla.network.NdlaClient
 import org.mockito.scalatest.MockitoSugar
 
 trait TestEnvironment
-    extends ConceptRepository
+    extends DraftConceptRepository
     with PublishedConceptRepository
     with DraftConceptController
     with PublishedConceptController
@@ -50,8 +50,8 @@ trait TestEnvironment
     with SearchConverterService
     with PublishedConceptSearchService
     with PublishedConceptIndexService
-    with ConceptIndexService
-    with ConceptSearchService
+    with DraftConceptIndexService
+    with DraftConceptSearchService
     with IndexService
     with Elastic4sClient
     with SearchService
@@ -71,15 +71,18 @@ trait TestEnvironment
     with Clock
     with User {
 
-  val conceptRepository = mock[ConceptRepository]
+  val draftConceptRepository = mock[DraftConceptRepository]
   val publishedConceptRepository = mock[PublishedConceptRepository]
-  val conceptController = mock[DraftConceptController]
+
+  val draftConceptController = mock[DraftConceptController]
   val publishedConceptController = mock[PublishedConceptController]
+
   val searchConverterService = mock[SearchConverterService]
-  val conceptIndexService = mock[ConceptIndexService]
-  val conceptSearchService = mock[ConceptSearchService]
+  val draftConceptIndexService = mock[DraftConceptIndexService]
+  val draftConceptSearchService = mock[DraftConceptSearchService]
   val publishedConceptIndexService = mock[PublishedConceptIndexService]
   val publishedConceptSearchService = mock[PublishedConceptSearchService]
+
   var e4sClient = mock[NdlaE4sClient]
   val lazyLogging = mock[LazyLogging]
   val mockitoSugar = mock[MockitoSugar]

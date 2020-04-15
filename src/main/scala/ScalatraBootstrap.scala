@@ -7,7 +7,7 @@
 
 import javax.servlet.ServletContext
 import no.ndla.conceptapi.ComponentRegistry.{
-  conceptController,
+  draftConceptController,
   publishedConceptController,
   resourcesApp,
   healthController,
@@ -18,7 +18,7 @@ import org.scalatra.LifeCycle
 class ScalatraBootstrap extends LifeCycle {
 
   override def init(context: ServletContext): Unit = {
-    context.mount(conceptController, "/concept-api/v1/drafts", "concept")
+    context.mount(draftConceptController, "/concept-api/v1/drafts", "concept")
     context.mount(publishedConceptController, "/concept-api/v1/concepts", "publishedConcept")
     context.mount(resourcesApp, "/concept-api/api-docs")
     context.mount(healthController, "/health")

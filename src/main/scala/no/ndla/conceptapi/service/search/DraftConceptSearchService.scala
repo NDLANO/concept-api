@@ -28,12 +28,16 @@ import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor, Exec
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
-trait ConceptSearchService {
-  this: Elastic4sClient with SearchService with ConceptIndexService with ConverterService with SearchConverterService =>
-  val conceptSearchService: ConceptSearchService
+trait DraftConceptSearchService {
+  this: Elastic4sClient
+    with SearchService
+    with DraftConceptIndexService
+    with ConverterService
+    with SearchConverterService =>
+  val draftConceptSearchService: DraftConceptSearchService
 
-  class ConceptSearchService extends LazyLogging with SearchService[api.ConceptSummary] {
-    override val searchIndex: String = ConceptApiProperties.ConceptSearchIndex
+  class DraftConceptSearchService extends LazyLogging with SearchService[api.ConceptSummary] {
+    override val searchIndex: String = ConceptApiProperties.DraftConceptSearchIndex
 
     override def hitToApiModel(hitString: String, language: String): api.ConceptSummary =
       searchConverterService.hitAsConceptSummary(hitString, language)
@@ -192,7 +196,7 @@ trait ConceptSearchService {
       implicit val ec: ExecutionContextExecutorService =
         ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
       val f = Future {
-        conceptIndexService.indexDocuments
+        draftConceptIndexService.indexDocuments
       }
 
       f.failed.foreach(t => logger.warn("Unable to create index: " + t.getMessage, t))

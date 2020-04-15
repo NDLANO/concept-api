@@ -19,11 +19,11 @@ import scalikejdbc._
 
 import scala.util.{Failure, Success, Try}
 
-trait ConceptRepository {
+trait DraftConceptRepository {
   this: DataSource =>
-  val conceptRepository: ConceptRepository
+  val draftConceptRepository: DraftConceptRepository
 
-  class ConceptRepository extends LazyLogging with Repository[Concept] {
+  class DraftConceptRepository extends LazyLogging with Repository[Concept] {
     implicit val formats: Formats = Concept.JSonSerializer
 
     def insert(concept: Concept)(implicit session: DBSession = AutoSession): Concept = {

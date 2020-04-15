@@ -8,7 +8,7 @@
 package no.ndla.conceptapi.controller
 
 import no.ndla.conceptapi.ConceptApiProperties
-import no.ndla.conceptapi.service.search.{ConceptIndexService, IndexService}
+import no.ndla.conceptapi.service.search.{DraftConceptIndexService, IndexService}
 import org.json4s.Formats
 import org.scalatra.{InternalServerError, Ok, Unauthorized}
 import org.scalatra.swagger.Swagger
@@ -18,7 +18,7 @@ import no.ndla.conceptapi.service.{ConverterService, ImportService}
 import scala.util.{Failure, Success}
 
 trait InternController {
-  this: IndexService with ConceptIndexService with ImportService with ConverterService with User =>
+  this: IndexService with DraftConceptIndexService with ImportService with ConverterService with User =>
   val internController: InternController
 
   class InternController(implicit val swagger: Swagger) extends NdlaController {
@@ -26,7 +26,7 @@ trait InternController {
     protected implicit override val jsonFormats: Formats = org.json4s.DefaultFormats
 
     post("/index") {
-      conceptIndexService.indexDocuments match {
+      draftConceptIndexService.indexDocuments match {
         case Failure(ex) => errorHandler(ex)
         case Success(result) =>
           val msg = s"Completed indexing of ${result.totalIndexed} concepts in ${result.millisUsed} ms."
@@ -37,12 +37,12 @@ trait InternController {
 
     delete("/index") {
       def pluralIndex(n: Int) = if (n == 1) "1 index" else s"$n indexes"
-      conceptIndexService.findAllIndexes(ConceptApiProperties.ConceptSearchIndex) match {
+      draftConceptIndexService.findAllIndexes(ConceptApiProperties.DraftConceptSearchIndex) match {
         case Failure(ex) =>
           logger.error("Could not find indexes to delete.")
           errorHandler(ex)
         case Success(indexesToDelete) =>
-          val deleted = indexesToDelete.map(index => conceptIndexService.deleteIndexWithName(Some(index)))
+          val deleted = indexesToDelete.map(index => draftConceptIndexService.deleteIndexWithName(Some(index)))
           val (successes, errors) = deleted.partition(_.isSuccess)
           if (errors.nonEmpty) {
             val message = s"Failed to delete ${pluralIndex(errors.length)}: " +

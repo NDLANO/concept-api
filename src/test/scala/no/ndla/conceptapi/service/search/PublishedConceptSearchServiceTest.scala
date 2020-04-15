@@ -147,7 +147,7 @@ class PublishedConceptSearchServiceTest extends IntegrationSuite with TestEnviro
   )
 
   override def beforeAll: Unit = if (elasticSearchContainer.isSuccess) {
-    publishedConceptIndexService.createIndexWithName(ConceptApiProperties.ConceptSearchIndex)
+    publishedConceptIndexService.createIndexWithName(ConceptApiProperties.DraftConceptSearchIndex)
 
     publishedConceptIndexService.indexDocument(concept1)
     publishedConceptIndexService.indexDocument(concept2)
@@ -167,7 +167,7 @@ class PublishedConceptSearchServiceTest extends IntegrationSuite with TestEnviro
   }
 
   override def afterAll(): Unit = if (elasticSearchContainer.isSuccess) {
-    publishedConceptIndexService.deleteIndexWithName(Some(ConceptApiProperties.ConceptSearchIndex))
+    publishedConceptIndexService.deleteIndexWithName(Some(ConceptApiProperties.DraftConceptSearchIndex))
   }
 
   test("That getStartAtAndNumResults returns SEARCH_MAX_PAGE_SIZE for value greater than SEARCH_MAX_PAGE_SIZE") {

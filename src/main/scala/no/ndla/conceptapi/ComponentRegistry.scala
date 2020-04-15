@@ -27,10 +27,10 @@ import no.ndla.conceptapi.integration.{
   ListingApiClient,
   NdlaE4sClient
 }
-import no.ndla.conceptapi.repository.{ConceptRepository, PublishedConceptRepository}
+import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.service.search.{
-  ConceptIndexService,
-  ConceptSearchService,
+  DraftConceptIndexService,
+  DraftConceptSearchService,
   IndexService,
   PublishedConceptIndexService,
   PublishedConceptSearchService,
@@ -60,18 +60,18 @@ object ComponentRegistry
     with ReadService
     with ConverterService
     with StateTransitionRules
-    with ConceptRepository
+    with DraftConceptRepository
     with PublishedConceptRepository
     with DataSource
     with LazyLogging
     with HealthController
-    with ConceptSearchService
+    with DraftConceptSearchService
     with PublishedConceptSearchService
     with ImportService
     with SearchService
     with SearchConverterService
     with Elastic4sClient
-    with ConceptIndexService
+    with DraftConceptIndexService
     with PublishedConceptIndexService
     with IndexService
     with InternController
@@ -80,17 +80,17 @@ object ComponentRegistry
     with ImageApiClient
     with NdlaClient {
 
-  lazy val conceptController = new DraftConceptController
+  lazy val draftConceptController = new DraftConceptController
   lazy val publishedConceptController = new PublishedConceptController
   lazy val healthController = new HealthController
   lazy val internController = new InternController
 
-  lazy val conceptRepository = new ConceptRepository
+  lazy val draftConceptRepository = new DraftConceptRepository
   lazy val publishedConceptRepository = new PublishedConceptRepository
 
-  lazy val conceptSearchService = new ConceptSearchService
+  lazy val draftConceptSearchService = new DraftConceptSearchService
   lazy val searchConverterService = new SearchConverterService
-  lazy val conceptIndexService = new ConceptIndexService
+  lazy val draftConceptIndexService = new DraftConceptIndexService
   lazy val publishedConceptIndexService = new PublishedConceptIndexService
   lazy val publishedConceptSearchService = new PublishedConceptSearchService
 

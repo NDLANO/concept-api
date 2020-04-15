@@ -9,7 +9,7 @@ package no.ndla.conceptapi.service
 
 import cats.effect.IO
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.conceptapi.repository.ConceptRepository
+import no.ndla.conceptapi.repository.DraftConceptRepository
 import no.ndla.conceptapi.model.domain
 import no.ndla.conceptapi.model.domain.Language._
 import no.ndla.conceptapi.model.api
@@ -22,7 +22,7 @@ import no.ndla.conceptapi.auth.UserInfo
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
-  this: Clock with ConceptRepository with StateTransitionRules =>
+  this: Clock with DraftConceptRepository with StateTransitionRules =>
   val converterService: ConverterService
 
   class ConverterService extends LazyLogging {

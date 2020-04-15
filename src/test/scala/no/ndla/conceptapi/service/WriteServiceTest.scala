@@ -38,30 +38,30 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   val domainConcept: domain.Concept = TestData.sampleNbDomainConcept.copy(id = Some(conceptId.toLong))
 
   def mockWithConcept(concept: domain.Concept) = {
-    when(conceptRepository.withId(conceptId)).thenReturn(Option(concept))
-    when(conceptRepository.update(any[Concept])(any[DBSession]))
+    when(draftConceptRepository.withId(conceptId)).thenReturn(Option(concept))
+    when(draftConceptRepository.update(any[Concept])(any[DBSession]))
       .thenAnswer((invocation: InvocationOnMock) => Try(invocation.getArgument[Concept](0)))
 
     when(contentValidator.validateConcept(any[Concept], any[Boolean])).thenAnswer((invocation: InvocationOnMock) =>
       Try(invocation.getArgument[Concept](0)))
 
-    when(conceptIndexService.indexDocument(any[Concept])).thenAnswer((invocation: InvocationOnMock) =>
+    when(draftConceptIndexService.indexDocument(any[Concept])).thenAnswer((invocation: InvocationOnMock) =>
       Try(invocation.getArgument[Concept](0)))
     when(clock.now()).thenReturn(today)
   }
 
   override def beforeEach(): Unit = {
-    Mockito.reset(conceptRepository)
+    Mockito.reset(draftConceptRepository)
     mockWithConcept(domainConcept)
   }
 
   test("newConcept should insert a given Concept") {
-    when(conceptRepository.insert(any[Concept])(any[DBSession])).thenReturn(domainConcept)
+    when(draftConceptRepository.insert(any[Concept])(any[DBSession])).thenReturn(domainConcept)
     when(contentValidator.validateConcept(any[Concept], any[Boolean])).thenReturn(Success(domainConcept))
 
     service.newConcept(TestData.sampleNewConcept).get.id.toString should equal(domainConcept.id.get.toString)
-    verify(conceptRepository, times(1)).insert(any[Concept])
-    verify(conceptIndexService, times(1)).indexDocument(any[Concept])
+    verify(draftConceptRepository, times(1)).insert(any[Concept])
+    verify(draftConceptIndexService, times(1)).indexDocument(any[Concept])
   }
 
   test("That update function updates only content properly") {
@@ -136,16 +136,16 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
                                           title = Seq(ConceptTitle("title", "nb"), ConceptTitle("title", "nn")))
     val conceptCaptor: ArgumentCaptor[Concept] = ArgumentCaptor.forClass(classOf[Concept])
 
-    when(conceptRepository.withId(anyLong)).thenReturn(Some(concept))
+    when(draftConceptRepository.withId(anyLong)).thenReturn(Some(concept))
 
     service.deleteLanguage(concept.id.get, "nn", userInfo)
-    verify(conceptRepository).update(conceptCaptor.capture())
+    verify(draftConceptRepository).update(conceptCaptor.capture())
 
     conceptCaptor.getValue.title.length should be(1)
   }
 
   test("That updating concepts updates revision") {
-    reset(conceptRepository)
+    reset(draftConceptRepository)
 
     val conceptToUpdate = domainConcept.copy(
       revision = Some(951),
@@ -163,7 +163,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
     service.updateConcept(conceptId, updatedApiConcept, userInfo)
 
-    verify(conceptRepository).update(conceptCaptor.capture())(any[DBSession])
+    verify(draftConceptRepository).update(conceptCaptor.capture())(any[DBSession])
 
     conceptCaptor.getValue.revision should be(Some(951))
     conceptCaptor.getValue.title should be(Seq(domain.ConceptTitle(updatedTitle, "en")))

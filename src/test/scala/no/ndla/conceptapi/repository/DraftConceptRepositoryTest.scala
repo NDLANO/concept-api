@@ -19,9 +19,9 @@ import no.ndla.conceptapi.model.api.OptimisticLockException
 import scala.util.{Failure, Success, Try}
 import scalikejdbc._
 
-class ConceptRepositoryTest extends IntegrationSuite with TestEnvironment {
+class DraftConceptRepositoryTest extends IntegrationSuite with TestEnvironment {
 
-  val repository: ConceptRepository = new ConceptRepository
+  val repository: DraftConceptRepository = new DraftConceptRepository
   def databaseIsAvailable: Boolean = Try(repository.conceptCount).isSuccess
 
   def emptyTestDatabase = {

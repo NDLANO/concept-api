@@ -13,8 +13,8 @@ import no.ndla.conceptapi.model.api.IllegalStatusStateTransition
 import no.ndla.conceptapi.model.domain.SideEffect.SideEffect
 import no.ndla.conceptapi.model.domain
 import no.ndla.conceptapi.model.domain.{ConceptStatus, SideEffect, StateTransition}
-import no.ndla.conceptapi.repository.{ConceptRepository, PublishedConceptRepository}
-import no.ndla.conceptapi.service.search.ConceptIndexService
+import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
+import no.ndla.conceptapi.service.search.DraftConceptIndexService
 import no.ndla.conceptapi.validation.ContentValidator
 import no.ndla.conceptapi.model.domain.ConceptStatus._
 
@@ -23,12 +23,12 @@ import scala.util.{Failure, Success, Try}
 
 trait StateTransitionRules {
   this: WriteService
-    with ConceptRepository
+    with DraftConceptRepository
     with PublishedConceptRepository
     with WriteService
     with ConverterService
     with ContentValidator
-    with ConceptIndexService
+    with DraftConceptIndexService
     with PublishedConceptRepository =>
 
   object StateTransitionRules {

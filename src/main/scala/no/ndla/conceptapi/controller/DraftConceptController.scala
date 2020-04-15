@@ -13,7 +13,7 @@ import no.ndla.conceptapi.auth.User
 import no.ndla.conceptapi.model.api.{Concept, ConceptSearchParams, ConceptSearchResult, NotFoundException}
 import no.ndla.conceptapi.model.domain.{Language, SearchResult, Sort}
 import no.ndla.conceptapi.model.search.SearchSettings
-import no.ndla.conceptapi.service.search.{ConceptSearchService, SearchConverterService}
+import no.ndla.conceptapi.service.search.{DraftConceptSearchService, SearchConverterService}
 import no.ndla.conceptapi.service.{ReadService, WriteService}
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.Ok
@@ -25,10 +25,10 @@ trait DraftConceptController {
   this: WriteService
     with ReadService
     with User
-    with ConceptSearchService
+    with DraftConceptSearchService
     with SearchConverterService
     with DraftNdlaController =>
-  val conceptController: DraftConceptController
+  val draftConceptController: DraftConceptController
 
   class DraftConceptController(implicit val swagger: Swagger)
       extends DraftNdlaControllerClass
@@ -40,7 +40,7 @@ trait DraftConceptController {
     private def scrollSearchOr(scrollId: Option[String], language: String)(orFunction: => Any): Any =
       scrollId match {
         case Some(scroll) =>
-          conceptSearchService.scroll(scroll, language) match {
+          draftConceptSearchService.scroll(scroll, language) match {
             case Success(scrollResult) =>
               Ok(searchConverterService.asApiConceptSearchResult(scrollResult), getResponseScrollHeader(scrollResult))
             case Failure(ex) => errorHandler(ex)
@@ -75,8 +75,8 @@ trait DraftConceptController {
 
       val result = query match {
         case Some(q) =>
-          conceptSearchService.matchingQuery(q, settings.copy(sort = sort.getOrElse(Sort.ByRelevanceDesc)))
-        case None => conceptSearchService.all(settings.copy(sort = sort.getOrElse(Sort.ByTitleDesc)))
+          draftConceptSearchService.matchingQuery(q, settings.copy(sort = sort.getOrElse(Sort.ByRelevanceDesc)))
+        case None => draftConceptSearchService.all(settings.copy(sort = sort.getOrElse(Sort.ByTitleDesc)))
       }
 
       result match {

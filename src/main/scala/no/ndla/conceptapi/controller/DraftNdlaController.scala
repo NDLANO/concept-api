@@ -12,7 +12,7 @@ import no.ndla.conceptapi.model.api.{
 }
 import no.ndla.conceptapi.model.domain.Language
 import no.ndla.conceptapi.service.{ReadService, WriteService}
-import no.ndla.conceptapi.service.search.ConceptSearchService
+import no.ndla.conceptapi.service.search.DraftConceptSearchService
 import org.scalatra.{Created, Ok}
 
 import scala.util.{Failure, Success}
@@ -22,7 +22,7 @@ This is just to share endpoints between controllers while frontend migration is 
 TODO: Move the endpoints to [[DraftConceptController]] and delete this file when frontend starts using [[DraftConceptController]] instead of [[PublishedConceptController]] for creating and updating
  */
 trait DraftNdlaController {
-  this: ReadService with WriteService with User with ConceptSearchService =>
+  this: ReadService with WriteService with User with DraftConceptSearchService =>
   abstract class DraftNdlaControllerClass() extends NdlaController {
     get(
       "/tags/",
@@ -44,7 +44,7 @@ trait DraftNdlaController {
       val fallback = booleanOrDefault(this.fallback.paramName, default = false)
 
       if (subjects.nonEmpty) {
-        conceptSearchService.getTagsWithSubjects(subjects, language, fallback) match {
+        draftConceptSearchService.getTagsWithSubjects(subjects, language, fallback) match {
           case Success(res) if res.nonEmpty => Ok(res)
           case Success(res)                 => errorHandler(NotFoundException("Could not find any tags in the specified subjects"))
           case Failure(ex)                  => errorHandler(ex)

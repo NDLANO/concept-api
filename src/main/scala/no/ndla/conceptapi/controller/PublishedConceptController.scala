@@ -22,7 +22,11 @@ import no.ndla.conceptapi.model.api.{
 }
 import no.ndla.conceptapi.model.domain.{Language, SearchResult, Sort}
 import no.ndla.conceptapi.model.search.SearchSettings
-import no.ndla.conceptapi.service.search.{ConceptSearchService, PublishedConceptSearchService, SearchConverterService}
+import no.ndla.conceptapi.service.search.{
+  DraftConceptSearchService,
+  PublishedConceptSearchService,
+  SearchConverterService
+}
 import no.ndla.conceptapi.service.{ReadService, WriteService}
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.{Created, Ok}
@@ -35,7 +39,7 @@ trait PublishedConceptController {
     with ReadService
     with User
     with PublishedConceptSearchService
-    with ConceptSearchService
+    with DraftConceptSearchService
     with SearchConverterService
     with DraftNdlaController =>
   val publishedConceptController: PublishedConceptController
