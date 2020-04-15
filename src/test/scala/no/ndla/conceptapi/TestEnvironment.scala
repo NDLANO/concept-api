@@ -10,7 +10,7 @@ package no.ndla.conceptapi
 import com.typesafe.scalalogging.LazyLogging
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.conceptapi.auth.User
-import no.ndla.conceptapi.controller.DraftConceptController
+import no.ndla.conceptapi.controller.{DraftConceptController, DraftNdlaController, PublishedConceptController}
 import no.ndla.conceptapi.integration.{
   ArticleApiClient,
   DataSource,
@@ -45,6 +45,8 @@ trait TestEnvironment
     extends ConceptRepository
     with PublishedConceptRepository
     with DraftConceptController
+    with PublishedConceptController
+    with DraftNdlaController
     with SearchConverterService
     with PublishedConceptSearchService
     with PublishedConceptIndexService
@@ -71,7 +73,8 @@ trait TestEnvironment
 
   val conceptRepository = mock[ConceptRepository]
   val publishedConceptRepository = mock[PublishedConceptRepository]
-  val conceptController = mock[ConceptController]
+  val conceptController = mock[DraftConceptController]
+  val publishedConceptController = mock[PublishedConceptController]
   val searchConverterService = mock[SearchConverterService]
   val conceptIndexService = mock[ConceptIndexService]
   val conceptSearchService = mock[ConceptSearchService]

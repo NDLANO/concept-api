@@ -11,6 +11,7 @@ import com.typesafe.scalalogging.LazyLogging
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.conceptapi.controller.{
   DraftConceptController,
+  DraftNdlaController,
   HealthController,
   InternController,
   NdlaController,
@@ -51,6 +52,7 @@ import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 object ComponentRegistry
     extends DraftConceptController
     with PublishedConceptController
+    with DraftNdlaController
     with Clock
     with User
     with WriteService
@@ -78,7 +80,7 @@ object ComponentRegistry
     with ImageApiClient
     with NdlaClient {
 
-  lazy val conceptController = new ConceptController
+  lazy val conceptController = new DraftConceptController
   lazy val publishedConceptController = new PublishedConceptController
   lazy val healthController = new HealthController
   lazy val internController = new InternController

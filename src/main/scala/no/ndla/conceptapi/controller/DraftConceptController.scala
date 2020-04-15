@@ -10,34 +10,28 @@ package no.ndla.conceptapi.controller
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.ConceptApiProperties
 import no.ndla.conceptapi.auth.User
-import no.ndla.conceptapi.model.api.{
-  Concept,
-  ConceptSearchParams,
-  ConceptSearchResult,
-  Error,
-  NewConcept,
-  NotFoundException,
-  SubjectTags,
-  TagsSearchResult,
-  UpdatedConcept,
-  ValidationError
-}
+import no.ndla.conceptapi.model.api.{Concept, ConceptSearchParams, ConceptSearchResult, NotFoundException}
 import no.ndla.conceptapi.model.domain.{Language, SearchResult, Sort}
 import no.ndla.conceptapi.model.search.SearchSettings
 import no.ndla.conceptapi.service.search.{ConceptSearchService, SearchConverterService}
 import no.ndla.conceptapi.service.{ReadService, WriteService}
 import org.json4s.{DefaultFormats, Formats}
-import org.scalatra.swagger.{ResponseMessage, Swagger, SwaggerSupport}
-import org.scalatra.{Created, NotFound, Ok}
+import org.scalatra.Ok
+import org.scalatra.swagger.{Swagger, SwaggerSupport}
 
 import scala.util.{Failure, Success}
 
 trait DraftConceptController {
-  this: WriteService with ReadService with User with ConceptSearchService with SearchConverterService =>
-  val conceptController: ConceptController
+  this: WriteService
+    with ReadService
+    with User
+    with ConceptSearchService
+    with SearchConverterService
+    with DraftNdlaController =>
+  val conceptController: DraftConceptController
 
-  class ConceptController(implicit val swagger: Swagger)
-      extends DraftNdlaController
+  class DraftConceptController(implicit val swagger: Swagger)
+      extends DraftNdlaControllerClass
       with SwaggerSupport
       with LazyLogging {
     protected implicit override val jsonFormats: Formats = DefaultFormats

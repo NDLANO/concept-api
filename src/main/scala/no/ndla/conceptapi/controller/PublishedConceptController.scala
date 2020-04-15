@@ -34,14 +34,14 @@ trait PublishedConceptController {
   this: WriteService
     with ReadService
     with User
-    with DraftConceptController
     with PublishedConceptSearchService
     with ConceptSearchService
-    with SearchConverterService =>
+    with SearchConverterService
+    with DraftNdlaController =>
   val publishedConceptController: PublishedConceptController
 
   class PublishedConceptController(implicit val swagger: Swagger)
-      extends DraftNdlaController
+      extends DraftNdlaControllerClass
       with SwaggerSupport
       with LazyLogging {
     protected implicit override val jsonFormats: Formats = DefaultFormats
