@@ -36,7 +36,10 @@ trait DraftConceptController {
   this: WriteService with ReadService with User with ConceptSearchService with SearchConverterService =>
   val conceptController: ConceptController
 
-  class ConceptController(implicit val swagger: Swagger) extends NdlaController with SwaggerSupport with LazyLogging {
+  class ConceptController(implicit val swagger: Swagger)
+      extends DraftNdlaController
+      with SwaggerSupport
+      with LazyLogging {
     protected implicit override val jsonFormats: Formats = DefaultFormats
     val applicationDescription = "This is the Api for concepts"
 
@@ -212,132 +215,6 @@ trait DraftConceptController {
         language match {
           case Some(language) => writeService.deleteLanguage(id, language, userInfo)
           case None           => Failure(NotFoundException("Language not found"))
-        }
-      }
-    }
-
-    get(
-      "/tags/",
-      operation(
-        apiOperation[List[SubjectTags]]("getTags")
-          summary "Returns a list of all tags in the specified subjects"
-          description "Returns a list of all tags in the specified subjects"
-          parameters (
-            asHeaderParam(correlationId),
-            asQueryParam(language),
-            asQueryParam(fallback),
-            asQueryParam(subjects)
-        )
-          authorizations "oauth2"
-          responseMessages (response400, response403, response404, response500))
-    ) {
-      val subjects = paramAsListOfString(this.subjects.paramName)
-      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
-      val fallback = booleanOrDefault(this.fallback.paramName, default = false)
-
-      if (subjects.nonEmpty) {
-        conceptSearchService.getTagsWithSubjects(subjects, language, fallback) match {
-          case Success(res) if res.nonEmpty => Ok(res)
-          case Success(res)                 => errorHandler(NotFoundException("Could not find any tags in the specified subjects"))
-          case Failure(ex)                  => errorHandler(ex)
-        }
-      } else {
-        readService.allTagsFromConcepts(language, fallback)
-      }
-    }
-
-    get(
-      "/tag-search/",
-      operation(
-        apiOperation[TagsSearchResult]("getTags-paginated")
-          summary "Retrieves a list of all previously used tags in concepts"
-          description "Retrieves a list of all previously used tags in concepts"
-          parameters (
-            asHeaderParam(correlationId),
-            asQueryParam(query),
-            asQueryParam(pageSize),
-            asQueryParam(pageNo),
-            asQueryParam(language)
-        )
-          responseMessages response500
-          authorizations "oauth2")
-    ) {
-
-      val query = paramOrDefault(this.query.paramName, "")
-      val pageSize = intOrDefault(this.pageSize.paramName, ConceptApiProperties.DefaultPageSize) match {
-        case tooSmall if tooSmall < 1 => ConceptApiProperties.DefaultPageSize
-        case x                        => x
-      }
-      val pageNo = intOrDefault(this.pageNo.paramName, 1) match {
-        case tooSmall if tooSmall < 1 => 1
-        case x                        => x
-      }
-      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
-
-      readService.getAllTags(query, pageSize, pageNo, language)
-    }
-
-    get(
-      "/subjects/",
-      operation(
-        apiOperation[List[String]]("getSubjects")
-          summary "Returns a list of all subjects used in concepts"
-          description "Returns a list of all subjects used in concepts"
-          parameters (
-            asHeaderParam(correlationId)
-          )
-          authorizations "oauth2"
-          responseMessages (response400, response403, response404, response500))
-    ) {
-      readService.allSubjects() match {
-        case Success(subjects) => Ok(subjects)
-        case Failure(ex)       => errorHandler(ex)
-      }
-    }
-
-    post(
-      "/",
-      operation(
-        apiOperation[Concept]("newConceptById")
-          summary "Create new concept"
-          description "Create new concept"
-          parameters (
-            asHeaderParam(correlationId),
-            bodyParam[NewConcept]
-        )
-          authorizations "oauth2"
-          responseMessages (response400, response403, response500))
-    ) {
-      doOrAccessDenied(user.getUser.canWrite) {
-        val body = extract[NewConcept](request.body)
-        body.flatMap(writeService.newConcept) match {
-          case Success(c)  => Created(c)
-          case Failure(ex) => errorHandler(ex)
-        }
-      }
-    }
-
-    patch(
-      "/:concept_id",
-      operation(
-        apiOperation[Concept]("updateConceptById")
-          summary "Update a concept"
-          description "Update a concept"
-          parameters (
-            asHeaderParam(correlationId),
-            bodyParam[UpdatedConcept],
-            asPathParam(conceptId)
-        )
-          authorizations "oauth2"
-          responseMessages (response400, response403, response404, response500))
-    ) {
-      val userInfo = user.getUser
-      doOrAccessDenied(userInfo.canWrite) {
-        val body = extract[UpdatedConcept](request.body)
-        val conceptId = long(this.conceptId.paramName)
-        body.flatMap(writeService.updateConcept(conceptId, _, userInfo)) match {
-          case Success(c)  => Ok(c)
-          case Failure(ex) => errorHandler(ex)
         }
       }
     }
