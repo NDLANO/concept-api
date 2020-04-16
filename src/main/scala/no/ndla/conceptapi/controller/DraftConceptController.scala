@@ -11,10 +11,10 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.ConceptApiProperties
 import no.ndla.conceptapi.auth.User
 import no.ndla.conceptapi.model.api.{Concept, ConceptSearchParams, ConceptSearchResult, NotFoundException}
-import no.ndla.conceptapi.model.domain.{Language, SearchResult, Sort}
+import no.ndla.conceptapi.model.domain.{ConceptStatus, Language, SearchResult, Sort}
 import no.ndla.conceptapi.model.search.SearchSettings
 import no.ndla.conceptapi.service.search.{DraftConceptSearchService, SearchConverterService}
-import no.ndla.conceptapi.service.{ReadService, WriteService}
+import no.ndla.conceptapi.service.{ConverterService, ReadService, WriteService}
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.Ok
 import org.scalatra.swagger.{Swagger, SwaggerSupport}
@@ -27,7 +27,8 @@ trait DraftConceptController {
     with User
     with DraftConceptSearchService
     with SearchConverterService
-    with DraftNdlaController =>
+    with DraftNdlaController
+    with ConverterService =>
   val draftConceptController: DraftConceptController
 
   class DraftConceptController(implicit val swagger: Swagger)
@@ -36,6 +37,8 @@ trait DraftConceptController {
       with LazyLogging {
     protected implicit override val jsonFormats: Formats = DefaultFormats
     val applicationDescription = "This is the Api for concepts"
+
+    private val statuss = Param[String]("STATUS", "Concept status")
 
     private def scrollSearchOr(scrollId: Option[String], language: String)(orFunction: => Any): Any =
       scrollId match {
@@ -210,6 +213,49 @@ trait DraftConceptController {
           case Some(language) => writeService.deleteLanguage(id, language, userInfo)
           case None           => Failure(NotFoundException("Language not found"))
         }
+      }
+    }
+
+    put(
+      "/:concept_id/status/:STATUS",
+      operation(
+        apiOperation[Concept]("updateConceptStatus")
+          summary "Update status of a concept"
+          description "Update status of a concept"
+          parameters (
+            asPathParam(conceptId),
+            asPathParam(statuss)
+        )
+          authorizations "oauth2"
+          responseMessages (response400, response403, response404, response500))
+    ) {
+      val userInfo = user.getUser
+      doOrAccessDenied(userInfo.canWrite) {
+        val id = long(this.conceptId.paramName)
+
+        ConceptStatus
+          .valueOfOrError(params(this.statuss.paramName))
+          .flatMap(writeService.updateConceptStatus(_, id, userInfo)) match {
+          case Success(concept) => concept
+          case Failure(ex)      => errorHandler(ex)
+        }
+
+      }
+    }
+
+    get(
+      "/status-state-machine/",
+      operation(
+        apiOperation[Map[String, List[String]]]("getStatusStateMachine")
+          summary "Get status state machine"
+          description "Get status state machine"
+          authorizations "oauth2"
+          responseMessages response500
+      )
+    ) {
+      val userInfo = user.getUser
+      doOrAccessDenied(userInfo.canWrite) {
+        converterService.stateTransitionsToApi(user.getUser)
       }
     }
   }

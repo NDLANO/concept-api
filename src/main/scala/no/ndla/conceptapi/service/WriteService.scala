@@ -15,7 +15,8 @@ import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRe
 import no.ndla.conceptapi.model.domain
 import no.ndla.conceptapi.model.domain.ConceptStatus._
 import no.ndla.conceptapi.model.api
-import no.ndla.conceptapi.model.api.{ConceptExistsAlreadyException, NotFoundException}
+import no.ndla.conceptapi.model.api.{ConceptExistsAlreadyException, ConceptMissingIdException, NotFoundException}
+import no.ndla.conceptapi.model.domain.Language
 import no.ndla.conceptapi.service.search.DraftConceptIndexService
 import no.ndla.conceptapi.validation._
 
@@ -163,8 +164,33 @@ trait WriteService {
 
     }
 
+    def updateConceptStatus(status: domain.ConceptStatus.Value, id: Long, user: UserInfo): Try[api.Concept] = {
+      draftConceptRepository.withId(id) match {
+        case None => Failure(NotFoundException(s"No article with id $id was found"))
+        case Some(draft) =>
+          for {
+            convertedConceptT <- converterService
+              .updateStatus(status, draft, user)
+              .attempt
+              .unsafeRunSync()
+              .toTry
+            convertedConcept <- convertedConceptT
+            updatedConcept <- updateConcept(convertedConcept)
+            _ <- draftConceptIndexService.indexDocument(updatedConcept)
+            apiConcept <- converterService.toApiConcept(updatedConcept, Language.AllLanguages, fallback = true)
+          } yield apiConcept
+      }
+    }
+
     def publishConcept(concept: domain.Concept): Try[domain.Concept] = {
       publishedConceptRepository.insertOrUpdate(concept)
+    }
+
+    def unpublishConcept(concept: domain.Concept): Try[domain.Concept] = {
+      concept.id match {
+        case Some(id) => publishedConceptRepository.delete(id).map(_ => concept)
+        case None     => Failure(ConceptMissingIdException("Cannot attempt to unpublish concept without id"))
+      }
     }
   }
 }

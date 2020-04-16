@@ -240,6 +240,16 @@ trait ConverterService {
       api.TagsSearchResult(tagsCount, offset, pageSize, language, tags)
     }
 
+    def stateTransitionsToApi(user: UserInfo): Map[String, Seq[String]] = {
+      StateTransitionRules.StateTransitions.groupBy(_.from).map {
+        case (from, to) =>
+          from.toString -> to
+            .filter(t => user.hasRoles(t.requiredRoles))
+            .map(_.to.toString)
+            .toSeq
+      }
+    }
+
   }
 
 }

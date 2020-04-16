@@ -9,6 +9,7 @@ package no.ndla.conceptapi.repository
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.integration.DataSource
+import no.ndla.conceptapi.model.api.NotFoundException
 import no.ndla.conceptapi.model.domain.{Concept, PublishedConcept}
 import org.json4s.Formats
 import org.postgresql.util.PGobject
@@ -52,6 +53,19 @@ trait PublishedConceptRepository {
       }
     }
 
+    def delete(id: Long)(implicit session: DBSession = AutoSession): Try[_] = {
+      Try(
+        sql"""
+            delete from ${PublishedConcept.table}
+            where id=$id
+         """.update.apply
+      ) match {
+        case Success(count) if count > 0 => Success(id)
+        case Failure(ex)                 => Failure(ex)
+        case _                           => Failure(NotFoundException("Could not find concept to delete from Published concepts table."))
+      }
+    }
+
     def withId(id: Long): Option[Concept] = conceptWhere(sqls"co.id=${id.toInt}")
 
     private def conceptWhere(whereClause: SQLSyntax)(
@@ -63,7 +77,12 @@ trait PublishedConceptRepository {
         .apply()
     }
 
-    def conceptCount = ???
+    def conceptCount(implicit session: DBSession = ReadOnlyAutoSession) =
+      sql"select count(*) from ${PublishedConcept.table}"
+        .map(rs => rs.long("count"))
+        .single()
+        .apply()
+        .getOrElse(0)
 
     override def documentsWithIdBetween(min: Long, max: Long): List[Concept] =
       conceptsWhere(sqls"co.id between $min and $max")

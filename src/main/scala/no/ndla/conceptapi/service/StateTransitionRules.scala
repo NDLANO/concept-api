@@ -33,9 +33,11 @@ trait StateTransitionRules {
 
   object StateTransitionRules {
 
-    private[service] val unpublishConcept: SideEffect = (concept: domain.Concept) => ??? // TODO:
+    private[service] val unpublishConcept: SideEffect =
+      (concept: domain.Concept) => writeService.unpublishConcept(concept)
 
-    private[service] val publishConcept: SideEffect = (concept: domain.Concept) => ??? // TODO:
+    private[service] val publishConcept: SideEffect =
+      (concept: domain.Concept) => writeService.publishConcept(concept)
 
     import StateTransition._
 
@@ -43,17 +45,19 @@ trait StateTransitionRules {
     val StateTransitions: Set[StateTransition] = Set(
        DRAFT                      -> DRAFT,
        DRAFT                      -> ARCHIVED                    require UserInfo.WriteRoles illegalStatuses Set(PUBLISHED),
+       DRAFT                      -> QUEUED_FOR_LANGUAGE         keepStates Set(PUBLISHED),
+       DRAFT                      -> QUEUED_FOR_PUBLISHING       keepStates Set(PUBLISHED) require UserInfo.WriteRoles,
        ARCHIVED                   -> ARCHIVED,
        ARCHIVED                   -> DRAFT,
       (DRAFT                      -> PUBLISHED)                  require UserInfo.WriteRoles withSideEffect publishConcept,
-       QUEUED_FOR_PUBLISHING      -> QUEUED_FOR_PUBLISHING,
+       QUEUED_FOR_PUBLISHING      -> QUEUED_FOR_PUBLISHING       keepStates Set(PUBLISHED),
       (QUEUED_FOR_PUBLISHING      -> PUBLISHED)                  require UserInfo.WriteRoles withSideEffect publishConcept,
-       QUEUED_FOR_PUBLISHING      -> DRAFT,
+       QUEUED_FOR_PUBLISHING      -> DRAFT                       keepStates Set(PUBLISHED),
       (PUBLISHED                  -> DRAFT)                      keepCurrentOnTransition,
       (PUBLISHED                  -> AWAITING_UNPUBLISHING)      require UserInfo.WriteRoles  keepCurrentOnTransition, // TODO: Check if used in article?
       (PUBLISHED                  -> UNPUBLISHED)                require UserInfo.WriteRoles withSideEffect unpublishConcept, // TODO: Check if used in article?
-      (AWAITING_UNPUBLISHING      -> AWAITING_UNPUBLISHING)      keepCurrentOnTransition,
-       AWAITING_UNPUBLISHING      -> DRAFT,
+      (AWAITING_UNPUBLISHING      -> AWAITING_UNPUBLISHING),
+       AWAITING_UNPUBLISHING      -> DRAFT                       keepStates Set(PUBLISHED),
       (AWAITING_UNPUBLISHING      -> PUBLISHED)                  require UserInfo.WriteRoles withSideEffect publishConcept,
       (AWAITING_UNPUBLISHING      -> UNPUBLISHED)                require UserInfo.WriteRoles withSideEffect unpublishConcept,
       (UNPUBLISHED                -> PUBLISHED)                  require UserInfo.WriteRoles withSideEffect publishConcept,
@@ -61,7 +65,7 @@ trait StateTransitionRules {
        UNPUBLISHED                -> UNPUBLISHED,
        UNPUBLISHED                -> ARCHIVED                    require UserInfo.WriteRoles illegalStatuses Set(PUBLISHED),
        QUEUED_FOR_LANGUAGE        -> QUEUED_FOR_LANGUAGE,
-       QUEUED_FOR_LANGUAGE        -> TRANSLATED,
+       QUEUED_FOR_LANGUAGE        -> TRANSLATED                  keepStates Set(PUBLISHED),
        TRANSLATED                 -> TRANSLATED,
     )
     // format: on
