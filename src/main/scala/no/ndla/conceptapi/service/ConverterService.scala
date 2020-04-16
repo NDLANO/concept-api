@@ -196,7 +196,7 @@ trait ConverterService {
 
       domain.Concept(
         id = Some(id),
-        revision = None, // TODO: Consider optimistic lock?
+        revision = None,
         title = concept.title.map(t => domain.ConceptTitle(t, lang)).toSeq,
         content = concept.content.map(c => domain.ConceptContent(c, lang)).toSeq,
         copyright = concept.copyright.map(toDomainCopyright),
@@ -207,7 +207,7 @@ trait ConverterService {
         tags = concept.tags.map(t => toDomainTags(t, concept.language)).getOrElse(Seq.empty),
         subjectIds = concept.subjectIds.getOrElse(Seq.empty).toSet,
         articleId = newArticleId,
-        status = Status.default // TODO: State machine stuff here?
+        status = Status.default
       )
     }
 
