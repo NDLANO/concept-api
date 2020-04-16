@@ -16,7 +16,7 @@ import no.ndla.conceptapi.model.domain
 import no.ndla.conceptapi.model.domain.ConceptStatus._
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api.{ConceptExistsAlreadyException, ConceptMissingIdException, NotFoundException}
-import no.ndla.conceptapi.model.domain.Language
+import no.ndla.conceptapi.model.domain.{ConceptStatus, Language}
 import no.ndla.conceptapi.service.search.DraftConceptIndexService
 import no.ndla.conceptapi.validation._
 
@@ -94,12 +94,18 @@ trait WriteService {
       withComparableValues(existing) != withComparableValues(changed)
     }
 
-    private def updateStatusIfNeeded(existing: domain.Concept, changed: domain.Concept, user: UserInfo) = {
-      if (!shouldUpdateStatus(existing, changed)) {
+    private def updateStatusIfNeeded(
+        existing: domain.Concept,
+        changed: domain.Concept,
+        updateStatus: Option[String],
+        user: UserInfo
+    ) = {
+      if (!shouldUpdateStatus(existing, changed) && updateStatus.isEmpty) {
         Success(changed)
       } else {
         val oldStatus = existing.status.current
-        val newStatus = if (oldStatus == PUBLISHED) DRAFT else oldStatus
+        val newStatusIfNotDefined = if (oldStatus == PUBLISHED) DRAFT else oldStatus
+        val newStatus = updateStatus.flatMap(ConceptStatus.valueOf).getOrElse(newStatusIfNotDefined)
 
         converterService
           .updateStatus(newStatus, changed, user)
@@ -124,7 +130,7 @@ trait WriteService {
           val domainConcept = converterService.toDomainConcept(existingConcept, updatedConcept)
 
           for {
-            withStatus <- updateStatusIfNeeded(existingConcept, domainConcept, userInfo)
+            withStatus <- updateStatusIfNeeded(existingConcept, domainConcept, updatedConcept.status, userInfo)
             updated <- updateConcept(withStatus)
             converted <- converterService.toApiConcept(updated, updatedConcept.language, fallback = true)
           } yield converted
@@ -154,7 +160,7 @@ trait WriteService {
               )
 
               for {
-                withStatus <- updateStatusIfNeeded(existingConcept, newConcept, userInfo)
+                withStatus <- updateStatusIfNeeded(existingConcept, newConcept, None, userInfo)
                 updated <- updateConcept(withStatus)
                 converted <- converterService.toApiConcept(updated, domain.Language.AllLanguages, fallback = false)
               } yield converted
