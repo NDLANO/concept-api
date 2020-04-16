@@ -17,7 +17,7 @@ import no.ndla.conceptapi.model.domain.ConceptStatus._
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api.{ConceptExistsAlreadyException, ConceptMissingIdException, NotFoundException}
 import no.ndla.conceptapi.model.domain.{ConceptStatus, Language}
-import no.ndla.conceptapi.service.search.DraftConceptIndexService
+import no.ndla.conceptapi.service.search.{DraftConceptIndexService, PublishedConceptIndexService}
 import no.ndla.conceptapi.validation._
 
 import scala.util.{Failure, Success, Try}
@@ -28,6 +28,7 @@ trait WriteService {
     with ConverterService
     with ContentValidator
     with DraftConceptIndexService
+    with PublishedConceptIndexService
     with LazyLogging =>
   val writeService: WriteService
 
@@ -189,13 +190,20 @@ trait WriteService {
     }
 
     def publishConcept(concept: domain.Concept): Try[domain.Concept] = {
-      publishedConceptRepository.insertOrUpdate(concept)
+      for {
+        inserted <- publishedConceptRepository.insertOrUpdate(concept)
+        indexed <- publishedConceptIndexService.indexDocument(inserted)
+      } yield indexed
     }
 
     def unpublishConcept(concept: domain.Concept): Try[domain.Concept] = {
       concept.id match {
-        case Some(id) => publishedConceptRepository.delete(id).map(_ => concept)
-        case None     => Failure(ConceptMissingIdException("Cannot attempt to unpublish concept without id"))
+        case Some(id) =>
+          for {
+            _ <- publishedConceptRepository.delete(id).map(_ => concept)
+            _ <- publishedConceptIndexService.deleteDocument(id)
+          } yield concept
+        case None => Failure(ConceptMissingIdException("Cannot attempt to unpublish concept without id"))
       }
     }
   }
