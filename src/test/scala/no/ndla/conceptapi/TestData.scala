@@ -34,6 +34,7 @@ object TestData {
 
   val sampleNbApiConcept = api.Concept(
     1.toLong,
+    1,
     Some(api.ConceptTitle("Tittel", "nb")),
     Some(api.ConceptContent("Innhold", "nb")),
     None,
@@ -117,6 +118,7 @@ object TestData {
 
   val sampleNnApiConcept = api.Concept(
     1.toLong,
+    1,
     Some(api.ConceptTitle("Tittelur", "nn")),
     Some(api.ConceptContent("Innhald", "nn")),
     None,

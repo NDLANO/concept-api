@@ -44,19 +44,20 @@ trait ConverterService {
 
         Success(
           api.Concept(
-            concept.id.get,
-            Some(title),
-            Some(content),
-            concept.copyright.map(toApiCopyright),
-            concept.source,
-            Some(metaImage),
-            tags,
-            if (concept.subjectIds.isEmpty) None else Some(concept.subjectIds),
-            concept.created,
-            concept.updated,
-            concept.supportedLanguages,
-            concept.articleId,
-            toApiStatus(concept.status)
+            id = concept.id.get,
+            revision = concept.revision.getOrElse(-1),
+            title = Some(title),
+            content = Some(content),
+            copyright = concept.copyright.map(toApiCopyright),
+            source = concept.source,
+            metaImage = Some(metaImage),
+            tags = tags,
+            subjectIds = if (concept.subjectIds.isEmpty) None else Some(concept.subjectIds),
+            created = concept.created,
+            updated = concept.updated,
+            supportedLanguages = concept.supportedLanguages,
+            articleId = concept.articleId,
+            status = toApiStatus(concept.status)
           )
         )
       } else {

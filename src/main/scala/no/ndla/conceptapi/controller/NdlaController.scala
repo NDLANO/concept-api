@@ -22,6 +22,7 @@ import no.ndla.conceptapi.auth.User
 import no.ndla.conceptapi.model.api.{
   Concept,
   Error,
+  IllegalStatusStateTransition,
   NewConcept,
   NotFoundException,
   OperationNotAllowedException,
@@ -74,6 +75,7 @@ abstract class NdlaController() extends ScalatraServlet with NativeJsonSupport w
     case v: ValidationException            => BadRequest(body = ValidationError(messages = v.errors))
     case n: NotFoundException              => NotFound(body = Error(Error.NOT_FOUND, n.getMessage))
     case o: OptimisticLockException        => Conflict(body = Error(Error.RESOURCE_OUTDATED, o.getMessage))
+    case st: IllegalStatusStateTransition  => BadRequest(body = Error(Error.VALIDATION, st.getMessage))
     case e: IndexNotFoundException         => InternalServerError(body = Error.IndexMissingError)
     case ona: OperationNotAllowedException => BadRequest(body = Error(Error.OPERATION_NOT_ALLOWED, ona.getMessage))
     case psqle: PSQLException =>
