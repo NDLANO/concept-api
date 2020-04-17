@@ -36,7 +36,7 @@ trait DraftConceptController {
       with SwaggerSupport
       with LazyLogging {
     protected implicit override val jsonFormats: Formats = DefaultFormats
-    val applicationDescription = "This is the Api for concepts"
+    val applicationDescription = "This is the Api for concept drafts"
 
     private val statuss = Param[String]("STATUS", "Concept status")
 
