@@ -55,15 +55,6 @@ class V3__AddStatusField extends BaseJavaMigration {
       .apply()
   }
 
-  def allArticlesWithArticleId(articleId: Long)(implicit session: DBSession) = {
-    sql"select id, document from articledata where document is not null and article_id=${articleId} order by id"
-      .map(rs => {
-        (rs.long("id"), rs.string("document"))
-      })
-      .list
-      .apply()
-  }
-
   def updateConcept(document: String, id: Long)(implicit session: DBSession): Int = {
     val dataObject = new PGobject()
     dataObject.setType("jsonb")
