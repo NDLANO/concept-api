@@ -51,4 +51,14 @@ class PublishedConceptControllerTest extends UnitSuite with TestEnvironment with
       status should equal(400)
     }
   }
+
+  test("GET /tags should return 200 on getting all tags") {
+    when(readService.allTagsFromConcepts(lang, fallback = false))
+      .thenReturn(List("tag1", "tag2"))
+
+    get(s"/test/tags/?language=$lang") {
+      status should equal(200)
+    }
+  }
+
 }

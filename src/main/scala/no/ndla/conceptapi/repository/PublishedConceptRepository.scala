@@ -10,11 +10,11 @@ package no.ndla.conceptapi.repository
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.integration.DataSource
 import no.ndla.conceptapi.model.api.NotFoundException
-import no.ndla.conceptapi.model.domain.{Concept, PublishedConcept}
+import no.ndla.conceptapi.model.domain.{Concept, ConceptTags, PublishedConcept}
 import org.json4s.Formats
 import org.postgresql.util.PGobject
 import scalikejdbc._
-import org.json4s.native.Serialization.write
+import org.json4s.native.Serialization.{read, write}
 
 import scala.util.{Failure, Success, Try}
 
@@ -67,6 +67,27 @@ trait PublishedConceptRepository {
     }
 
     def withId(id: Long): Option[Concept] = conceptWhere(sqls"co.id=${id.toInt}")
+
+    def allSubjectIds(implicit session: DBSession = ReadOnlyAutoSession): Set[String] = {
+      sql"""
+        select distinct jsonb_array_elements_text(document->'subjectIds') as subject_id 
+        from ${PublishedConcept.table} 
+        where jsonb_array_length(document->'subjectIds') != 0;"""
+        .map(rs => rs.string("subject_id"))
+        .list
+        .apply
+        .toSet
+    }
+
+    def everyTagFromEveryConcept(implicit session: DBSession = ReadOnlyAutoSession) = {
+      sql"select distinct document#>'{tags}' as tags from ${PublishedConcept.table} where jsonb_array_length(document#>'{tags}') > 0"
+        .map(rs => {
+          val jsonStr = rs.string("tags")
+          read[List[ConceptTags]](jsonStr)
+        })
+        .list
+        .apply()
+    }
 
     private def conceptWhere(whereClause: SQLSyntax)(
         implicit session: DBSession = ReadOnlyAutoSession): Option[Concept] = {

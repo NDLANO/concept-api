@@ -112,6 +112,76 @@ class PublishedConceptRepositoryTest extends IntegrationSuite with TestEnvironme
     repository.delete(10).isSuccess should be(false)
   }
 
+  test("That getting subjects works as expected") {
+    assume(databaseIsAvailable, "Database is unavailable")
+    val concept1 = TestData.domainConcept.copy(id = Some(1), subjectIds = Set("urn:subject:1", "urn:subject:2"))
+    val concept2 = TestData.domainConcept.copy(id = Some(2), subjectIds = Set("urn:subject:1", "urn:subject:19"))
+    val concept3 = TestData.domainConcept.copy(id = Some(3), subjectIds = Set("urn:subject:12"))
+
+    repository.insertOrUpdate(concept1)
+    repository.insertOrUpdate(concept2)
+    repository.insertOrUpdate(concept3)
+
+    repository.allSubjectIds should be(
+      Set(
+        "urn:subject:1",
+        "urn:subject:2",
+        "urn:subject:12",
+        "urn:subject:19"
+      )
+    )
+  }
+
+  test("Fetching concepts tags works as expected") {
+    assume(databaseIsAvailable, "Database is unavailable")
+    val concept1 =
+      TestData.domainConcept.copy(
+        id = Some(1),
+        tags = Seq(
+          domain.ConceptTags(Seq("konge", "bror"), "nb"),
+          domain.ConceptTags(Seq("konge", "brur"), "nn"),
+          domain.ConceptTags(Seq("king", "bro"), "en"),
+          domain.ConceptTags(Seq("zing", "xiongdi"), "zh")
+        )
+      )
+    val concept2 =
+      TestData.domainConcept.copy(
+        id = Some(2),
+        tags = Seq(
+          domain.ConceptTags(Seq("konge", "lol", "meme"), "nb"),
+          domain.ConceptTags(Seq("konge", "lel", "meem"), "nn"),
+          domain.ConceptTags(Seq("king", "lul", "maymay"), "en"),
+          domain.ConceptTags(Seq("zing", "kek", "mimi"), "zh")
+        )
+      )
+    val concept3 =
+      TestData.domainConcept.copy(
+        id = Some(3),
+        tags = Seq()
+      )
+
+    repository.insertOrUpdate(concept1)
+    repository.insertOrUpdate(concept2)
+    repository.insertOrUpdate(concept3)
+
+    repository.everyTagFromEveryConcept should be(
+      List(
+        List(
+          domain.ConceptTags(Seq("konge", "bror"), "nb"),
+          domain.ConceptTags(Seq("konge", "brur"), "nn"),
+          domain.ConceptTags(Seq("king", "bro"), "en"),
+          domain.ConceptTags(Seq("zing", "xiongdi"), "zh"),
+        ),
+        List(
+          domain.ConceptTags(Seq("konge", "lol", "meme"), "nb"),
+          domain.ConceptTags(Seq("konge", "lel", "meem"), "nn"),
+          domain.ConceptTags(Seq("king", "lul", "maymay"), "en"),
+          domain.ConceptTags(Seq("zing", "kek", "mimi"), "zh")
+        )
+      )
+    )
+  }
+
   test("That count works as expected") {
     val consistentDate = new Date(0)
     val concept1 = TestData.domainConcept.copy(

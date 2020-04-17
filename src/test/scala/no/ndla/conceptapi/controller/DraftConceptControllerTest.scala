@@ -58,15 +58,6 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
     }
   }
 
-  test("GET /tags should return 200 on getting all tags") {
-    when(readService.allTagsFromConcepts(lang, fallback = false))
-      .thenReturn(List("tag1", "tag2"))
-
-    get(s"/test/tags/?language=$lang") {
-      status should equal(200)
-    }
-  }
-
   test("POST / should return 400 if body does not contain all required fields") {
     post("/test/", invalidConcept) {
       status should equal(400)

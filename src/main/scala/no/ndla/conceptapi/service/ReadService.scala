@@ -37,12 +37,12 @@ trait ReadService {
       }
 
     def allSubjects(): Try[Set[String]] = {
-      val subjectIds = draftConceptRepository.allSubjectIds
+      val subjectIds = publishedConceptRepository.allSubjectIds
       if (subjectIds.nonEmpty) Success(subjectIds) else Failure(NotFoundException("Could not find any subjects"))
     }
 
     def allTagsFromConcepts(language: String, fallback: Boolean): List[String] = {
-      val allConceptTags = draftConceptRepository.everyTagFromEveryConcept
+      val allConceptTags = publishedConceptRepository.everyTagFromEveryConcept
       (if (fallback || language == Language.AllLanguages) {
          allConceptTags.flatMap(t => {
            Language.findByLanguageOrBestEffort(t, language)

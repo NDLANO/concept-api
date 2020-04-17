@@ -25,36 +25,6 @@ trait DraftNdlaController {
   this: ReadService with WriteService with User with DraftConceptSearchService =>
   abstract class DraftNdlaControllerClass() extends NdlaController {
     get(
-      "/tags/",
-      operation(
-        apiOperation[List[SubjectTags]]("getTags")
-          summary "Returns a list of all tags in the specified subjects"
-          description "Returns a list of all tags in the specified subjects"
-          parameters (
-            asHeaderParam(correlationId),
-            asQueryParam(language),
-            asQueryParam(fallback),
-            asQueryParam(subjects)
-        )
-          authorizations "oauth2"
-          responseMessages (response400, response403, response404, response500))
-    ) {
-      val subjects = paramAsListOfString(this.subjects.paramName)
-      val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
-      val fallback = booleanOrDefault(this.fallback.paramName, default = false)
-
-      if (subjects.nonEmpty) {
-        draftConceptSearchService.getTagsWithSubjects(subjects, language, fallback) match {
-          case Success(res) if res.nonEmpty => Ok(res)
-          case Success(res)                 => errorHandler(NotFoundException("Could not find any tags in the specified subjects"))
-          case Failure(ex)                  => errorHandler(ex)
-        }
-      } else {
-        readService.allTagsFromConcepts(language, fallback)
-      }
-    }
-
-    get(
       "/tag-search/",
       operation(
         apiOperation[TagsSearchResult]("getTags-paginated")
@@ -83,24 +53,6 @@ trait DraftNdlaController {
       val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
 
       readService.getAllTags(query, pageSize, pageNo, language)
-    }
-
-    get(
-      "/subjects/",
-      operation(
-        apiOperation[List[String]]("getSubjects")
-          summary "Returns a list of all subjects used in concepts"
-          description "Returns a list of all subjects used in concepts"
-          parameters (
-            asHeaderParam(correlationId)
-          )
-          authorizations "oauth2"
-          responseMessages (response400, response403, response404, response500))
-    ) {
-      readService.allSubjects() match {
-        case Success(subjects) => Ok(subjects)
-        case Failure(ex)       => errorHandler(ex)
-      }
     }
 
     post(

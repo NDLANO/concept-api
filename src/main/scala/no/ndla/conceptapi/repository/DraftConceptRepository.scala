@@ -161,17 +161,6 @@ trait DraftConceptRepository {
         .isDefined
     }
 
-    def allSubjectIds(implicit session: DBSession = ReadOnlyAutoSession): Set[String] = {
-      sql"""
-        select distinct jsonb_array_elements_text(document->'subjectIds') as subject_id 
-        from ${Concept.table} 
-        where jsonb_array_length(document->'subjectIds') != 0;"""
-        .map(rs => rs.string("subject_id"))
-        .list
-        .apply
-        .toSet
-    }
-
     def getIdFromExternalId(externalId: String)(implicit session: DBSession = AutoSession): Option[Long] = {
       sql"select id from ${Concept.table} where $externalId = any(external_id)"
         .map(rs => rs.long("id"))
@@ -233,16 +222,6 @@ trait DraftConceptRepository {
         s"${Concept.schemaName.getOrElse(ConceptApiProperties.MetaSchema)}.${Concept.tableName}_id_seq")
 
       sql"alter sequence $sequenceName restart with $idToStartAt;".executeUpdate().apply()
-    }
-
-    def everyTagFromEveryConcept(implicit session: DBSession = ReadOnlyAutoSession) = {
-      sql"select distinct document#>'{tags}' as tags from ${Concept.table} where jsonb_array_length(document#>'{tags}') > 0"
-        .map(rs => {
-          val jsonStr = rs.string("tags")
-          read[List[ConceptTags]](jsonStr)
-        })
-        .list
-        .apply()
     }
 
     def getTags(input: String, pageSize: Int, offset: Int, language: String)(
