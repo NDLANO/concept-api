@@ -153,7 +153,9 @@ trait IndexService {
       }
     }
 
-    def findAllIndexes(indexName: String): Try[Seq[String]] = {
+    def findAllIndexes: Try[Seq[String]] = findAllIndexes(this.searchIndex)
+
+    private def findAllIndexes(indexName: String): Try[Seq[String]] = {
       val response = e4sClient.execute {
         getAliases()
       }

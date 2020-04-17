@@ -7,19 +7,18 @@
 
 package no.ndla.conceptapi.controller
 
-import java.util.concurrent.{Executor, Executors}
+import java.util.concurrent.Executors
 
-import no.ndla.conceptapi.ConceptApiProperties
-import no.ndla.conceptapi.service.search.{DraftConceptIndexService, IndexService, PublishedConceptIndexService}
-import org.json4s.Formats
-import org.scalatra.{InternalServerError, Ok, Unauthorized}
-import org.scalatra.swagger.Swagger
 import no.ndla.conceptapi.auth.{User, UserInfo}
-import no.ndla.conceptapi.model.domain.ReindexResult
+import no.ndla.conceptapi.service.search.{DraftConceptIndexService, IndexService, PublishedConceptIndexService}
 import no.ndla.conceptapi.service.{ConverterService, ImportService}
+import org.json4s.Formats
+import org.scalatra.swagger.Swagger
+import org.scalatra.{InternalServerError, Ok, Unauthorized}
 
-import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.concurrent.duration._
+import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
+import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
 trait InternController {
@@ -61,24 +60,47 @@ trait InternController {
       }
     }
 
-    delete("/index") {
+    def deleteIndexes[T <: IndexService[_]](indexService: T) = {
       def pluralIndex(n: Int) = if (n == 1) "1 index" else s"$n indexes"
-      draftConceptIndexService.findAllIndexes(ConceptApiProperties.DraftConceptSearchIndex) match {
+      indexService.findAllIndexes match {
         case Failure(ex) =>
           logger.error("Could not find indexes to delete.")
-          errorHandler(ex)
+          Failure(ex)
         case Success(indexesToDelete) =>
-          val deleted = indexesToDelete.map(index => draftConceptIndexService.deleteIndexWithName(Some(index)))
+          val deleted = indexesToDelete.map(index => indexService.deleteIndexWithName(Some(index)))
           val (successes, errors) = deleted.partition(_.isSuccess)
           if (errors.nonEmpty) {
             val message = s"Failed to delete ${pluralIndex(errors.length)}: " +
               s"${errors.map(_.failed.get.getMessage).mkString(", ")}. " +
               s"${pluralIndex(successes.length)} were deleted successfully."
-            halt(status = 500, body = message)
+            Failure(new RuntimeException(message))
           } else {
-            Ok(body = s"Deleted ${pluralIndex(successes.length)}")
+            Success(s"Deleted ${pluralIndex(successes.length)}")
           }
       }
+    }
+
+    delete("/index") {
+      def logDeleteResult(t: Try[String]) = {
+        t match {
+          case Failure(ex) =>
+            logger.error(ex.getMessage)
+            ex.getMessage
+          case Success(msg) =>
+            logger.info(msg)
+            msg
+        }
+      }
+
+      val result1 = deleteIndexes(draftConceptIndexService)
+      val result2 = deleteIndexes(publishedConceptIndexService)
+
+      val msg =
+        s"""${logDeleteResult(result1)}
+           |${logDeleteResult(result2)}""".stripMargin
+
+      if (result1.isFailure || result2.isFailure) InternalServerError(msg)
+      else Ok(msg)
     }
 
     post("/import/listing") {
