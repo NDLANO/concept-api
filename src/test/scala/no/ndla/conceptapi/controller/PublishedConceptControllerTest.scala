@@ -46,7 +46,7 @@ class PublishedConceptControllerTest extends UnitSuite with TestEnvironment with
     }
   }
 
-  test("/<concept_id> should return 400 if the concept was not found") {
+  test("/<concept_id> should return 400 if the id was not valid") {
     get(s"/test/one") {
       status should equal(400)
     }
