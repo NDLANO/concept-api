@@ -154,7 +154,7 @@ trait DraftConceptRepository {
       conceptWhere(sqls"co.id=${id.toInt} ORDER BY revision DESC LIMIT 1")
 
     def exists(id: Long)(implicit session: DBSession = AutoSession): Boolean = {
-      sql"select id from ${Concept.table} where id=${id} order by "
+      sql"select id from ${Concept.table} where id=${id}"
         .map(rs => rs.long("id"))
         .single
         .apply()
