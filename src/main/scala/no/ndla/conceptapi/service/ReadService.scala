@@ -33,7 +33,7 @@ trait ReadService {
         case Some(concept) =>
           converterService.toApiConcept(concept, language, fallback)
         case None =>
-          Failure(NotFoundException(s"A published Concept with id $id was not found with language '$language'."))
+          Failure(NotFoundException(s"A concept with id $id was not found with language '$language'."))
       }
 
     def allSubjects(): Try[Set[String]] = {
