@@ -80,7 +80,12 @@ trait PublishedConceptRepository {
     }
 
     def everyTagFromEveryConcept(implicit session: DBSession = ReadOnlyAutoSession) = {
-      sql"select distinct document#>'{tags}' as tags from ${PublishedConcept.table} where jsonb_array_length(document#>'{tags}') > 0"
+      sql"""
+           select distinct id, document#>'{tags}' as tags 
+           from ${PublishedConcept.table} 
+           where jsonb_array_length(document#>'{tags}') > 0 
+           order by id
+         """
         .map(rs => {
           val jsonStr = rs.string("tags")
           read[List[ConceptTags]](jsonStr)
