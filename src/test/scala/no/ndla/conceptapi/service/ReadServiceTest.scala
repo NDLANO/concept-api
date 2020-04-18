@@ -17,7 +17,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
 
   test("Checks that filter by language works as it should") {
 
-    when(conceptRepository.everyTagFromEveryConcept).thenReturn(
+    when(publishedConceptRepository.everyTagFromEveryConcept).thenReturn(
       List(
         List(
           domain.ConceptTags(Seq("konge", "bror"), "nb"),

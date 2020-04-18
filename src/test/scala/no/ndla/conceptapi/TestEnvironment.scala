@@ -10,7 +10,7 @@ package no.ndla.conceptapi
 import com.typesafe.scalalogging.LazyLogging
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.conceptapi.auth.User
-import no.ndla.conceptapi.controller.ConceptController
+import no.ndla.conceptapi.controller.{DraftConceptController, DraftNdlaController, PublishedConceptController}
 import no.ndla.conceptapi.integration.{
   ArticleApiClient,
   DataSource,
@@ -19,25 +19,39 @@ import no.ndla.conceptapi.integration.{
   ListingApiClient,
   NdlaE4sClient
 }
-import no.ndla.conceptapi.repository.ConceptRepository
+import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.service.search.{
-  ConceptIndexService,
-  ConceptSearchService,
+  DraftConceptIndexService,
+  DraftConceptSearchService,
   IndexService,
+  PublishedConceptIndexService,
+  PublishedConceptSearchService,
   SearchConverterService,
   SearchService
 }
-import no.ndla.conceptapi.service.{Clock, ConverterService, ImportService, ReadService, WriteService}
+import no.ndla.conceptapi.service.{
+  Clock,
+  ConverterService,
+  ImportService,
+  ReadService,
+  StateTransitionRules,
+  WriteService
+}
 import no.ndla.conceptapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
 import org.mockito.scalatest.MockitoSugar
 
 trait TestEnvironment
-    extends ConceptRepository
-    with ConceptController
+    extends DraftConceptRepository
+    with PublishedConceptRepository
+    with DraftConceptController
+    with PublishedConceptController
+    with DraftNdlaController
     with SearchConverterService
-    with ConceptIndexService
-    with ConceptSearchService
+    with PublishedConceptSearchService
+    with PublishedConceptIndexService
+    with DraftConceptIndexService
+    with DraftConceptSearchService
     with IndexService
     with Elastic4sClient
     with SearchService
@@ -47,6 +61,7 @@ trait TestEnvironment
     with WriteService
     with ReadService
     with ConverterService
+    with StateTransitionRules
     with ContentValidator
     with ImportService
     with ArticleApiClient
@@ -56,11 +71,18 @@ trait TestEnvironment
     with Clock
     with User {
 
-  val conceptRepository = mock[ConceptRepository]
-  val conceptController = mock[ConceptController]
+  val draftConceptRepository = mock[DraftConceptRepository]
+  val publishedConceptRepository = mock[PublishedConceptRepository]
+
+  val draftConceptController = mock[DraftConceptController]
+  val publishedConceptController = mock[PublishedConceptController]
+
   val searchConverterService = mock[SearchConverterService]
-  val conceptIndexService = mock[ConceptIndexService]
-  val conceptSearchService = mock[ConceptSearchService]
+  val draftConceptIndexService = mock[DraftConceptIndexService]
+  val draftConceptSearchService = mock[DraftConceptSearchService]
+  val publishedConceptIndexService = mock[PublishedConceptIndexService]
+  val publishedConceptSearchService = mock[PublishedConceptSearchService]
+
   var e4sClient = mock[NdlaE4sClient]
   val lazyLogging = mock[LazyLogging]
   val mockitoSugar = mock[MockitoSugar]

@@ -19,6 +19,7 @@ case class UserInfo(id: String, roles: Set[Role.Value]) {
 
 object UserInfo {
   val UnauthorizedUser = UserInfo("unauthorized", Set.empty)
+  val SystemUser = UserInfo("system", Role.values.toSet)
 
   val WriteRoles = Set(Role.WRITE)
   val ReadRoles = Set(Role.WRITE)

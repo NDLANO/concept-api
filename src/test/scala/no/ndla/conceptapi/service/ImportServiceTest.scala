@@ -66,7 +66,7 @@ class ImportServiceTest extends UnitSuite with TestEnvironment {
 
     val coverPages = Iterator(Success(coverPage1), Success(coverPage2))
 
-    when(conceptRepository.updateIdCounterToHighestId()(any[DBSession])).thenReturn(0)
+    when(draftConceptRepository.updateIdCounterToHighestId()(any[DBSession])).thenReturn(0)
     when(listingApiClient.getChunks).thenReturn(coverPages)
     when(imageApiClient.getImage(any[String])).thenReturn(
       Success(
@@ -112,7 +112,7 @@ class ImportServiceTest extends UnitSuite with TestEnvironment {
 
     val coverPages = Iterator(Success(coverPage1), Success(coverPage2))
 
-    when(conceptRepository.updateIdCounterToHighestId()(any[DBSession])).thenReturn(0)
+    when(draftConceptRepository.updateIdCounterToHighestId()(any[DBSession])).thenReturn(0)
     when(listingApiClient.getChunks).thenReturn(coverPages)
     when(imageApiClient.getImage(any[String])).thenReturn(
       Success(

@@ -9,7 +9,14 @@ package no.ndla.conceptapi
 
 import com.typesafe.scalalogging.LazyLogging
 import com.zaxxer.hikari.HikariDataSource
-import no.ndla.conceptapi.controller.{ConceptController, HealthController, InternController}
+import no.ndla.conceptapi.controller.{
+  DraftConceptController,
+  DraftNdlaController,
+  HealthController,
+  InternController,
+  NdlaController,
+  PublishedConceptController
+}
 import no.ndla.conceptapi.auth.User
 import no.ndla.conceptapi.integration.{
   ArticleApiClient,
@@ -20,37 +27,52 @@ import no.ndla.conceptapi.integration.{
   ListingApiClient,
   NdlaE4sClient
 }
-import no.ndla.conceptapi.repository.ConceptRepository
+import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.service.search.{
-  ConceptIndexService,
-  ConceptSearchService,
+  DraftConceptIndexService,
+  DraftConceptSearchService,
   IndexService,
+  PublishedConceptIndexService,
+  PublishedConceptSearchService,
   SearchConverterService,
   SearchService
 }
-import no.ndla.conceptapi.service.{Clock, ConverterService, ImportService, ReadService, WriteService}
+import no.ndla.conceptapi.service.{
+  Clock,
+  ConverterService,
+  ImportService,
+  ReadService,
+  StateTransitionRules,
+  WriteService
+}
 import no.ndla.conceptapi.validation.ContentValidator
 import no.ndla.network.NdlaClient
 import scalikejdbc.{ConnectionPool, DataSourceConnectionPool}
 
 object ComponentRegistry
-    extends ConceptController
+    extends DraftConceptController
+    with PublishedConceptController
+    with DraftNdlaController
     with Clock
     with User
     with WriteService
     with ContentValidator
     with ReadService
     with ConverterService
-    with ConceptRepository
+    with StateTransitionRules
+    with DraftConceptRepository
+    with PublishedConceptRepository
     with DataSource
     with LazyLogging
     with HealthController
-    with ConceptSearchService
+    with DraftConceptSearchService
+    with PublishedConceptSearchService
     with ImportService
     with SearchService
     with SearchConverterService
     with Elastic4sClient
-    with ConceptIndexService
+    with DraftConceptIndexService
+    with PublishedConceptIndexService
     with IndexService
     with InternController
     with ArticleApiClient
@@ -58,13 +80,20 @@ object ComponentRegistry
     with ImageApiClient
     with NdlaClient {
 
-  lazy val conceptController = new ConceptController
-  lazy val conceptRepository = new ConceptRepository
+  lazy val draftConceptController = new DraftConceptController
+  lazy val publishedConceptController = new PublishedConceptController
   lazy val healthController = new HealthController
   lazy val internController = new InternController
-  lazy val conceptSearchService = new ConceptSearchService
+
+  lazy val draftConceptRepository = new DraftConceptRepository
+  lazy val publishedConceptRepository = new PublishedConceptRepository
+
+  lazy val draftConceptSearchService = new DraftConceptSearchService
   lazy val searchConverterService = new SearchConverterService
-  lazy val conceptIndexService = new ConceptIndexService
+  lazy val draftConceptIndexService = new DraftConceptIndexService
+  lazy val publishedConceptIndexService = new PublishedConceptIndexService
+  lazy val publishedConceptSearchService = new PublishedConceptSearchService
+
   var e4sClient: NdlaE4sClient = Elastic4sClientFactory.getClient()
 
   lazy val ndlaClient = new NdlaClient

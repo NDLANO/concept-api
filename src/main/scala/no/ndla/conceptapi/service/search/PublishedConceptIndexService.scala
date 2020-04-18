@@ -12,24 +12,34 @@ import com.sksamuel.elastic4s.indexes.IndexRequest
 import com.sksamuel.elastic4s.mappings.MappingDefinition
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.ConceptApiProperties
+import no.ndla.conceptapi.model.api.{ConceptMissingIdException, NotFoundException}
 import no.ndla.conceptapi.model.domain.Concept
-import no.ndla.conceptapi.repository.{ConceptRepository, Repository}
-import org.json4s.native.Serialization.write
 import no.ndla.conceptapi.model.search.SearchableLanguageFormats
+import no.ndla.conceptapi.repository.{PublishedConceptRepository, Repository}
+import org.json4s.native.Serialization.write
 
-trait ConceptIndexService {
-  this: IndexService with ConceptRepository with SearchConverterService =>
-  val conceptIndexService: ConceptIndexService
+import scala.util.{Failure, Success, Try}
 
-  class ConceptIndexService extends LazyLogging with IndexService[Concept] {
+trait PublishedConceptIndexService {
+  this: IndexService with PublishedConceptRepository with SearchConverterService =>
+  val publishedConceptIndexService: PublishedConceptIndexService
+
+  class PublishedConceptIndexService extends LazyLogging with IndexService[Concept] {
     implicit val formats = SearchableLanguageFormats.JSonFormats
     override val documentType: String = ConceptApiProperties.ConceptSearchDocument
-    override val searchIndex: String = ConceptApiProperties.ConceptSearchIndex
-    override val repository: Repository[Concept] = conceptRepository
+    override val searchIndex: String = ConceptApiProperties.PublishedConceptSearchIndex
+    override val repository: Repository[Concept] = publishedConceptRepository
 
-    override def createIndexRequest(concept: Concept, indexName: String): IndexRequest = {
-      val source = write(searchConverterService.asSearchableConcept(concept))
-      indexInto(indexName / documentType).doc(source).id(concept.id.get.toString)
+    override def createIndexRequest(concept: Concept, indexName: String): Try[IndexRequest] = {
+      concept.id match {
+        case Some(id) =>
+          val source = write(searchConverterService.asSearchableConcept(concept))
+          Success(
+            indexInto(indexName / documentType).doc(source).id(id.toString)
+          )
+
+        case _ => Failure(ConceptMissingIdException("Attempted to create index request for concept without an id."))
+      }
     }
 
     def getMapping: MappingDefinition = {

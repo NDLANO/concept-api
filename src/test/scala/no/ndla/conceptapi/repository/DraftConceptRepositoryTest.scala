@@ -8,18 +8,20 @@
 package no.ndla.conceptapi.repository
 
 import java.net.Socket
+import java.util.Date
 
 import no.ndla.conceptapi.model.domain
 import no.ndla.conceptapi.{ConceptApiProperties, DBMigrator, IntegrationSuite, TestData, TestEnvironment}
 import scalikejdbc.{ConnectionPool, DB, DataSourceConnectionPool}
 import no.ndla.conceptapi.TestData._
+import no.ndla.conceptapi.model.api.OptimisticLockException
 
-import scala.util.{Success, Try}
+import scala.util.{Failure, Success, Try}
 import scalikejdbc._
 
-class ConceptRepositoryTest extends IntegrationSuite with TestEnvironment {
+class DraftConceptRepositoryTest extends IntegrationSuite with TestEnvironment {
 
-  val repository: ConceptRepository = new ConceptRepository
+  val repository: DraftConceptRepository = new DraftConceptRepository
   def databaseIsAvailable: Boolean = Try(repository.conceptCount).isSuccess
 
   def emptyTestDatabase = {
@@ -71,26 +73,6 @@ class ConceptRepositoryTest extends IntegrationSuite with TestEnvironment {
     repository.withId(id3).get.content should be(art3.content)
   }
 
-  test("That getting subjects works as expected") {
-    assume(databaseIsAvailable, "Database is unavailable")
-    val concept1 = domainConcept.copy(subjectIds = Set("urn:subject:1", "urn:subject:2"))
-    val concept2 = domainConcept.copy(subjectIds = Set("urn:subject:1", "urn:subject:19"))
-    val concept3 = domainConcept.copy(subjectIds = Set("urn:subject:12"))
-
-    repository.insert(concept1)
-    repository.insert(concept2)
-    repository.insert(concept3)
-
-    repository.allSubjectIds should be(
-      Set(
-        "urn:subject:1",
-        "urn:subject:2",
-        "urn:subject:12",
-        "urn:subject:19"
-      )
-    )
-  }
-
   test("Inserting and fetching with listing id works as expected") {
     assume(databaseIsAvailable, "Database is unavailable")
     val concept1 = domainConcept.copy(title = Seq(domain.ConceptTitle("Really good title", "nb")))
@@ -115,51 +97,6 @@ class ConceptRepositoryTest extends IntegrationSuite with TestEnvironment {
     val expected3 =
       Some(concept3.copy(id = insertedConcept3.id, created = result3.get.created, updated = result3.get.updated))
     result3 should be(expected3)
-  }
-
-  test("Fetching concepts tags works as expected") {
-    assume(databaseIsAvailable, "Database is unavailable")
-    val concept1 =
-      domainConcept.copy(
-        tags = Seq(
-          domain.ConceptTags(Seq("konge", "bror"), "nb"),
-          domain.ConceptTags(Seq("konge", "brur"), "nn"),
-          domain.ConceptTags(Seq("king", "bro"), "en"),
-          domain.ConceptTags(Seq("zing", "xiongdi"), "zh")
-        ))
-    val concept2 =
-      domainConcept.copy(
-        tags = Seq(
-          domain.ConceptTags(Seq("konge", "lol", "meme"), "nb"),
-          domain.ConceptTags(Seq("konge", "lel", "meem"), "nn"),
-          domain.ConceptTags(Seq("king", "lul", "maymay"), "en"),
-          domain.ConceptTags(Seq("zing", "kek", "mimi"), "zh")
-        ))
-    val concept3 =
-      domainConcept.copy(
-        tags = Seq()
-      )
-
-    repository.insert(concept1)
-    repository.insert(concept2)
-    repository.insert(concept3)
-
-    repository.everyTagFromEveryConcept should be(
-      List(
-        List(
-          domain.ConceptTags(Seq("konge", "lol", "meme"), "nb"),
-          domain.ConceptTags(Seq("konge", "lel", "meem"), "nn"),
-          domain.ConceptTags(Seq("king", "lul", "maymay"), "en"),
-          domain.ConceptTags(Seq("zing", "kek", "mimi"), "zh")
-        ),
-        List(
-          domain.ConceptTags(Seq("konge", "bror"), "nb"),
-          domain.ConceptTags(Seq("konge", "brur"), "nn"),
-          domain.ConceptTags(Seq("king", "bro"), "en"),
-          domain.ConceptTags(Seq("zing", "xiongdi"), "zh"),
-        )
-      )
-    )
   }
 
   test("getTags returns non-duplicate tags and correct number of them") {
@@ -222,6 +159,39 @@ class ConceptRepositoryTest extends IntegrationSuite with TestEnvironment {
     tags9 should equal(Seq("abc", "asd"))
     tags9.length should be(2)
     tagsCount9 should be(2)
+  }
+
+  test("Revision mismatch fail with optimistic lock exception") {
+    assume(databaseIsAvailable, "Database is unavailable")
+
+    val art1 = domainConcept.copy(
+      revision = None,
+      content = Seq(domain.ConceptContent("Originalpls", "nb")),
+      created = new Date(0),
+      updated = new Date(0)
+    )
+
+    val insertedConcept = repository.insert(art1)
+    val insertedId = insertedConcept.id.get
+
+    repository.withId(insertedId).get.revision should be(Some(1))
+
+    val updatedContent = Seq(domain.ConceptContent("Updatedpls", "nb"))
+    val updatedArt1 = art1.copy(revision = Some(10), id = Some(insertedId), content = updatedContent)
+
+    val updateResult1 = repository.update(updatedArt1)
+    updateResult1 should be(Failure(new OptimisticLockException))
+
+    val fetched1 = repository.withId(insertedId).get
+    fetched1 should be(insertedConcept)
+
+    val updatedArt2 = fetched1.copy(content = updatedContent)
+    val updateResult2 = repository.update(updatedArt2)
+    updateResult2 should be(Success(updatedArt2.copy(revision = Some(2))))
+
+    val fetched2 = repository.withId(insertedId).get
+    fetched2.revision should be(Some(2))
+    fetched2.content should be(updatedContent)
   }
 
 }

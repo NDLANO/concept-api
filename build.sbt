@@ -11,7 +11,7 @@ val MockitoVersion = "1.11.4"
 val Elastic4sVersion = "6.7.4"
 val JacksonVersion = "2.10.2"
 val ElasticsearchVersion = "6.8.6"
-val Json4SVersion = "3.5.4"
+val Json4SVersion = "3.6.7"
 val FlywayVersion = "5.2.0"
 val PostgresVersion = "42.2.5"
 val HikariConnectionPoolVersion = "3.2.0"
@@ -66,6 +66,7 @@ lazy val concept_api = (project in file("."))
       "com.sksamuel.elastic4s" %% "elastic4s-core" % Elastic4sVersion,
       "com.sksamuel.elastic4s" %% "elastic4s-http" % Elastic4sVersion,
       "org.typelevel" %% "cats-core" % CatsEffectVersion,
+      "org.typelevel" %% "cats-effect" % CatsEffectVersion,
       "org.testcontainers" % "elasticsearch" % TestContainersVersion % "test",
       "org.testcontainers" % "testcontainers" % TestContainersVersion % "test",
       "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.22",

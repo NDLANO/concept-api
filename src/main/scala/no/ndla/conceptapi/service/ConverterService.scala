@@ -7,20 +7,22 @@
 
 package no.ndla.conceptapi.service
 
+import cats.effect.IO
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.conceptapi.repository.ConceptRepository
+import no.ndla.conceptapi.repository.DraftConceptRepository
 import no.ndla.conceptapi.model.domain
 import no.ndla.conceptapi.model.domain.Language._
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api.NotFoundException
-import no.ndla.conceptapi.model.domain.LanguageField
+import no.ndla.conceptapi.model.domain.{ConceptStatus, LanguageField, Status}
 import no.ndla.mapping.License.getLicense
 import no.ndla.conceptapi.ConceptApiProperties._
+import no.ndla.conceptapi.auth.UserInfo
 
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
-  this: Clock with ConceptRepository =>
+  this: Clock with DraftConceptRepository with StateTransitionRules =>
   val converterService: ConverterService
 
   class ConverterService extends LazyLogging {
@@ -42,18 +44,20 @@ trait ConverterService {
 
         Success(
           api.Concept(
-            concept.id.get,
-            Some(title),
-            Some(content),
-            concept.copyright.map(toApiCopyright),
-            concept.source,
-            Some(metaImage),
-            tags,
-            if (concept.subjectIds.isEmpty) None else Some(concept.subjectIds),
-            concept.created,
-            concept.updated,
-            concept.supportedLanguages,
-            concept.articleId
+            id = concept.id.get,
+            revision = concept.revision.getOrElse(-1),
+            title = Some(title),
+            content = Some(content),
+            copyright = concept.copyright.map(toApiCopyright),
+            source = concept.source,
+            metaImage = Some(metaImage),
+            tags = tags,
+            subjectIds = if (concept.subjectIds.isEmpty) None else Some(concept.subjectIds),
+            created = concept.created,
+            updated = concept.updated,
+            supportedLanguages = concept.supportedLanguages,
+            articleId = concept.articleId,
+            status = toApiStatus(concept.status)
           )
         )
       } else {
@@ -61,6 +65,13 @@ trait ConverterService {
           NotFoundException(s"The concept with id ${concept.id.getOrElse(-1)} and language '$language' was not found.",
                             concept.supportedLanguages.toSeq))
       }
+    }
+
+    def toApiStatus(status: domain.Status) = {
+      api.Status(
+        current = status.current.toString,
+        other = status.other.map(_.toString).toSeq
+      )
     }
 
     def toApiTags(tags: domain.ConceptTags) = {
@@ -107,6 +118,7 @@ trait ConverterService {
       Success(
         domain.Concept(
           id = None,
+          revision = None,
           title = Seq(domain.ConceptTitle(concept.title, concept.language)),
           content = concept.content
             .map(content => Seq(domain.ConceptContent(content, concept.language)))
@@ -118,7 +130,8 @@ trait ConverterService {
           metaImage = concept.metaImage.map(m => domain.ConceptMetaImage(m.id, m.alt, concept.language)).toSeq,
           tags = concept.tags.map(t => toDomainTags(t, concept.language)).getOrElse(Seq.empty),
           subjectIds = concept.subjectIds.getOrElse(Seq.empty).toSet,
-          articleId = concept.articleId
+          articleId = concept.articleId,
+          status = Status.default
         ))
     }
 
@@ -166,6 +179,9 @@ trait ConverterService {
       )
     }
 
+    def updateStatus(status: ConceptStatus.Value, concept: domain.Concept, user: UserInfo): IO[Try[domain.Concept]] =
+      StateTransitionRules.doTransition(concept, status, user)
+
     def toDomainConcept(id: Long, concept: api.UpdatedConcept): domain.Concept = {
       val lang = concept.language
 
@@ -181,6 +197,7 @@ trait ConverterService {
 
       domain.Concept(
         id = Some(id),
+        revision = None,
         title = concept.title.map(t => domain.ConceptTitle(t, lang)).toSeq,
         content = concept.content.map(c => domain.ConceptContent(c, lang)).toSeq,
         copyright = concept.copyright.map(toDomainCopyright),
@@ -190,7 +207,8 @@ trait ConverterService {
         metaImage = newMetaImage,
         tags = concept.tags.map(t => toDomainTags(t, concept.language)).getOrElse(Seq.empty),
         subjectIds = concept.subjectIds.getOrElse(Seq.empty).toSet,
-        articleId = newArticleId
+        articleId = newArticleId,
+        status = Status.default
       )
     }
 
@@ -221,6 +239,16 @@ trait ConverterService {
                          offset: Int,
                          language: String): api.TagsSearchResult = {
       api.TagsSearchResult(tagsCount, offset, pageSize, language, tags)
+    }
+
+    def stateTransitionsToApi(user: UserInfo): Map[String, Seq[String]] = {
+      StateTransitionRules.StateTransitions.groupBy(_.from).map {
+        case (from, to) =>
+          from.toString -> to
+            .filter(t => user.hasRoles(t.requiredRoles))
+            .map(_.to.toString)
+            .toSeq
+      }
     }
 
   }

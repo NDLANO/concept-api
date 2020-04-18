@@ -8,10 +8,8 @@
 package no.ndla.conceptapi
 
 import no.ndla.conceptapi.auth.{Role, UserInfo}
-import no.ndla.conceptapi.model.api
-import no.ndla.conceptapi.model.api.UpdatedConcept
-import no.ndla.conceptapi.model.domain
-import no.ndla.conceptapi.model.domain.{ConceptContent, ConceptTitle, Copyright}
+import no.ndla.conceptapi.model.{api, domain}
+import no.ndla.conceptapi.model.domain.{ConceptContent, ConceptTitle, Copyright, Status}
 import org.joda.time.DateTime
 
 object TestData {
@@ -36,6 +34,7 @@ object TestData {
 
   val sampleNbApiConcept = api.Concept(
     1.toLong,
+    1,
     Some(api.ConceptTitle("Tittel", "nb")),
     Some(api.ConceptContent("Innhold", "nb")),
     None,
@@ -46,11 +45,16 @@ object TestData {
     yesterday,
     today,
     Set("nn", "nb"),
-    Some(42)
+    Some(42),
+    api.Status(
+      current = "DRAFT",
+      other = Seq.empty
+    )
   )
 
   val sampleNbDomainConcept = domain.Concept(
     id = Some(1),
+    revision = Some(1),
     title = Seq(domain.ConceptTitle("Tittel", "nb")),
     content = Seq(domain.ConceptContent("Innhold", "nb")),
     copyright = None,
@@ -60,11 +64,13 @@ object TestData {
     metaImage = Seq(domain.ConceptMetaImage("1", "Hei", "nb")),
     tags = Seq(domain.ConceptTags(Seq("stor", "kaktus"), "nb")),
     subjectIds = Set("urn:subject:3", "urn:subject:4"),
-    articleId = Some(42)
+    articleId = Some(42),
+    status = Status.default
   )
 
   val sampleConcept = domain.Concept(
     id = Some(1),
+    revision = Some(1),
     title = Seq(ConceptTitle("Tittel for begrep", "nb")),
     content = Seq(ConceptContent("Innhold for begrep", "nb")),
     copyright = Some(Copyright(Some("publicdomain"), Some(""), Seq.empty, Seq.empty, Seq.empty, None, None, None)),
@@ -74,11 +80,13 @@ object TestData {
     metaImage = Seq(domain.ConceptMetaImage("1", "Hei", "nb")),
     tags = Seq(domain.ConceptTags(Seq("liten", "fisk"), "nb")),
     subjectIds = Set("urn:subject:3", "urn:subject:4"),
-    articleId = Some(42)
+    articleId = Some(42),
+    status = Status.default
   )
 
   val domainConcept = domain.Concept(
     id = Some(1),
+    revision = Some(1),
     title = Seq(domain.ConceptTitle("Tittel", "nb"), domain.ConceptTitle("Tittelur", "nn")),
     content = Seq(domain.ConceptContent("Innhold", "nb"), domain.ConceptContent("Innhald", "nn")),
     copyright = None,
@@ -88,11 +96,13 @@ object TestData {
     metaImage = Seq(domain.ConceptMetaImage("1", "Hei", "nb"), domain.ConceptMetaImage("2", "Hej", "nn")),
     tags = Seq(domain.ConceptTags(Seq("stor", "kaktus"), "nb"), domain.ConceptTags(Seq("liten", "fisk"), "nn")),
     subjectIds = Set("urn:subject:3", "urn:subject:4"),
-    articleId = Some(42)
+    articleId = Some(42),
+    status = Status.default
   )
 
   val domainConcept_toDomainUpdateWithId = domain.Concept(
     id = None,
+    revision = None,
     title = Seq.empty,
     content = Seq.empty,
     copyright = None,
@@ -103,10 +113,12 @@ object TestData {
     tags = Seq.empty,
     subjectIds = Set.empty,
     articleId = None,
+    status = Status.default
   )
 
   val sampleNnApiConcept = api.Concept(
     1.toLong,
+    1,
     Some(api.ConceptTitle("Tittelur", "nn")),
     Some(api.ConceptContent("Innhald", "nn")),
     None,
@@ -117,7 +129,11 @@ object TestData {
     yesterday,
     today,
     Set("nn", "nb"),
-    Some(42)
+    Some(42),
+    api.Status(
+      current = "DRAFT",
+      other = Seq.empty
+    )
   )
 
   val emptyApiUpdatedConcept = api.UpdatedConcept(
@@ -130,11 +146,12 @@ object TestData {
     tags = None,
     subjectIds = None,
     articleId = Right(None),
+    status = None
   )
 
   val sampleNewConcept = api.NewConcept("nb", "Tittel", Some("Innhold"), None, None, None, None, None, Some(42))
 
   val updatedConcept =
-    api.UpdatedConcept("nb", None, Some("Innhold"), Right(None), None, None, None, None, Right(Some(12L)))
+    api.UpdatedConcept("nb", None, Some("Innhold"), Right(None), None, None, None, None, Right(Some(12L)), None)
   val sampleApiTagsSearchResult = api.TagsSearchResult(10, 1, 1, "nb", Seq("a", "b"))
 }

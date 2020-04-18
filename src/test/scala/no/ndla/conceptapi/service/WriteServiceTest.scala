@@ -9,6 +9,7 @@ package no.ndla.conceptapi.service
 
 import java.util.Date
 
+import no.ndla.conceptapi.auth.UserInfo
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.domain
 import no.ndla.conceptapi.model.domain._
@@ -29,57 +30,61 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   val yesterday: Date = DateTime.now().minusDays(1).toDate
   val service = new WriteService()
   val conceptId = 13
+  val userInfo = UserInfo.SystemUser
 
   val concept: api.Concept =
     TestData.sampleNbApiConcept.copy(id = conceptId.toLong, updated = today, supportedLanguages = Set("nb"))
 
   val domainConcept: domain.Concept = TestData.sampleNbDomainConcept.copy(id = Some(conceptId.toLong))
 
-  override def beforeEach(): Unit = {
-    Mockito.reset(conceptRepository)
+  def mockWithConcept(concept: domain.Concept) = {
+    when(draftConceptRepository.withId(conceptId)).thenReturn(Option(concept))
+    when(draftConceptRepository.update(any[Concept])(any[DBSession]))
+      .thenAnswer((invocation: InvocationOnMock) => Try(invocation.getArgument[Concept](0)))
 
-    when(conceptRepository.withId(conceptId)).thenReturn(Option(domainConcept))
-    when(conceptRepository.update(any[Concept])(any[DBSession]))
-      .thenAnswer((invocation: InvocationOnMock) => {
+    when(contentValidator.validateConcept(any[Concept], any[Boolean])).thenAnswer((invocation: InvocationOnMock) =>
+      Try(invocation.getArgument[Concept](0)))
 
-        Try(invocation.getArgument[Concept](0))
-      })
-    when(contentValidator.validateConcept(any[Concept], any[Boolean])).thenReturn(Success(domainConcept))
-    when(conceptIndexService.indexDocument(any[Concept])).thenAnswer((invocation: InvocationOnMock) =>
+    when(draftConceptIndexService.indexDocument(any[Concept])).thenAnswer((invocation: InvocationOnMock) =>
       Try(invocation.getArgument[Concept](0)))
     when(clock.now()).thenReturn(today)
   }
 
+  override def beforeEach(): Unit = {
+    Mockito.reset(draftConceptRepository)
+    mockWithConcept(domainConcept)
+  }
+
   test("newConcept should insert a given Concept") {
-    when(conceptRepository.insert(any[Concept])(any[DBSession])).thenReturn(domainConcept)
+    when(draftConceptRepository.insert(any[Concept])(any[DBSession])).thenReturn(domainConcept)
     when(contentValidator.validateConcept(any[Concept], any[Boolean])).thenReturn(Success(domainConcept))
 
     service.newConcept(TestData.sampleNewConcept).get.id.toString should equal(domainConcept.id.get.toString)
-    verify(conceptRepository, times(1)).insert(any[Concept])
-    verify(conceptIndexService, times(1)).indexDocument(any[Concept])
+    verify(draftConceptRepository, times(1)).insert(any[Concept])
+    verify(draftConceptIndexService, times(1)).indexDocument(any[Concept])
   }
 
   test("That update function updates only content properly") {
     val newContent = "NewContentTest"
     val updatedApiConcept =
-      api.UpdatedConcept("en", None, content = Some(newContent), Right(None), None, None, None, None, Left(null))
+      api.UpdatedConcept("en", None, content = Some(newContent), Right(None), None, None, None, None, Left(null), None)
     val expectedConcept = concept.copy(content = Option(api.ConceptContent(newContent, "en")),
                                        updated = today,
                                        supportedLanguages = Set("nb", "en"),
                                        articleId = None)
-    val result = service.updateConcept(conceptId, updatedApiConcept).get
+    val result = service.updateConcept(conceptId, updatedApiConcept, userInfo).get
     result should equal(expectedConcept)
   }
 
   test("That update function updates only title properly") {
     val newTitle = "NewTitleTest"
     val updatedApiConcept =
-      api.UpdatedConcept("nn", title = Some(newTitle), None, Right(None), None, None, None, None, Left(null))
+      api.UpdatedConcept("nn", title = Some(newTitle), None, Right(None), None, None, None, None, Left(null), None)
     val expectedConcept = concept.copy(title = Option(api.ConceptTitle(newTitle, "nn")),
                                        updated = today,
                                        supportedLanguages = Set("nb", "nn"),
                                        articleId = None)
-    service.updateConcept(conceptId, updatedApiConcept).get should equal(expectedConcept)
+    service.updateConcept(conceptId, updatedApiConcept, userInfo).get should equal(expectedConcept)
   }
 
   test("That updateConcept updates multiple fields properly") {
@@ -99,7 +104,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       Some(updatedSource),
       Some(Seq("Nye", "Tags")),
       Some(Seq("urn:subject:900")),
-      Right(Some(69L))
+      Right(Some(69L)),
+      None
     )
 
     val expectedConcept = concept.copy(
@@ -115,12 +121,12 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       articleId = Some(69L)
     )
 
-    service.updateConcept(conceptId, updatedApiConcept) should equal(Success(expectedConcept))
+    service.updateConcept(conceptId, updatedApiConcept, userInfo) should equal(Success(expectedConcept))
 
   }
 
   test("That delete concept should fail when only one language") {
-    val Failure(result) = service.deleteLanguage(concept.id, "nb")
+    val Failure(result) = service.deleteLanguage(concept.id, "nb", userInfo)
 
     result.getMessage should equal("Only one language left")
   }
@@ -131,12 +137,37 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
                                           title = Seq(ConceptTitle("title", "nb"), ConceptTitle("title", "nn")))
     val conceptCaptor: ArgumentCaptor[Concept] = ArgumentCaptor.forClass(classOf[Concept])
 
-    when(conceptRepository.withId(anyLong)).thenReturn(Some(concept))
+    when(draftConceptRepository.withId(anyLong)).thenReturn(Some(concept))
 
-    service.deleteLanguage(concept.id.get, "nn")
-    verify(conceptRepository).update(conceptCaptor.capture())
+    service.deleteLanguage(concept.id.get, "nn", userInfo)
+    verify(draftConceptRepository).update(conceptCaptor.capture())
 
     conceptCaptor.getValue.title.length should be(1)
+  }
+
+  test("That updating concepts updates revision") {
+    reset(draftConceptRepository)
+
+    val conceptToUpdate = domainConcept.copy(
+      revision = Some(951),
+      title = Seq(domain.ConceptTitle("Yolo", "en")),
+      updated = new Date(0),
+      created = new Date(0)
+    )
+
+    mockWithConcept(conceptToUpdate)
+
+    val updatedTitle = "NyTittelTestJee"
+    val updatedApiConcept = TestData.emptyApiUpdatedConcept.copy(language = "en", title = Some(updatedTitle))
+
+    val conceptCaptor: ArgumentCaptor[Concept] = ArgumentCaptor.forClass(classOf[Concept])
+
+    service.updateConcept(conceptId, updatedApiConcept, userInfo)
+
+    verify(draftConceptRepository).update(conceptCaptor.capture())(any[DBSession])
+
+    conceptCaptor.getValue.revision should be(Some(951))
+    conceptCaptor.getValue.title should be(Seq(domain.ConceptTitle(updatedTitle, "en")))
   }
 
 }

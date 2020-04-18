@@ -10,35 +10,40 @@ package no.ndla.conceptapi.repository
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.ConceptApiProperties
 import no.ndla.conceptapi.integration.DataSource
-import no.ndla.conceptapi.model.api.{ConceptMissingIdException, NotFoundException}
+import no.ndla.conceptapi.model.api.{ConceptMissingIdException, NotFoundException, OptimisticLockException}
 import no.ndla.conceptapi.model.domain.{Concept, ConceptTags}
 import org.json4s.Formats
-import org.postgresql.util.PGobject
 import org.json4s.native.Serialization.{read, write}
+import org.postgresql.util.PGobject
 import scalikejdbc._
 
 import scala.util.{Failure, Success, Try}
 
-trait ConceptRepository {
+trait DraftConceptRepository {
   this: DataSource =>
-  val conceptRepository: ConceptRepository
+  val draftConceptRepository: DraftConceptRepository
 
-  class ConceptRepository extends LazyLogging with Repository[Concept] {
-    implicit val formats: Formats = org.json4s.DefaultFormats + Concept.JSonSerializer
+  class DraftConceptRepository extends LazyLogging with Repository[Concept] {
+    implicit val formats: Formats = Concept.JSonSerializer
 
     def insert(concept: Concept)(implicit session: DBSession = AutoSession): Concept = {
       val dataObject = new PGobject()
       dataObject.setType("jsonb")
       dataObject.setValue(write(concept))
 
+      val newRevision = 1
+
       val conceptId: Long =
         sql"""
-        insert into ${Concept.table} (document)
-        values (${dataObject})
+        insert into ${Concept.table} (document, revision)
+        values (${dataObject}, $newRevision)
           """.updateAndReturnGeneratedKey.apply
 
       logger.info(s"Inserted new concept: $conceptId")
-      concept.copy(id = Some(conceptId))
+      concept.copy(
+        id = Some(conceptId),
+        revision = Some(newRevision)
+      )
     }
 
     def insertwithListingId(concept: Concept, listingId: Long)(implicit session: DBSession = AutoSession): Concept = {
@@ -46,10 +51,12 @@ trait ConceptRepository {
       dataObject.setType("jsonb")
       dataObject.setValue(write(concept))
 
+      val newRevision = 1
+
       val conceptId: Long =
         sql"""
-        insert into ${Concept.table} (listing_id, document)
-        values ($listingId, $dataObject)
+        insert into ${Concept.table} (listing_id, document, revision)
+        values ($listingId, $dataObject, $newRevision)
           """.updateAndReturnGeneratedKey.apply
 
       logger.info(s"Inserted new concept: '$conceptId', with listing id '$listingId'")
@@ -62,9 +69,13 @@ trait ConceptRepository {
       dataObject.setType("jsonb")
       dataObject.setValue(write(concept))
 
-      Try(sql"""
-           update ${Concept.table} set document=${dataObject} where listing_id=${listingId}
-         """.updateAndReturnGeneratedKey.apply) match {
+      Try(
+        sql"""
+           update ${Concept.table} 
+           set document=${dataObject} 
+           where listing_id=${listingId}
+         """.updateAndReturnGeneratedKey.apply
+      ) match {
         case Success(id) => Success(concept.copy(id = Some(id)))
         case Failure(ex) =>
           logger.warn(s"Failed to update concept with id ${concept.id} and listing id: $listingId: ${ex.getMessage}")
@@ -82,8 +93,14 @@ trait ConceptRepository {
           dataObject.setType("jsonb")
           dataObject.setValue(write(concept))
 
-          Try(sql"""insert into ${Concept.table} (id, document)
-                    values ($id, ${dataObject})""".update.apply)
+          val newRevision = 1
+
+          Try(
+            sql"""
+                  insert into ${Concept.table} (id, document, revision)
+                  values ($id, ${dataObject}, $newRevision)
+               """.update.apply
+          )
 
           logger.info(s"Inserted new concept: $id")
           Success(concept)
@@ -97,17 +114,44 @@ trait ConceptRepository {
       dataObject.setType("jsonb")
       dataObject.setValue(write(concept))
 
-      Try(
-        sql"update ${Concept.table} set document=${dataObject} where id=${concept.id.get}".updateAndReturnGeneratedKey.apply) match {
-        case Success(id) => Success(concept.copy(id = Some(id)))
-        case Failure(ex) =>
-          logger.warn(s"Failed to update concept with id ${concept.id}: ${ex.getMessage}")
-          Failure(ex)
+      concept.id match {
+        case None => Failure(new NotFoundException("Can not update "))
+        case Some(conceptId) =>
+          val newRevision = concept.revision.getOrElse(0) + 1
+          val oldRevision = concept.revision
+
+          Try(
+            sql"""
+              update ${Concept.table} 
+              set 
+                document=${dataObject}, 
+                revision=$newRevision
+              where id=$conceptId
+              and revision=$oldRevision
+              and revision=(select max(revision) from ${Concept.table} where id=$conceptId)
+            """.update.apply
+          ) match {
+            case Success(updatedRows) => failIfRevisionMismatch(updatedRows, concept, newRevision)
+            case Failure(ex) =>
+              logger.warn(s"Failed to update concept with id ${concept.id}: ${ex.getMessage}")
+              Failure(ex)
+          }
       }
     }
 
+    private def failIfRevisionMismatch(count: Int, concept: Concept, newRevision: Int): Try[Concept] =
+      if (count != 1) {
+        val message = s"Found revision mismatch when attempting to update concept ${concept.id}"
+        logger.info(message)
+        Failure(new OptimisticLockException)
+      } else {
+        logger.info(s"Updated concept ${concept.id}")
+        val updatedConcept = concept.copy(revision = Some(newRevision))
+        Success(updatedConcept)
+      }
+
     def withId(id: Long): Option[Concept] =
-      conceptWhere(sqls"co.id=${id.toInt}")
+      conceptWhere(sqls"co.id=${id.toInt} ORDER BY revision DESC LIMIT 1")
 
     def exists(id: Long)(implicit session: DBSession = AutoSession): Boolean = {
       sql"select id from ${Concept.table} where id=${id}"
@@ -115,17 +159,6 @@ trait ConceptRepository {
         .single
         .apply()
         .isDefined
-    }
-
-    def allSubjectIds(implicit session: DBSession = ReadOnlyAutoSession): Set[String] = {
-      sql"""
-        select distinct jsonb_array_elements_text(document->'subjectIds') as subject_id 
-        from ${Concept.table} 
-        where jsonb_array_length(document->'subjectIds') != 0;"""
-        .map(rs => rs.string("subject_id"))
-        .list
-        .apply
-        .toSet
     }
 
     def getIdFromExternalId(externalId: String)(implicit session: DBSession = AutoSession): Option[Long] = {
@@ -189,16 +222,6 @@ trait ConceptRepository {
         s"${Concept.schemaName.getOrElse(ConceptApiProperties.MetaSchema)}.${Concept.tableName}_id_seq")
 
       sql"alter sequence $sequenceName restart with $idToStartAt;".executeUpdate().apply()
-    }
-
-    def everyTagFromEveryConcept(implicit session: DBSession = ReadOnlyAutoSession) = {
-      sql"select distinct document#>'{tags}' as tags from ${Concept.table} where jsonb_array_length(document#>'{tags}') > 0"
-        .map(rs => {
-          val jsonStr = rs.string("tags")
-          read[List[ConceptTags]](jsonStr)
-        })
-        .list
-        .apply()
     }
 
     def getTags(input: String, pageSize: Int, offset: Int, language: String)(

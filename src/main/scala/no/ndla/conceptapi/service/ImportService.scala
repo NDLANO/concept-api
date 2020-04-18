@@ -12,11 +12,12 @@ import no.ndla.conceptapi.auth.User
 import no.ndla.conceptapi.integration.{ArticleApiClient, DomainImageMeta, ImageApiClient, ListingApiClient}
 import no.ndla.conceptapi.model.api.{ConceptImportResults, ImportException}
 import no.ndla.conceptapi.model.api.listing.Cover
-import no.ndla.conceptapi.repository.ConceptRepository
+import no.ndla.conceptapi.repository.DraftConceptRepository
 import no.ndla.conceptapi.model.domain
 import cats._
 import cats.data._
 import cats.implicits._
+import no.ndla.conceptapi.model.domain.Status
 
 import scala.util.{Failure, Success, Try}
 
@@ -25,7 +26,7 @@ trait ImportService {
     with Clock
     with User
     with WriteService
-    with ConceptRepository
+    with DraftConceptRepository
     with ArticleApiClient
     with ListingApiClient
     with ImageApiClient =>
@@ -78,6 +79,7 @@ trait ImportService {
             (
               domain.Concept(
                 id = None,
+                revision = None,
                 title = titles,
                 content = contents,
                 copyright = None,
@@ -87,7 +89,8 @@ trait ImportService {
                 metaImage = metaImages,
                 tags = tags,
                 subjectIds = subjectIds,
-                articleId = None
+                articleId = None,
+                status = Status.default
               ),
               coverId,
               metaImageWarning.toSeq ++ taxonomyWarning.toSeq
@@ -142,7 +145,7 @@ trait ImportService {
     }
 
     private def handleFinishedImport(startTime: Long, successfulPages: List[(Int, Int, Seq[String])]) = {
-      conceptRepository.updateIdCounterToHighestId()
+      draftConceptRepository.updateIdCounterToHighestId()
       val (totalSaved, totalAttempted, allWarnings) = successfulPages.foldLeft((0, 0, Seq.empty[String])) {
         case ((tmpTotalSaved, tmpTotalAttempted, tmpWarnings), (pageSaved, pageAttempted, pageWarnings)) =>
           (tmpTotalSaved + pageSaved, tmpTotalAttempted + pageAttempted, tmpWarnings ++ pageWarnings)

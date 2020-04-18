@@ -8,7 +8,7 @@
 package no.ndla.conceptapi.validation
 
 import no.ndla.conceptapi.model.domain._
-import no.ndla.conceptapi.repository.ConceptRepository
+import no.ndla.conceptapi.repository.DraftConceptRepository
 import no.ndla.conceptapi.service.ConverterService
 import no.ndla.mapping.ISO639.get6391CodeFor6392CodeMappings
 import no.ndla.mapping.License.getLicense
@@ -19,7 +19,7 @@ import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
 
 trait ContentValidator {
-  this: ConceptRepository with ConverterService =>
+  this: DraftConceptRepository with ConverterService =>
   val contentValidator: ContentValidator
 
   class ContentValidator {

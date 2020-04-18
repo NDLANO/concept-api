@@ -24,16 +24,20 @@ import no.ndla.mapping.ISO639
 
 import scala.annotation.tailrec
 import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor, ExecutionContextExecutorService, Future}
+import scala.concurrent._
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
-trait ConceptSearchService {
-  this: Elastic4sClient with SearchService with ConceptIndexService with ConverterService with SearchConverterService =>
-  val conceptSearchService: ConceptSearchService
+trait PublishedConceptSearchService {
+  this: Elastic4sClient
+    with SearchService
+    with PublishedConceptIndexService
+    with ConverterService
+    with SearchConverterService =>
+  val publishedConceptSearchService: PublishedConceptSearchService
 
-  class ConceptSearchService extends LazyLogging with SearchService[api.ConceptSummary] {
-    override val searchIndex: String = ConceptApiProperties.ConceptSearchIndex
+  class PublishedConceptSearchService extends LazyLogging with SearchService[api.ConceptSummary] {
+    override val searchIndex: String = ConceptApiProperties.PublishedConceptSearchIndex
 
     override def hitToApiModel(hitString: String, language: String): api.ConceptSummary =
       searchConverterService.hitAsConceptSummary(hitString, language)
@@ -192,7 +196,7 @@ trait ConceptSearchService {
       implicit val ec: ExecutionContextExecutorService =
         ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor)
       val f = Future {
-        conceptIndexService.indexDocuments
+        publishedConceptIndexService.indexDocuments
       }
 
       f.failed.foreach(t => logger.warn("Unable to create index: " + t.getMessage, t))
