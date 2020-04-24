@@ -54,6 +54,7 @@ class PublishedConceptRepositoryTest extends IntegrationSuite with TestEnvironme
   }
 
   test("That inserting and updating works") {
+    assume(databaseIsAvailable, "Database is unavailable")
     val consistentDate = new Date(0)
     val concept1 = TestData.domainConcept.copy(
       id = Some(10),
@@ -85,6 +86,7 @@ class PublishedConceptRepositoryTest extends IntegrationSuite with TestEnvironme
   }
 
   test("That deletion works as expected") {
+    assume(databaseIsAvailable, "Database is unavailable")
     val consistentDate = new Date(0)
     val concept1 = TestData.domainConcept.copy(
       id = Some(10),
@@ -183,6 +185,7 @@ class PublishedConceptRepositoryTest extends IntegrationSuite with TestEnvironme
   }
 
   test("That count works as expected") {
+    assume(databaseIsAvailable, "Database is unavailable")
     val consistentDate = new Date(0)
     val concept1 = TestData.domainConcept.copy(
       id = Some(10),
