@@ -62,6 +62,8 @@ trait StateTransitionRules {
        QUEUED_FOR_LANGUAGE        -> QUEUED_FOR_LANGUAGE,
        QUEUED_FOR_LANGUAGE        -> TRANSLATED                  keepStates Set(PUBLISHED),
        TRANSLATED                 -> TRANSLATED,
+      TRANSLATED                  -> QUEUED_FOR_PUBLISHING        keepStates Set(PUBLISHED),
+      (TRANSLATED                  -> PUBLISHED)                  keepStates Set() require UserInfo.WriteRoles withSideEffect publishConcept,
     )
     // format: on
 
