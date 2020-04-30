@@ -120,6 +120,7 @@ trait PublishedConceptSearchService {
     def executeSearch(queryBuilder: BoolQuery, settings: SearchSettings): Try[SearchResult[api.ConceptSummary]] = {
       val idFilter = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
       val subjectFilter = orFilter("subjectIds", settings.subjects)
+      val tagFilter = languageOrFilter("tags", settings.tagsToFilterBy)
 
       val (languageFilter, searchLanguage) = settings.searchLanguage match {
         case "" | Language.AllLanguages | "*" =>
@@ -130,18 +131,6 @@ trait PublishedConceptSearchService {
           else
             (Some(existsQuery(s"title.$lang")), lang)
       }
-
-      val tagFilter =
-        if (settings.tagsToFilterBy.isEmpty) None
-        else
-          Some(
-            boolQuery()
-              .should(
-                settings.tagsToFilterBy
-                  .flatMap(t =>
-                    ISO639.languagePriority // Since termQuery doesn't support wildcard in field we need to create one for each language.
-                      .map(l => termQuery(s"tags.$l.raw", t)))
-              ))
 
       val filters = List(idFilter, languageFilter, subjectFilter, tagFilter)
       val filteredSearch = queryBuilder.filter(filters.flatten)

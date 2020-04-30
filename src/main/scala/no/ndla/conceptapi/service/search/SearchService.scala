@@ -18,6 +18,7 @@ import org.elasticsearch.index.IndexNotFoundException
 import no.ndla.conceptapi.model.domain.{Language, NdlaSearchException, SearchResult, Sort}
 import no.ndla.conceptapi.ConceptApiProperties.{ElasticSearchScrollKeepAlive, MaxPageSize}
 import no.ndla.conceptapi.integration.Elastic4sClient
+import no.ndla.mapping.ISO639
 
 import scala.util.{Failure, Success, Try}
 
@@ -65,7 +66,7 @@ trait SearchService {
       }
     }
 
-    protected def orFilter(fieldName: String, seq: Iterable[String]) = {
+    protected def orFilter(fieldName: String, seq: Iterable[Any]) =
       if (seq.isEmpty) None
       else
         Some(
@@ -73,7 +74,16 @@ trait SearchService {
             seq.map(s => termQuery(fieldName, s))
           )
         )
-    }
+
+    protected def languageOrFilter(fieldName: String, seq: Iterable[Any]) =
+      if (seq.isEmpty) None
+      else
+        Some(
+          boolQuery().should(
+            seq.flatMap(e =>
+              ISO639.languagePriority
+                .map(l => termQuery(s"$fieldName.$l.raw", e)))
+          ))
 
     def getSortDefinition(sort: Sort.Value, language: String): FieldSort = {
       val sortLanguage = language match {
