@@ -10,9 +10,9 @@ package no.ndla.conceptapi.controller
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.ConceptApiProperties
 import no.ndla.conceptapi.auth.User
-import no.ndla.conceptapi.model.api.{Concept, ConceptSearchParams, ConceptSearchResult, NotFoundException}
+import no.ndla.conceptapi.model.api.{Concept, ConceptSearchResult, DraftConceptSearchParams, NotFoundException}
 import no.ndla.conceptapi.model.domain.{ConceptStatus, Language, SearchResult, Sort}
-import no.ndla.conceptapi.model.search.SearchSettings
+import no.ndla.conceptapi.model.search.DraftSearchSettings
 import no.ndla.conceptapi.service.search.{DraftConceptSearchService, SearchConverterService}
 import no.ndla.conceptapi.service.{ConverterService, ReadService, WriteService}
 import org.json4s.{DefaultFormats, Formats}
@@ -39,6 +39,12 @@ trait DraftConceptController {
     val applicationDescription = "This is the Api for concept drafts"
 
     private val statuss = Param[String]("STATUS", "Concept status")
+    private val statusFilter = Param[Option[Seq[String]]](
+      "status",
+      s"""List of statuses to filter by.
+         |A draft only needs to have one of the available statuses to appear in result (OR).
+       """.stripMargin
+    )
 
     private def scrollSearchOr(scrollId: Option[String], language: String)(orFunction: => Any): Any =
       scrollId match {
@@ -63,9 +69,10 @@ trait DraftConceptController {
         idList: List[Long],
         fallback: Boolean,
         subjects: Set[String],
-        tagsToFilterBy: Set[String]
+        tagsToFilterBy: Set[String],
+        statusFilter: Set[String]
     ) = {
-      val settings = SearchSettings(
+      val settings = DraftSearchSettings(
         withIdIn = idList,
         searchLanguage = language,
         page = page,
@@ -73,7 +80,8 @@ trait DraftConceptController {
         sort = sort.getOrElse(Sort.ByRelevanceDesc),
         fallback = fallback,
         subjects = subjects,
-        tagsToFilterBy = tagsToFilterBy
+        tagsToFilterBy = tagsToFilterBy,
+        statusFilter = statusFilter
       )
 
       val result = query match {
@@ -132,7 +140,8 @@ trait DraftConceptController {
             asQueryParam(sort),
             asQueryParam(fallback),
             asQueryParam(scrollId),
-            asQueryParam(subjects)
+            asQueryParam(subjects),
+            asQueryParam(statusFilter)
         )
           authorizations "oauth2"
           responseMessages response500)
@@ -149,8 +158,20 @@ trait DraftConceptController {
         val fallback = booleanOrDefault(this.fallback.paramName, default = false)
         val subjects = paramAsListOfString(this.subjects.paramName)
         val tagsToFilterBy = paramAsListOfString(this.tagsToFilterBy.paramName)
+        val statusesToFilterBy = paramAsListOfString(this.statusFilter.paramName)
 
-        search(query, sort, language, page, pageSize, idList, fallback, subjects.toSet, tagsToFilterBy.toSet)
+        search(
+          query,
+          sort,
+          language,
+          page,
+          pageSize,
+          idList,
+          fallback,
+          subjects.toSet,
+          tagsToFilterBy.toSet,
+          statusesToFilterBy.toSet
+        )
 
       }
     }
@@ -163,12 +184,12 @@ trait DraftConceptController {
           description "Shows all concepts. You can search it too."
           parameters (
             asHeaderParam(correlationId),
-            bodyParam[ConceptSearchParams]
+            bodyParam[DraftConceptSearchParams]
         )
           authorizations "oauth2"
           responseMessages (response400, response500))
     ) {
-      val body = extract[ConceptSearchParams](request.body)
+      val body = extract[DraftConceptSearchParams](request.body)
       val scrollId = body.map(_.scrollId).getOrElse(None)
       val lang = body.map(_.language).toOption.flatten
 
@@ -184,8 +205,20 @@ trait DraftConceptController {
             val fallback = searchParams.fallback.getOrElse(false)
             val subjects = searchParams.subjects
             val tagsToFilterBy = searchParams.tags
+            val statusFilter = searchParams.status
 
-            search(query, sort, language, page, pageSize, idList, fallback, subjects, tagsToFilterBy)
+            search(
+              query,
+              sort,
+              language,
+              page,
+              pageSize,
+              idList,
+              fallback,
+              subjects,
+              tagsToFilterBy,
+              statusFilter
+            )
           case Failure(ex) => errorHandler(ex)
         }
       }
