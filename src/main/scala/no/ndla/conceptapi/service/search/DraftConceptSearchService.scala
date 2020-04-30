@@ -119,6 +119,8 @@ trait DraftConceptSearchService {
 
     def executeSearch(queryBuilder: BoolQuery, settings: DraftSearchSettings): Try[SearchResult[api.ConceptSummary]] = {
       val idFilter = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
+      val statusFilter = orFilter("statuses", settings.statusFilter)
+      val subjectFilter = orFilter("subjectIds", settings.subjects)
 
       val (languageFilter, searchLanguage) = settings.searchLanguage match {
         case "" | Language.AllLanguages | "*" =>
@@ -129,17 +131,6 @@ trait DraftConceptSearchService {
           else
             (Some(existsQuery(s"title.$lang")), lang)
       }
-
-      val subjectFilter =
-        if (settings.subjects.isEmpty) None
-        else
-          Some(
-            boolQuery()
-              .should(
-                settings.subjects.map(
-                  si => termQuery("subjectIds", si)
-                )
-              ))
 
       val tagFilter =
         if (settings.tagsToFilterBy.isEmpty) None
@@ -153,7 +144,7 @@ trait DraftConceptSearchService {
                       .map(l => termQuery(s"tags.$l.raw", t)))
               ))
 
-      val filters = List(idFilter, languageFilter, subjectFilter, tagFilter)
+      val filters = List(idFilter, languageFilter, subjectFilter, tagFilter, statusFilter)
       val filteredSearch = queryBuilder.filter(filters.flatten)
 
       val (startAt, numResults) = getStartAtAndNumResults(settings.page, settings.pageSize)

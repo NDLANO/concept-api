@@ -528,7 +528,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite with TestEnvironmen
 
     val Success(statusSearch2) = draftConceptSearchService.all(searchSettings.copy(statusFilter = Set("TRANSLATED")))
     statusSearch2.totalCount should be(1)
-    statusSearch2.results.map(_.id) should be(Seq(9))
+    statusSearch2.results.map(_.id) should be(Seq(10))
 
     val Success(statusSearch3) =
       draftConceptSearchService.all(searchSettings.copy(statusFilter = Set("TRANSLATED", "QUEUED_FOR_PUBLISHING")))

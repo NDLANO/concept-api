@@ -65,6 +65,16 @@ trait SearchService {
       }
     }
 
+    protected def orFilter(fieldName: String, seq: Iterable[String]) = {
+      if (seq.isEmpty) None
+      else
+        Some(
+          boolQuery().should(
+            seq.map(s => termQuery(fieldName, s))
+          )
+        )
+    }
+
     def getSortDefinition(sort: Sort.Value, language: String): FieldSort = {
       val sortLanguage = language match {
         case Language.NoLanguage => Language.DefaultLanguage
