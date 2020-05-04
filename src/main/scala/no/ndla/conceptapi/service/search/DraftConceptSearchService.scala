@@ -18,7 +18,7 @@ import no.ndla.conceptapi.integration.Elastic4sClient
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api.{OperationNotAllowedException, ResultWindowTooLargeException, SubjectTags}
 import no.ndla.conceptapi.model.domain.{Language, SearchResult}
-import no.ndla.conceptapi.model.search.SearchSettings
+import no.ndla.conceptapi.model.search.DraftSearchSettings
 import no.ndla.conceptapi.service.ConverterService
 import no.ndla.mapping.ISO639
 
@@ -58,7 +58,7 @@ trait DraftConceptSearchService {
     private def searchSubjectIdTags(subjectId: String, language: String, fallback: Boolean)(
         implicit executor: ExecutionContext): Future[Try[List[SubjectTags]]] =
       Future {
-        val settings = SearchSettings.empty.copy(
+        val settings = DraftSearchSettings.empty.copy(
           subjects = Set(subjectId),
           searchLanguage = language,
           fallback = fallback
@@ -79,7 +79,7 @@ trait DraftConceptSearchService {
 
     @tailrec
     private def searchUntilNoMoreResults(
-        searchSettings: SearchSettings,
+        searchSettings: DraftSearchSettings,
         prevResults: List[SearchResult[api.ConceptSummary]] = List.empty
     ): Try[List[SearchResult[api.ConceptSummary]]] = {
       val page = prevResults.lastOption.flatMap(_.page).getOrElse(0) + 1
@@ -96,9 +96,9 @@ trait DraftConceptSearchService {
       }
     }
 
-    def all(settings: SearchSettings): Try[SearchResult[api.ConceptSummary]] = executeSearch(boolQuery(), settings)
+    def all(settings: DraftSearchSettings): Try[SearchResult[api.ConceptSummary]] = executeSearch(boolQuery(), settings)
 
-    def matchingQuery(query: String, settings: SearchSettings): Try[SearchResult[api.ConceptSummary]] = {
+    def matchingQuery(query: String, settings: DraftSearchSettings): Try[SearchResult[api.ConceptSummary]] = {
       val language = if (settings.searchLanguage == Language.AllLanguages) "*" else settings.searchLanguage
 
       val titleSearch = simpleStringQuery(query).field(s"title.$language", 2)
@@ -117,8 +117,11 @@ trait DraftConceptSearchService {
       executeSearch(fullQuery, settings)
     }
 
-    def executeSearch(queryBuilder: BoolQuery, settings: SearchSettings): Try[SearchResult[api.ConceptSummary]] = {
+    def executeSearch(queryBuilder: BoolQuery, settings: DraftSearchSettings): Try[SearchResult[api.ConceptSummary]] = {
       val idFilter = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
+      val statusFilter = orFilter("statuses", settings.statusFilter)
+      val subjectFilter = orFilter("subjectIds", settings.subjects)
+      val tagFilter = languageOrFilter("tags", settings.tagsToFilterBy)
 
       val (languageFilter, searchLanguage) = settings.searchLanguage match {
         case "" | Language.AllLanguages | "*" =>
@@ -130,30 +133,7 @@ trait DraftConceptSearchService {
             (Some(existsQuery(s"title.$lang")), lang)
       }
 
-      val subjectFilter =
-        if (settings.subjects.isEmpty) None
-        else
-          Some(
-            boolQuery()
-              .should(
-                settings.subjects.map(
-                  si => termQuery("subjectIds", si)
-                )
-              ))
-
-      val tagFilter =
-        if (settings.tagsToFilterBy.isEmpty) None
-        else
-          Some(
-            boolQuery()
-              .should(
-                settings.tagsToFilterBy
-                  .flatMap(t =>
-                    ISO639.languagePriority // Since termQuery doesn't support wildcard in field we need to create one for each language.
-                      .map(l => termQuery(s"tags.$l.raw", t)))
-              ))
-
-      val filters = List(idFilter, languageFilter, subjectFilter, tagFilter)
+      val filters = List(idFilter, languageFilter, subjectFilter, tagFilter, statusFilter)
       val filteredSearch = queryBuilder.filter(filters.flatten)
 
       val (startAt, numResults) = getStartAtAndNumResults(settings.page, settings.pageSize)

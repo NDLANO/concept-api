@@ -53,7 +53,8 @@ trait DraftConceptIndexService {
             keywordField("altText"),
             keywordField("language")
           ),
-          dateField("lastUpdated")
+          dateField("lastUpdated"),
+          keywordField("statuses")
         ) ++
           generateLanguageSupportedFieldList("title", keepRaw = true) ++
           generateLanguageSupportedFieldList("content") ++

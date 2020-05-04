@@ -12,7 +12,7 @@ import no.ndla.conceptapi.{TestEnvironment, _}
 import no.ndla.conceptapi.integration.Elastic4sClientFactory
 import no.ndla.conceptapi.model.api.SubjectTags
 import no.ndla.conceptapi.model.domain._
-import no.ndla.conceptapi.model.search.SearchSettings
+import no.ndla.conceptapi.model.search.DraftSearchSettings
 import org.joda.time.DateTime
 import org.scalatest.Outcome
 
@@ -111,7 +111,8 @@ class DraftConceptSearchServiceTest extends IntegrationSuite with TestEnvironmen
     id = Option(8),
     title = List(ConceptTitle("Baldur har mareritt", "nb")),
     content = List(ConceptContent("<p>Bilde av <em>Baldurs</em> mareritt om Ragnarok.", "nb")),
-    subjectIds = Set("urn:subject:10")
+    subjectIds = Set("urn:subject:10"),
+    status = Status(current = ConceptStatus.QUEUED_FOR_PUBLISHING, other = Set.empty)
   )
 
   val concept9: Concept = TestData.sampleConcept.copy(
@@ -119,7 +120,8 @@ class DraftConceptSearchServiceTest extends IntegrationSuite with TestEnvironmen
     title = List(ConceptTitle("Baldur har mareritt om Ragnarok", "nb")),
     content = List(ConceptContent("<p>Bilde av <em>Baldurs</em> som har  mareritt.", "nb")),
     tags = Seq(ConceptTags(Seq("stor", "klovn"), "nb")),
-    subjectIds = Set("urn:subject:1", "urn:subject:100")
+    subjectIds = Set("urn:subject:1", "urn:subject:100"),
+    status = Status(current = ConceptStatus.PUBLISHED, other = Set.empty)
   )
 
   val concept10: Concept = TestData.sampleConcept.copy(
@@ -128,20 +130,22 @@ class DraftConceptSearchServiceTest extends IntegrationSuite with TestEnvironmen
     content = List(ConceptContent("Pompel", "en"), ConceptContent("Pilt", "nb")),
     tags = Seq(ConceptTags(Seq("cageowl"), "en"), ConceptTags(Seq("burugle"), "nb")),
     updated = DateTime.now().minusDays(1).toDate,
-    subjectIds = Set("urn:subject:2")
+    subjectIds = Set("urn:subject:2"),
+    status = Status(current = ConceptStatus.TRANSLATED, other = Set(ConceptStatus.PUBLISHED))
   )
 
   val concept11: Concept = TestData.sampleConcept.copy(id = Option(11),
                                                        title = List(ConceptTitle("englando", "en")),
                                                        content = List(ConceptContent("englandocontent", "en")))
 
-  val searchSettings = SearchSettings(
+  val searchSettings = DraftSearchSettings(
     List.empty,
     Language.DefaultLanguage,
     1,
     10,
     Sort.ByIdAsc,
     false,
+    Set.empty,
     Set.empty,
     Set.empty
   )
@@ -515,6 +519,21 @@ class DraftConceptSearchServiceTest extends IntegrationSuite with TestEnvironmen
           language = "nb"
         ),
       ))
+  }
+
+  test("Filtering by statuses works as expected with OR filtering") {
+    val Success(statusSearch1) = draftConceptSearchService.all(searchSettings.copy(statusFilter = Set("PUBLISHED")))
+    statusSearch1.totalCount should be(2)
+    statusSearch1.results.map(_.id) should be(Seq(9, 10))
+
+    val Success(statusSearch2) = draftConceptSearchService.all(searchSettings.copy(statusFilter = Set("TRANSLATED")))
+    statusSearch2.totalCount should be(1)
+    statusSearch2.results.map(_.id) should be(Seq(10))
+
+    val Success(statusSearch3) =
+      draftConceptSearchService.all(searchSettings.copy(statusFilter = Set("TRANSLATED", "QUEUED_FOR_PUBLISHING")))
+    statusSearch3.totalCount should be(2)
+    statusSearch3.results.map(_.id) should be(Seq(8, 10))
   }
 
   def blockUntil(predicate: () => Boolean): Unit = {

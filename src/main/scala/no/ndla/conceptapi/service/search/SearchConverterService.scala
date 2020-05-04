@@ -36,6 +36,8 @@ trait SearchConverterService {
         })
         .lastOption
 
+      val searchableStatuses = (c.status.other + c.status.current).map(_.toString).toSeq
+
       SearchableConcept(
         id = c.id.get,
         title = SearchableLanguageValues(c.title.map(title => LanguageValue(title.language, title.title))),
@@ -44,7 +46,8 @@ trait SearchConverterService {
         metaImage = c.metaImage,
         tags = SearchableLanguageList(c.tags.map(tag => LanguageValue(tag.language, tag.tags))),
         subjectIds = c.subjectIds.toSeq,
-        lastUpdated = new DateTime(c.updated)
+        lastUpdated = new DateTime(c.updated),
+        statuses = searchableStatuses
       )
     }
 

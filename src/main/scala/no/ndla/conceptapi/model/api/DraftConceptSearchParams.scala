@@ -1,6 +1,6 @@
 /*
  * Part of NDLA concept-api.
- * Copyright (C) 2019 NDLA
+ * Copyright (C) 2020 NDLA
  *
  * See LICENSE
  */
@@ -13,7 +13,7 @@ import scala.annotation.meta.field
 
 // format: off
 @ApiModel(description = "The search parameters")
-case class ConceptSearchParams(
+case class DraftConceptSearchParams(
   @(ApiModelProperty @field)(description = "The search query.") query: Option[String],
   @(ApiModelProperty @field)(description = "The ISO 639-1 language code describing language used in query-params.") language: Option[String],
   @(ApiModelProperty @field)(description = "The page number of the search hits to display.") page: Option[Int],
@@ -23,5 +23,6 @@ case class ConceptSearchParams(
   @(ApiModelProperty @field)(description = "Whether to fallback to existing language if not found in selected language.") fallback: Option[Boolean],
   @(ApiModelProperty @field)(description = "A search context retrieved from the response header of a previous search.") scrollId: Option[String],
   @(ApiModelProperty @field)(description = "A comma-separated list of subjects that should appear in the search.") subjects: Set[String],
-  @(ApiModelProperty @field)(description = "A comma-separated list of tags to filter the search by.") tags: Set[String]
+  @(ApiModelProperty @field)(description = "A comma-separated list of tags to filter the search by.") tags: Set[String],
+  @(ApiModelProperty @field)(description = "A comma-separated list of statuses that should appear in the search.") status: Set[String]
 )
