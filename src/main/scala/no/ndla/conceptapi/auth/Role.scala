@@ -8,7 +8,7 @@
 package no.ndla.conceptapi.auth
 
 object Role extends Enumeration {
-  val WRITE, PUBLISH, ADMIN = Value
+  val WRITE, ADMIN = Value
 
   def valueOf(s: String): Option[Role.Value] = {
     val role = s.split("concept:")
