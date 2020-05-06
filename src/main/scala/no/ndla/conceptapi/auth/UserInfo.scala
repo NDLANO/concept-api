@@ -10,6 +10,7 @@ package no.ndla.conceptapi.auth
 import no.ndla.network.AuthUser
 
 case class UserInfo(id: String, roles: Set[Role.Value]) {
+  def canPublish: Boolean = hasRoles(UserInfo.PublishRoles)
   def canWrite: Boolean = hasRoles(UserInfo.WriteRoles)
   def canRead: Boolean = hasRoles(UserInfo.ReadRoles)
 
@@ -21,6 +22,7 @@ object UserInfo {
   val UnauthorizedUser = UserInfo("unauthorized", Set.empty)
   val SystemUser = UserInfo("system", Role.values.toSet)
 
+  val PublishRoles = Set(Role.ADMIN)
   val WriteRoles = Set(Role.WRITE)
   val ReadRoles = Set(Role.WRITE)
 
