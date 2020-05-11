@@ -112,7 +112,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite with TestEnvironmen
     title = List(ConceptTitle("Baldur har mareritt", "nb")),
     content = List(ConceptContent("<p>Bilde av <em>Baldurs</em> mareritt om Ragnarok.", "nb")),
     subjectIds = Set("urn:subject:10"),
-    status = Status(current = ConceptStatus.QUEUED_FOR_PUBLISHING, other = Set.empty)
+    status = Status(current = ConceptStatus.QUALITY_ASSURED, other = Set.empty)
   )
 
   val concept9: Concept = TestData.sampleConcept.copy(
@@ -531,7 +531,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite with TestEnvironmen
     statusSearch2.results.map(_.id) should be(Seq(10))
 
     val Success(statusSearch3) =
-      draftConceptSearchService.all(searchSettings.copy(statusFilter = Set("TRANSLATED", "QUEUED_FOR_PUBLISHING")))
+      draftConceptSearchService.all(searchSettings.copy(statusFilter = Set("TRANSLATED", "QUALITY_ASSURED")))
     statusSearch3.totalCount should be(2)
     statusSearch3.results.map(_.id) should be(Seq(8, 10))
   }
