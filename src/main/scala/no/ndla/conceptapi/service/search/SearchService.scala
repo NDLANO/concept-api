@@ -11,6 +11,7 @@ import java.lang.Math.max
 
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.http.search.SearchResponse
+import com.sksamuel.elastic4s.searches.queries.BoolQuery
 import com.sksamuel.elastic4s.searches.sort.{FieldSort, SortOrder}
 import com.typesafe.scalalogging.LazyLogging
 import org.elasticsearch.ElasticsearchException
@@ -66,24 +67,19 @@ trait SearchService {
       }
     }
 
-    protected def orFilter(fieldName: String, seq: Iterable[Any]) =
+    protected def orFilter(seq: Iterable[Any], fieldNames: String*): Option[BoolQuery] =
       if (seq.isEmpty) None
       else
         Some(
           boolQuery().should(
-            seq.map(s => termQuery(fieldName, s))
+            fieldNames.flatMap(fieldName => seq.map(s => termQuery(fieldName, s)))
           )
         )
 
-    protected def languageOrFilter(fieldName: String, seq: Iterable[Any]) =
-      if (seq.isEmpty) None
-      else
-        Some(
-          boolQuery().should(
-            seq.flatMap(e =>
-              ISO639.languagePriority
-                .map(l => termQuery(s"$fieldName.$l.raw", e)))
-          ))
+    protected def languageOrFilter(seq: Iterable[Any], fieldName: String): Option[BoolQuery] = {
+      val fields = ISO639.languagePriority.map(l => s"$fieldName.$l.raw")
+      orFilter(seq, fields: _*)
+    }
 
     def getSortDefinition(sort: Sort.Value, language: String): FieldSort = {
       val sortLanguage = language match {

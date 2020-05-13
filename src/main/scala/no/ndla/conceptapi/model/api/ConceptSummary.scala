@@ -22,5 +22,6 @@ case class ConceptSummary(
     @(ApiModelProperty @field)(description = "Search tags the concept is tagged with") tags: Option[ConceptTags],
     @(ApiModelProperty @field)(description = "Taxonomy subject ids the concept is connected to") subjectIds: Option[Set[String]],
     @(ApiModelProperty @field)(description = "All available languages of the current concept") supportedLanguages: Seq[String],
-    @(ApiModelProperty @field)(description = "The time when the article was last updated") lastUpdated: Date)
+    @(ApiModelProperty @field)(description = "The time when the article was last updated") lastUpdated: Date,
+    @(ApiModelProperty @field)(description = "Status information of the concept") status: Status)
 // format: on

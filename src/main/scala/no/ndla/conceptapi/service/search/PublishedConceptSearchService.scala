@@ -119,8 +119,8 @@ trait PublishedConceptSearchService {
 
     def executeSearch(queryBuilder: BoolQuery, settings: SearchSettings): Try[SearchResult[api.ConceptSummary]] = {
       val idFilter = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
-      val subjectFilter = orFilter("subjectIds", settings.subjects)
-      val tagFilter = languageOrFilter("tags", settings.tagsToFilterBy)
+      val subjectFilter = orFilter(settings.subjects, "subjectIds")
+      val tagFilter = languageOrFilter(settings.tagsToFilterBy, "tags")
 
       val (languageFilter, searchLanguage) = settings.searchLanguage match {
         case "" | Language.AllLanguages | "*" =>
