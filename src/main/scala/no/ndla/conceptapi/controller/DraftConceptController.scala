@@ -141,6 +141,7 @@ trait DraftConceptController {
             asQueryParam(fallback),
             asQueryParam(scrollId),
             asQueryParam(subjects),
+            asQueryParam(tagsToFilterBy),
             asQueryParam(statusFilter)
         )
           authorizations "oauth2"

@@ -144,7 +144,8 @@ trait PublishedConceptController {
             asQueryParam(sort),
             asQueryParam(fallback),
             asQueryParam(scrollId),
-            asQueryParam(subjects)
+            asQueryParam(subjects),
+            asQueryParam(tagsToFilterBy)
         )
           authorizations "oauth2"
           responseMessages response500)
