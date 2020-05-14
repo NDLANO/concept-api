@@ -36,8 +36,6 @@ trait SearchConverterService {
         })
         .lastOption
 
-      val searchableStatuses = (c.status.other + c.status.current).map(_.toString).toSeq
-
       SearchableConcept(
         id = c.id.get,
         title = SearchableLanguageValues(c.title.map(title => LanguageValue(title.language, title.title))),
@@ -47,7 +45,7 @@ trait SearchConverterService {
         tags = SearchableLanguageList(c.tags.map(tag => LanguageValue(tag.language, tag.tags))),
         subjectIds = c.subjectIds.toSeq,
         lastUpdated = new DateTime(c.updated),
-        statuses = searchableStatuses
+        status = Status(c.status.current.toString, c.status.other.map(_.toString).toSeq)
       )
     }
 
@@ -83,7 +81,8 @@ trait SearchConverterService {
         tags = tag,
         subjectIds = subjectIds,
         supportedLanguages = supportedLanguages,
-        lastUpdated = searchableConcept.lastUpdated.toDate
+        lastUpdated = searchableConcept.lastUpdated.toDate,
+        status = toApiStatus(searchableConcept.status)
       )
     }
 
@@ -137,5 +136,11 @@ trait SearchConverterService {
                               searchResult.language,
                               searchResult.results)
 
+    def toApiStatus(status: Status): api.Status = {
+      api.Status(
+        current = status.current,
+        other = status.other
+      )
+    }
   }
 }

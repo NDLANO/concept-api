@@ -11,6 +11,7 @@ import cats.effect.IO
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.repository.DraftConceptRepository
 import no.ndla.conceptapi.model.domain
+import no.ndla.conceptapi.model.search
 import no.ndla.conceptapi.model.domain.Language._
 import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.api.NotFoundException
