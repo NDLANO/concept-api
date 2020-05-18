@@ -9,6 +9,7 @@ package no.ndla.conceptapi.service
 
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.model.api
+import no.ndla.conceptapi.model.domain
 import no.ndla.conceptapi.model.api.NotFoundException
 import no.ndla.conceptapi.model.domain.Language
 
@@ -55,6 +56,20 @@ trait ReadService {
     def getAllTags(input: String, pageSize: Int, offset: Int, language: String): api.TagsSearchResult = {
       val (tags, tagsCount) = draftConceptRepository.getTags(input, pageSize, (offset - 1) * pageSize, language)
       converterService.toApiConceptTags(tags, tagsCount, pageSize, offset, language)
+    }
+
+    def getPublishedConceptDomainDump(pageNo: Int, pageSize: Int): api.ConceptDomainDump = {
+      val (safePageNo, safePageSize) = (math.max(pageNo, 1), math.max(pageSize, 0))
+      val results = publishedConceptRepository.getByPage(safePageSize, (safePageNo - 1) * safePageSize)
+
+      api.ConceptDomainDump(publishedConceptRepository.conceptCount, pageNo, pageSize, results)
+    }
+
+    def getDraftConceptDomainDump(pageNo: Int, pageSize: Int): api.ConceptDomainDump = {
+      val (safePageNo, safePageSize) = (math.max(pageNo, 1), math.max(pageSize, 0))
+      val results = draftConceptRepository.getByPage(safePageSize, (safePageNo - 1) * safePageSize)
+
+      api.ConceptDomainDump(draftConceptRepository.conceptCount, pageNo, pageSize, results)
     }
   }
 }

@@ -10,8 +10,11 @@ package no.ndla.conceptapi.controller
 import java.util.concurrent.Executors
 
 import no.ndla.conceptapi.auth.{User, UserInfo}
+import no.ndla.conceptapi.model.api.NotFoundException
+import no.ndla.conceptapi.model.domain.Concept
+import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.service.search.{DraftConceptIndexService, IndexService, PublishedConceptIndexService}
-import no.ndla.conceptapi.service.{ConverterService, ImportService}
+import no.ndla.conceptapi.service.{ConverterService, ImportService, ReadService}
 import org.json4s.Formats
 import org.scalatra.swagger.Swagger
 import org.scalatra.{InternalServerError, Ok, Unauthorized}
@@ -27,12 +30,15 @@ trait InternController {
     with PublishedConceptIndexService
     with ImportService
     with ConverterService
-    with User =>
+    with ReadService
+    with User
+    with DraftConceptRepository
+    with PublishedConceptRepository =>
   val internController: InternController
 
   class InternController(implicit val swagger: Swagger) extends NdlaController {
     protected val applicationDescription = "API for accessing internal functionality in draft API"
-    protected implicit override val jsonFormats: Formats = org.json4s.DefaultFormats
+    protected implicit override val jsonFormats: Formats = Concept.jsonEncoder
 
     post("/index") {
       implicit val ec: ExecutionContextExecutorService =
@@ -123,6 +129,36 @@ trait InternController {
           }
 
         case _ => Unauthorized("You do not have access to perform this action")
+      }
+    }
+
+    get("/dump/draft-concept/") {
+      val pageNo = intOrDefault("page", 1)
+      val pageSize = intOrDefault("page-size", 250)
+
+      readService.getDraftConceptDomainDump(pageNo, pageSize)
+    }
+
+    get("/dump/draft-concept/:id") {
+      val id = long("id")
+      draftConceptRepository.withId(id) match {
+        case Some(concept) => Ok(concept)
+        case None          => errorHandler(NotFoundException(s"Could not find draft concept with id '$id'"))
+      }
+    }
+
+    get("/dump/concept/") {
+      val pageNo = intOrDefault("page", 1)
+      val pageSize = intOrDefault("page-size", 250)
+
+      readService.getPublishedConceptDomainDump(pageNo, pageSize)
+    }
+
+    get("/dump/concept/:id") {
+      val id = long("id")
+      publishedConceptRepository.withId(id) match {
+        case Some(concept) => Ok(concept)
+        case None          => errorHandler(NotFoundException(s"Could not find published concept with id '$id'"))
       }
     }
 
