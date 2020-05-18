@@ -172,11 +172,6 @@ abstract class NdlaController() extends ScalatraServlet with NativeJsonSupport w
     }
   }
 
-  def longOrNone(paramName: String)(implicit request: HttpServletRequest): Option[Long] = {
-    val paramValue = params(paramName)
-    Try(paramValue.toLong).toOption
-  }
-
   private def emptySomeToNone(lang: Option[String]): Option[String] = {
     lang.filter(_.nonEmpty)
   }
