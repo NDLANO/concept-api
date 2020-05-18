@@ -17,7 +17,7 @@ import no.ndla.conceptapi.service.search.{DraftConceptIndexService, IndexService
 import no.ndla.conceptapi.service.{ConverterService, ImportService, ReadService}
 import org.json4s.Formats
 import org.scalatra.swagger.Swagger
-import org.scalatra.{BadRequest, InternalServerError, Ok, Unauthorized}
+import org.scalatra.{InternalServerError, Ok, Unauthorized}
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
@@ -143,7 +143,7 @@ trait InternController {
       val id = long("id")
       draftConceptRepository.withId(id) match {
         case Some(concept) => Ok(concept)
-        case None          => BadRequest("The specified id was not a valid id.")
+        case None          => errorHandler(NotFoundException(s"Could not find draft concept with id '$id'"))
       }
     }
 
@@ -158,7 +158,7 @@ trait InternController {
       val id = long("id")
       publishedConceptRepository.withId(id) match {
         case Some(concept) => Ok(concept)
-        case None          => BadRequest("The specified id was not a valid id.")
+        case None          => errorHandler(NotFoundException(s"Could not find published concept with id '$id'"))
       }
     }
 
