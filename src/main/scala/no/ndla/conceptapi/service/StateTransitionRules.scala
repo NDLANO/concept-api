@@ -50,6 +50,7 @@ trait StateTransitionRules {
       (DRAFT                      -> PUBLISHED)                  keepStates Set() require UserInfo.PublishRoles withSideEffect publishConcept,
        ARCHIVED                   -> ARCHIVED,
        ARCHIVED                   -> DRAFT,
+      (ARCHIVED                   -> PUBLISHED)                  keepStates Set() require UserInfo.PublishRoles withSideEffect publishConcept,
       (DRAFT                      -> PUBLISHED)                  keepStates Set() require UserInfo.PublishRoles withSideEffect publishConcept,
        QUALITY_ASSURED            -> QUALITY_ASSURED             keepStates Set(PUBLISHED),
       (QUALITY_ASSURED            -> PUBLISHED)                  keepStates Set() require UserInfo.PublishRoles withSideEffect publishConcept,
