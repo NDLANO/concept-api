@@ -24,7 +24,7 @@ trait DraftConceptRepository {
   val draftConceptRepository: DraftConceptRepository
 
   class DraftConceptRepository extends LazyLogging with Repository[Concept] {
-    implicit val formats: Formats = Concept.JSonSerializer
+    implicit val formats: Formats = Concept.repositorySerializer
 
     def insert(concept: Concept)(implicit session: DBSession = AutoSession): Concept = {
       val dataObject = new PGobject()
@@ -187,7 +187,7 @@ trait DraftConceptRepository {
         implicit session: DBSession = ReadOnlyAutoSession): Option[Concept] = {
       val co = Concept.syntax("co")
       sql"select ${co.result.*} from ${Concept.as(co)} where co.document is not NULL and $whereClause"
-        .map(Concept(co))
+        .map(Concept.fromResultSet(co))
         .single
         .apply()
     }
@@ -196,12 +196,12 @@ trait DraftConceptRepository {
         implicit session: DBSession = ReadOnlyAutoSession): List[Concept] = {
       val co = Concept.syntax("co")
       sql"select ${co.result.*} from ${Concept.as(co)} where co.document is not NULL and $whereClause"
-        .map(Concept(co))
+        .map(Concept.fromResultSet(co))
         .list
         .apply()
     }
 
-    def conceptCount(implicit session: DBSession = ReadOnlyAutoSession) =
+    def conceptCount(implicit session: DBSession = ReadOnlyAutoSession): Long =
       sql"select count(*) from ${Concept.table}"
         .map(rs => rs.long("count"))
         .single()
@@ -258,6 +258,20 @@ trait DraftConceptRepository {
 
       (tags, tagsCount)
 
+    }
+
+    def getByPage(pageSize: Int, offset: Int)(implicit session: DBSession = ReadOnlyAutoSession): Seq[Concept] = {
+      val co = Concept.syntax("co")
+      sql"""
+           select ${co.result.*}, ${co.revision} as revision
+           from ${Concept.as(co)}
+           where document is not null
+           offset $offset
+           limit $pageSize
+      """
+        .map(Concept.fromResultSet(co))
+        .list
+        .apply()
     }
   }
 }

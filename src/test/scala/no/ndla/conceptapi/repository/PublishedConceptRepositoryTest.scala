@@ -222,4 +222,33 @@ class PublishedConceptRepositoryTest extends IntegrationSuite with TestEnvironme
     repository.conceptCount should be(3)
   }
 
+  test("That getByPage returns all concepts in database") {
+    assume(databaseIsAvailable, "Database is unavailable")
+    val con1 = TestData.domainConcept.copy(
+      id = Some(1),
+      content = Seq(domain.ConceptContent("Hei", "nb")),
+      updated = new Date(0),
+      created = new Date(0)
+    )
+    val con2 = TestData.domainConcept.copy(
+      id = Some(2),
+      revision = Some(100),
+      content = Seq(domain.ConceptContent("På", "nb")),
+      updated = new Date(0),
+      created = new Date(0)
+    )
+    val con3 = TestData.domainConcept.copy(
+      id = Some(3),
+      content = Seq(domain.ConceptContent("Deg", "nb")),
+      updated = new Date(0),
+      created = new Date(0)
+    )
+
+    val Success(ins1) = repository.insertOrUpdate(con1)
+    val Success(ins2) = repository.insertOrUpdate(con2)
+    val Success(ins3) = repository.insertOrUpdate(con3)
+
+    repository.getByPage(10, 0).sortBy(_.id.get) should be(Seq(ins1, ins2, ins3))
+  }
+
 }

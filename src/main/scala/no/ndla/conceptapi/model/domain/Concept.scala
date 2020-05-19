@@ -42,43 +42,11 @@ object Concept extends SQLSyntaxSupport[Concept] {
   override val tableName = "conceptdata"
   override val schemaName = Some(ConceptApiProperties.MetaSchema)
 
-  // This Constructor is needed since json4s doesn't understand that it shouldn't attempt the other constructors if some fields are missing
-  // Added cause metaImage are a new field and article-api doesn't dump it.
-  // Can be removed after importing is done.
-  def apply(
-      id: Option[Long],
-      revision: Option[Int],
-      title: Seq[ConceptTitle],
-      content: Seq[ConceptContent],
-      copyright: Option[Copyright],
-      source: Option[String],
-      created: Date,
-      updated: Date,
-      articleId: Option[Long],
-      status: Status
-  ): Concept = {
-    Concept(
-      id,
-      revision,
-      title,
-      content,
-      copyright,
-      source,
-      created,
-      updated,
-      Seq.empty,
-      Seq.empty,
-      Set.empty,
-      None,
-      status
-    )
-  }
+  def fromResultSet(lp: SyntaxProvider[Concept])(rs: WrappedResultSet): Concept =
+    fromResultSet(lp.resultName)(rs)
 
-  def apply(lp: SyntaxProvider[Concept])(rs: WrappedResultSet): Concept =
-    apply(lp.resultName)(rs)
-
-  def apply(lp: ResultName[Concept])(rs: WrappedResultSet): Concept = {
-    implicit val formats = this.JSonSerializer
+  def fromResultSet(lp: ResultName[Concept])(rs: WrappedResultSet): Concept = {
+    implicit val formats = this.repositorySerializer
 
     val id = rs.long(lp.c("id"))
     val revision = rs.int(lp.c("revision"))
@@ -103,13 +71,13 @@ object Concept extends SQLSyntaxSupport[Concept] {
     )
   }
 
-  val JSonSerializer: Formats =
-    DefaultFormats +
-      FieldSerializer[Concept](
-        ignore("id") orElse
-          ignore("revision")
-      ) +
-      new EnumNameSerializer(ConceptStatus)
+  val jsonEncoder: Formats = DefaultFormats + new EnumNameSerializer(ConceptStatus)
+
+  val repositorySerializer: Formats = jsonEncoder +
+    FieldSerializer[Concept](
+      ignore("id") orElse
+        ignore("revision")
+    )
 }
 
 object PublishedConcept extends SQLSyntaxSupport[Concept] {

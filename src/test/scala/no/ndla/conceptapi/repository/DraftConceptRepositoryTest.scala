@@ -194,4 +194,29 @@ class DraftConceptRepositoryTest extends IntegrationSuite with TestEnvironment {
     fetched2.content should be(updatedContent)
   }
 
+  test("That getByPage returns all concepts in database") {
+    assume(databaseIsAvailable, "Database is unavailable")
+    val con1 = domainConcept.copy(
+      content = Seq(domain.ConceptContent("Hei", "nb")),
+      updated = new Date(0),
+      created = new Date(0)
+    )
+    val con2 = domainConcept.copy(
+      content = Seq(domain.ConceptContent("På", "nb")),
+      updated = new Date(0),
+      created = new Date(0),
+    )
+    val con3 = domainConcept.copy(
+      content = Seq(domain.ConceptContent("Deg", "nb")),
+      updated = new Date(0),
+      created = new Date(0)
+    )
+
+    val ins1 = repository.insert(con1)
+    val ins2 = repository.insert(con2)
+    val ins3 = repository.insert(con3)
+
+    repository.getByPage(10, 0).sortBy(_.id.get) should be(Seq(ins1, ins2, ins3))
+  }
+
 }
