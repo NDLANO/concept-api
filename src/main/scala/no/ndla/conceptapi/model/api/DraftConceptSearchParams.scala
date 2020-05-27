@@ -24,5 +24,6 @@ case class DraftConceptSearchParams(
   @(ApiModelProperty @field)(description = "A search context retrieved from the response header of a previous search.") scrollId: Option[String],
   @(ApiModelProperty @field)(description = "A comma-separated list of subjects that should appear in the search.") subjects: Set[String],
   @(ApiModelProperty @field)(description = "A comma-separated list of tags to filter the search by.") tags: Set[String],
-  @(ApiModelProperty @field)(description = "A comma-separated list of statuses that should appear in the search.") status: Set[String]
+  @(ApiModelProperty @field)(description = "A comma-separated list of statuses that should appear in the search.") status: Set[String],
+  @(ApiModelProperty @field)(description = "A comma-separated list of users to filter the search by.") users: Seq[String]
 )

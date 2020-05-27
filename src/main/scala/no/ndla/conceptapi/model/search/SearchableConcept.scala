@@ -19,5 +19,6 @@ case class SearchableConcept(
     tags: SearchableLanguageList,
     subjectIds: Seq[String],
     lastUpdated: DateTime,
-    status: Status
+    status: Status,
+    users: Seq[String]
 )

@@ -56,6 +56,7 @@ trait ConverterService {
             subjectIds = if (concept.subjectIds.isEmpty) None else Some(concept.subjectIds),
             created = concept.created,
             updated = concept.updated,
+            updatedBy = if (concept.updatedBy.isEmpty) None else Some(concept.updatedBy),
             supportedLanguages = concept.supportedLanguages,
             articleId = concept.articleId,
             status = toApiStatus(concept.status)
@@ -115,7 +116,7 @@ trait ConverterService {
                            metaImage.altText,
                            metaImage.language)
 
-    def toDomainConcept(concept: api.NewConcept): Try[domain.Concept] = {
+    def toDomainConcept(concept: api.NewConcept, userInfo: UserInfo): Try[domain.Concept] = {
       Success(
         domain.Concept(
           id = None,
@@ -128,6 +129,7 @@ trait ConverterService {
           source = concept.source,
           created = clock.now(),
           updated = clock.now(),
+          updatedBy = Seq(userInfo.id),
           metaImage = concept.metaImage.map(m => domain.ConceptMetaImage(m.id, m.alt, concept.language)).toSeq,
           tags = concept.tags.map(t => toDomainTags(t, concept.language)).getOrElse(Seq.empty),
           subjectIds = concept.subjectIds.getOrElse(Seq.empty).toSet,
@@ -139,7 +141,9 @@ trait ConverterService {
     private def toDomainTags(tags: Seq[String], language: String): Seq[domain.ConceptTags] =
       if (tags.isEmpty) Seq.empty else Seq(domain.ConceptTags(tags, language))
 
-    def toDomainConcept(toMergeInto: domain.Concept, updateConcept: api.UpdatedConcept): domain.Concept = {
+    def toDomainConcept(toMergeInto: domain.Concept,
+                        updateConcept: api.UpdatedConcept,
+                        userInfo: UserInfo): domain.Concept = {
       val domainTitle = updateConcept.title
         .map(t => domain.ConceptTitle(t, updateConcept.language))
         .toSeq
@@ -164,6 +168,12 @@ trait ConverterService {
           mergeLanguageFields(toMergeInto.metaImage, domainMetaImage)
       }
 
+      val updatedBy = {
+        val userId = userInfo.id
+        if (!toMergeInto.updatedBy.contains(userId)) toMergeInto.updatedBy :+ userId
+        else toMergeInto.updatedBy
+      }
+
       toMergeInto.copy(
         title = mergeLanguageFields(toMergeInto.title, domainTitle),
         content = mergeLanguageFields(toMergeInto.content, domainContent),
@@ -173,6 +183,7 @@ trait ConverterService {
         source = updateConcept.source,
         created = toMergeInto.created,
         updated = clock.now(),
+        updatedBy = updatedBy,
         metaImage = newMetaImage,
         tags = mergeLanguageFields(toMergeInto.tags, domainTags),
         subjectIds = updateConcept.subjectIds.map(_.toSet).getOrElse(toMergeInto.subjectIds),
@@ -183,7 +194,7 @@ trait ConverterService {
     def updateStatus(status: ConceptStatus.Value, concept: domain.Concept, user: UserInfo): IO[Try[domain.Concept]] =
       StateTransitionRules.doTransition(concept, status, user)
 
-    def toDomainConcept(id: Long, concept: api.UpdatedConcept): domain.Concept = {
+    def toDomainConcept(id: Long, concept: api.UpdatedConcept, userInfo: UserInfo): domain.Concept = {
       val lang = concept.language
 
       val newArticleId = concept.articleId match {
@@ -205,6 +216,7 @@ trait ConverterService {
         source = concept.source,
         created = clock.now(),
         updated = clock.now(),
+        updatedBy = Seq(userInfo.id),
         metaImage = newMetaImage,
         tags = concept.tags.map(t => toDomainTags(t, concept.language)).getOrElse(Seq.empty),
         subjectIds = concept.subjectIds.getOrElse(Seq.empty).toSet,

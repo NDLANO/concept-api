@@ -138,6 +138,11 @@ abstract class NdlaController() extends ScalatraServlet with NativeJsonSupport w
     Param[Option[String]]("subjects", "A comma-separated list of subjects that should appear in the search.")
   protected val tagsToFilterBy =
     Param[Option[String]]("tags", "A comma-separated list of tags to filter the search by.")
+  protected val userFilter = Param[Option[Seq[String]]](
+    "users",
+    s"""List of users to filter by.
+       |The value to search for is the user-id from Auth0.""".stripMargin
+  )
 
   protected def asHeaderParam[T: Manifest: NotNothing](param: Param[T]) =
     headerParam[T](param.paramName).description(param.description)

@@ -67,7 +67,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
   test("POST / should return 201 on created") {
     when(
       writeService
-        .newConcept(any[NewConcept]))
+        .newConcept(any[NewConcept], any[UserInfo]))
       .thenReturn(Success(TestData.sampleNbApiConcept))
     post("/test/", write(TestData.sampleNewConcept), headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(201)
@@ -78,7 +78,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
     when(user.getUser).thenReturn(TestData.userWithNoRoles)
     when(
       writeService
-        .newConcept(any[NewConcept]))
+        .newConcept(any[NewConcept], any[UserInfo]))
       .thenReturn(Success(TestData.sampleNbApiConcept))
     post("/test/", write(TestData.sampleNewConcept), headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(403)

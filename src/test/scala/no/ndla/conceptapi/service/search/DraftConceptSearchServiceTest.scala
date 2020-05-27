@@ -71,13 +71,15 @@ class DraftConceptSearchServiceTest extends IntegrationSuite with TestEnvironmen
   val concept2: Concept = TestData.sampleConcept.copy(
     id = Option(2),
     title = List(ConceptTitle("Pingvinen er ute og går", "nb")),
-    content = List(ConceptContent("<p>Bilde av en</p><p> en <em>pingvin</em> som vagger borover en gate</p>", "nb"))
+    content = List(ConceptContent("<p>Bilde av en</p><p> en <em>pingvin</em> som vagger borover en gate</p>", "nb")),
+    updatedBy = Seq("test1")
   )
 
   val concept3: Concept = TestData.sampleConcept.copy(
     id = Option(3),
     title = List(ConceptTitle("Donald Duck kjører bil", "nb")),
-    content = List(ConceptContent("<p>Bilde av en en and</p><p> som <strong>kjører</strong> en rød bil.</p>", "nb"))
+    content = List(ConceptContent("<p>Bilde av en en and</p><p> som <strong>kjører</strong> en rød bil.</p>", "nb")),
+    updatedBy = Seq("test1", "test2")
   )
 
   val concept4: Concept = TestData.sampleConcept.copy(
@@ -90,7 +92,8 @@ class DraftConceptSearchServiceTest extends IntegrationSuite with TestEnvironmen
   val concept5: Concept = TestData.sampleConcept.copy(
     id = Option(5),
     title = List(ConceptTitle("Hulken løfter biler", "nb")),
-    content = List(ConceptContent("<p>Bilde av hulk</p><p> som <strong>løfter</strong> en rød bil.</p>", "nb"))
+    content = List(ConceptContent("<p>Bilde av hulk</p><p> som <strong>løfter</strong> en rød bil.</p>", "nb")),
+    updatedBy = Seq("test2")
   )
 
   val concept6: Concept = TestData.sampleConcept.copy(
@@ -104,7 +107,8 @@ class DraftConceptSearchServiceTest extends IntegrationSuite with TestEnvironmen
   val concept7: Concept = TestData.sampleConcept.copy(
     id = Option(7),
     title = List(ConceptTitle("Yggdrasil livets tre", "nb")),
-    content = List(ConceptContent("<p>Bilde av <em>Yggdrasil</em> livets tre med alle dyrene som bor i det.", "nb"))
+    content = List(ConceptContent("<p>Bilde av <em>Yggdrasil</em> livets tre med alle dyrene som bor i det.", "nb")),
+    updatedBy = Seq("Test1", "test1")
   )
 
   val concept8: Concept = TestData.sampleConcept.copy(
@@ -131,7 +135,8 @@ class DraftConceptSearchServiceTest extends IntegrationSuite with TestEnvironmen
     tags = Seq(ConceptTags(Seq("cageowl"), "en"), ConceptTags(Seq("burugle"), "nb")),
     updated = DateTime.now().minusDays(1).toDate,
     subjectIds = Set("urn:subject:2"),
-    status = Status(current = ConceptStatus.TRANSLATED, other = Set(ConceptStatus.PUBLISHED))
+    status = Status(current = ConceptStatus.TRANSLATED, other = Set(ConceptStatus.PUBLISHED)),
+    updatedBy = Seq("Test1")
   )
 
   val concept11: Concept = TestData.sampleConcept.copy(id = Option(11),
@@ -147,7 +152,8 @@ class DraftConceptSearchServiceTest extends IntegrationSuite with TestEnvironmen
     false,
     Set.empty,
     Set.empty,
-    Set.empty
+    Set.empty,
+    Seq.empty
   )
 
   override def beforeAll: Unit = if (elasticSearchContainer.isSuccess) {
@@ -534,6 +540,36 @@ class DraftConceptSearchServiceTest extends IntegrationSuite with TestEnvironmen
       draftConceptSearchService.all(searchSettings.copy(statusFilter = Set("TRANSLATED", "QUALITY_ASSURED")))
     statusSearch3.totalCount should be(2)
     statusSearch3.results.map(_.id) should be(Seq(8, 10))
+  }
+
+  test("Filtering by users works as expected with OR filtering") {
+    val Success(res1) = draftConceptSearchService.all(searchSettings.copy(userFilter = Seq("test1")))
+    res1.totalCount should be(3)
+    res1.results.map(_.id) should be(Seq(2, 3, 7))
+
+    val Success(res2) = draftConceptSearchService.all(searchSettings.copy(userFilter = Seq("test2")))
+    res2.totalCount should be(2)
+    res2.results.map(_.id) should be(Seq(3, 5))
+
+    val Success(res3) = draftConceptSearchService.all(searchSettings.copy(userFilter = Seq("Test1")))
+    res3.totalCount should be(2)
+    res3.results.map(_.id) should be(Seq(7, 10))
+
+    val Success(res4) = draftConceptSearchService.all(searchSettings.copy(userFilter = Seq("test1", "test2")))
+    res4.totalCount should be(4)
+    res4.results.map(_.id) should be(Seq(2, 3, 5, 7))
+
+    val Success(res5) = draftConceptSearchService.all(searchSettings.copy(userFilter = Seq("test1", "Test1")))
+    res5.totalCount should be(4)
+    res5.results.map(_.id) should be(Seq(2, 3, 7, 10))
+
+    val Success(res6) = draftConceptSearchService.all(searchSettings.copy(userFilter = Seq("test2", "Test1")))
+    res6.totalCount should be(4)
+    res6.results.map(_.id) should be(Seq(3, 5, 7, 10))
+
+    val Success(res7) = draftConceptSearchService.all(searchSettings.copy(userFilter = Seq("test1", "Test1", "test2")))
+    res7.totalCount should be(5)
+    res7.results.map(_.id) should be(Seq(2, 3, 5, 7, 10))
   }
 
   def blockUntil(predicate: () => Boolean): Unit = {

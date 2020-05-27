@@ -70,7 +70,8 @@ trait DraftConceptController {
         fallback: Boolean,
         subjects: Set[String],
         tagsToFilterBy: Set[String],
-        statusFilter: Set[String]
+        statusFilter: Set[String],
+        userFilter: Seq[String]
     ) = {
       val settings = DraftSearchSettings(
         withIdIn = idList,
@@ -81,7 +82,8 @@ trait DraftConceptController {
         fallback = fallback,
         subjects = subjects,
         tagsToFilterBy = tagsToFilterBy,
-        statusFilter = statusFilter
+        statusFilter = statusFilter,
+        userFilter = userFilter
       )
 
       val result = query match {
@@ -142,7 +144,8 @@ trait DraftConceptController {
             asQueryParam(scrollId),
             asQueryParam(subjects),
             asQueryParam(tagsToFilterBy),
-            asQueryParam(statusFilter)
+            asQueryParam(statusFilter),
+            asQueryParam(userFilter)
         )
           authorizations "oauth2"
           responseMessages response500)
@@ -160,6 +163,7 @@ trait DraftConceptController {
         val subjects = paramAsListOfString(this.subjects.paramName)
         val tagsToFilterBy = paramAsListOfString(this.tagsToFilterBy.paramName)
         val statusesToFilterBy = paramAsListOfString(this.statusFilter.paramName)
+        val usersToFilterBy = paramAsListOfString(this.userFilter.paramName)
 
         search(
           query,
@@ -171,7 +175,8 @@ trait DraftConceptController {
           fallback,
           subjects.toSet,
           tagsToFilterBy.toSet,
-          statusesToFilterBy.toSet
+          statusesToFilterBy.toSet,
+          usersToFilterBy
         )
 
       }
@@ -207,6 +212,7 @@ trait DraftConceptController {
             val subjects = searchParams.subjects
             val tagsToFilterBy = searchParams.tags
             val statusFilter = searchParams.status
+            val userFilter = searchParams.users
 
             search(
               query,
@@ -218,7 +224,8 @@ trait DraftConceptController {
               fallback,
               subjects,
               tagsToFilterBy,
-              statusFilter
+              statusFilter,
+              userFilter
             )
           case Failure(ex) => errorHandler(ex)
         }

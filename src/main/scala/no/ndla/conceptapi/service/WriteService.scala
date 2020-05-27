@@ -73,9 +73,9 @@ trait WriteService {
       })
     }
 
-    def newConcept(newConcept: api.NewConcept): Try[api.Concept] = {
+    def newConcept(newConcept: api.NewConcept, userInfo: UserInfo): Try[api.Concept] = {
       for {
-        concept <- converterService.toDomainConcept(newConcept)
+        concept <- converterService.toDomainConcept(newConcept, userInfo)
         _ <- contentValidator.validateConcept(concept, allowUnknownLanguage = false)
         persistedConcept <- Try(draftConceptRepository.insert(concept))
         _ <- draftConceptIndexService.indexDocument(persistedConcept)
@@ -128,7 +128,7 @@ trait WriteService {
     def updateConcept(id: Long, updatedConcept: api.UpdatedConcept, userInfo: UserInfo): Try[api.Concept] = {
       draftConceptRepository.withId(id) match {
         case Some(existingConcept) =>
-          val domainConcept = converterService.toDomainConcept(existingConcept, updatedConcept)
+          val domainConcept = converterService.toDomainConcept(existingConcept, updatedConcept, userInfo)
 
           for {
             withStatus <- updateStatusIfNeeded(existingConcept, domainConcept, updatedConcept.status, userInfo)
@@ -137,7 +137,7 @@ trait WriteService {
           } yield converted
 
         case None if draftConceptRepository.exists(id) =>
-          val concept = converterService.toDomainConcept(id, updatedConcept)
+          val concept = converterService.toDomainConcept(id, updatedConcept, userInfo)
           for {
             updated <- updateConcept(concept)
             converted <- converterService.toApiConcept(updated, updatedConcept.language, fallback = true)
