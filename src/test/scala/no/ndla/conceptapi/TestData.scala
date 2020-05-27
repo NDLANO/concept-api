@@ -44,6 +44,7 @@ object TestData {
     Some(Set("urn:subject:3", "urn:subject:4")),
     yesterday,
     today,
+    Some(Seq("")),
     Set("nn", "nb"),
     Some(42),
     api.Status(
@@ -61,6 +62,7 @@ object TestData {
     source = None,
     created = yesterday,
     updated = today,
+    updatedBy = Seq.empty,
     metaImage = Seq(domain.ConceptMetaImage("1", "Hei", "nb")),
     tags = Seq(domain.ConceptTags(Seq("stor", "kaktus"), "nb")),
     subjectIds = Set("urn:subject:3", "urn:subject:4"),
@@ -77,6 +79,7 @@ object TestData {
     source = None,
     created = DateTime.now().minusDays(4).toDate,
     updated = DateTime.now().minusDays(2).toDate,
+    updatedBy = Seq.empty,
     metaImage = Seq(domain.ConceptMetaImage("1", "Hei", "nb")),
     tags = Seq(domain.ConceptTags(Seq("liten", "fisk"), "nb")),
     subjectIds = Set("urn:subject:3", "urn:subject:4"),
@@ -93,6 +96,7 @@ object TestData {
     source = None,
     created = yesterday,
     updated = today,
+    updatedBy = Seq(""),
     metaImage = Seq(domain.ConceptMetaImage("1", "Hei", "nb"), domain.ConceptMetaImage("2", "Hej", "nn")),
     tags = Seq(domain.ConceptTags(Seq("stor", "kaktus"), "nb"), domain.ConceptTags(Seq("liten", "fisk"), "nn")),
     subjectIds = Set("urn:subject:3", "urn:subject:4"),
@@ -109,6 +113,7 @@ object TestData {
     source = None,
     created = today,
     updated = today,
+    updatedBy = Seq(""),
     metaImage = Seq.empty,
     tags = Seq.empty,
     subjectIds = Set.empty,
@@ -128,6 +133,7 @@ object TestData {
     Some(Set("urn:subject:3", "urn:subject:4")),
     yesterday,
     today,
+    updatedBy = Some(Seq("")),
     Set("nn", "nb"),
     Some(42),
     api.Status(
@@ -150,6 +156,18 @@ object TestData {
   )
 
   val sampleNewConcept = api.NewConcept("nb", "Tittel", Some("Innhold"), None, None, None, None, None, Some(42))
+
+  val emptyApiNewConcept = api.NewConcept(
+    language = "",
+    title = "",
+    content = None,
+    copyright = None,
+    source = None,
+    metaImage = None,
+    tags = None,
+    subjectIds = None,
+    articleId = None
+  )
 
   val updatedConcept =
     api.UpdatedConcept("nb", None, Some("Innhold"), Right(None), None, None, None, None, Right(Some(12L)), None)

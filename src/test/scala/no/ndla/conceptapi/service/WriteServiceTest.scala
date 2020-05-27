@@ -59,7 +59,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(draftConceptRepository.insert(any[Concept])(any[DBSession])).thenReturn(domainConcept)
     when(contentValidator.validateConcept(any[Concept], any[Boolean])).thenReturn(Success(domainConcept))
 
-    service.newConcept(TestData.sampleNewConcept).get.id.toString should equal(domainConcept.id.get.toString)
+    service.newConcept(TestData.sampleNewConcept, userInfo).get.id.toString should equal(domainConcept.id.get.toString)
     verify(draftConceptRepository, times(1)).insert(any[Concept])
     verify(draftConceptIndexService, times(1)).indexDocument(any[Concept])
   }
@@ -72,7 +72,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
                                        updated = today,
                                        supportedLanguages = Set("nb", "en"),
                                        articleId = None)
-    val result = service.updateConcept(conceptId, updatedApiConcept, userInfo).get
+    val result = service.updateConcept(conceptId, updatedApiConcept, userInfo.copy(id = "")).get
     result should equal(expectedConcept)
   }
 
@@ -84,7 +84,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
                                        updated = today,
                                        supportedLanguages = Set("nb", "nn"),
                                        articleId = None)
-    service.updateConcept(conceptId, updatedApiConcept, userInfo).get should equal(expectedConcept)
+    service.updateConcept(conceptId, updatedApiConcept, userInfo.copy(id = "")).get should equal(expectedConcept)
   }
 
   test("That updateConcept updates multiple fields properly") {
@@ -121,7 +121,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       articleId = Some(69L)
     )
 
-    service.updateConcept(conceptId, updatedApiConcept, userInfo) should equal(Success(expectedConcept))
+    service.updateConcept(conceptId, updatedApiConcept, userInfo.copy(id = "")) should equal(Success(expectedConcept))
 
   }
 

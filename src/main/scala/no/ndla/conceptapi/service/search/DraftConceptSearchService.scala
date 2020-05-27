@@ -122,6 +122,7 @@ trait DraftConceptSearchService {
       val statusFilter = orFilter(settings.statusFilter, "status.current", "status.other")
       val subjectFilter = orFilter(settings.subjects, "subjectIds")
       val tagFilter = languageOrFilter(settings.tagsToFilterBy, "tags")
+      val userFilter = orFilter(settings.userFilter, "users")
 
       val (languageFilter, searchLanguage) = settings.searchLanguage match {
         case "" | Language.AllLanguages | "*" =>
@@ -133,7 +134,7 @@ trait DraftConceptSearchService {
             (Some(existsQuery(s"title.$lang")), lang)
       }
 
-      val filters = List(idFilter, languageFilter, subjectFilter, tagFilter, statusFilter)
+      val filters = List(idFilter, languageFilter, subjectFilter, tagFilter, statusFilter, userFilter)
       val filteredSearch = queryBuilder.filter(filters.flatten)
 
       val (startAt, numResults) = getStartAtAndNumResults(settings.page, settings.pageSize)

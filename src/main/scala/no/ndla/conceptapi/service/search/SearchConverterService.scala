@@ -45,7 +45,8 @@ trait SearchConverterService {
         tags = SearchableLanguageList(c.tags.map(tag => LanguageValue(tag.language, tag.tags))),
         subjectIds = c.subjectIds.toSeq,
         lastUpdated = new DateTime(c.updated),
-        status = Status(c.status.current.toString, c.status.other.map(_.toString).toSeq)
+        status = Status(c.status.current.toString, c.status.other.map(_.toString).toSeq),
+        users = c.updatedBy
       )
     }
 
@@ -82,7 +83,8 @@ trait SearchConverterService {
         subjectIds = subjectIds,
         supportedLanguages = supportedLanguages,
         lastUpdated = searchableConcept.lastUpdated.toDate,
-        status = toApiStatus(searchableConcept.status)
+        status = toApiStatus(searchableConcept.status),
+        updatedBy = searchableConcept.users
       )
     }
 

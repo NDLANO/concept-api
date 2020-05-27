@@ -25,6 +25,7 @@ case class Concept(
     @(ApiModelProperty @field)(description = "Taxonomy subject ids the concept is connected to") subjectIds: Option[Set[String]],
     @(ApiModelProperty @field)(description = "When the concept was created") created: Date,
     @(ApiModelProperty @field)(description = "When the concept was last updated") updated: Date,
+    @(ApiModelProperty @field)(description = "List of people that updated this concept") updatedBy: Option[Seq[String]],
     @(ApiModelProperty @field)(description = "All available languages of the current concept") supportedLanguages: Set[String],
     @(ApiModelProperty @field)(description = "Article id to which the concept is connected to") articleId: Option[Long],
     @(ApiModelProperty @field)(description = "Status information of the concept") status: Status,

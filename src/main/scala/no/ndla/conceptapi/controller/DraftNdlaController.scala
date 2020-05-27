@@ -68,9 +68,10 @@ trait DraftNdlaController {
           authorizations "oauth2"
           responseMessages (response400, response403, response500))
     ) {
-      doOrAccessDenied(user.getUser.canWrite) {
+      val userInfo = user.getUser
+      doOrAccessDenied(userInfo.canWrite) {
         val body = extract[NewConcept](request.body)
-        body.flatMap(writeService.newConcept) match {
+        body.flatMap(concept => writeService.newConcept(concept, userInfo)) match {
           case Success(c)  => Created(c)
           case Failure(ex) => errorHandler(ex)
         }

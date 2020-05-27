@@ -86,6 +86,7 @@ trait ImportService {
                 source = None,
                 created = listing.updated,
                 updated = listing.updated,
+                updatedBy = Seq(listing.updatedBy),
                 metaImage = metaImages,
                 tags = tags,
                 subjectIds = subjectIds,
