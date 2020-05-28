@@ -20,5 +20,5 @@ case class SearchableConcept(
     subjectIds: Seq[String],
     lastUpdated: DateTime,
     status: Status,
-    users: Seq[String]
+    updatedBy: Seq[String]
 )
