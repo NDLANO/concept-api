@@ -122,7 +122,7 @@ trait DraftConceptSearchService {
       val statusFilter = orFilter(settings.statusFilter, "status.current", "status.other")
       val subjectFilter = orFilter(settings.subjects, "subjectIds")
       val tagFilter = languageOrFilter(settings.tagsToFilterBy, "tags")
-      val userFilter = orFilter(settings.userFilter, "users")
+      val userFilter = orFilter(settings.userFilter, "updatedBy")
 
       val (languageFilter, searchLanguage) = settings.searchLanguage match {
         case "" | Language.AllLanguages | "*" =>

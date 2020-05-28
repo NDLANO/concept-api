@@ -56,7 +56,7 @@ trait DraftConceptIndexService {
           dateField("lastUpdated"),
           keywordField("status.current"),
           keywordField("status.other"),
-          keywordField("users"),
+          keywordField("updatedBy"),
         ) ++
           generateLanguageSupportedFieldList("title", keepRaw = true) ++
           generateLanguageSupportedFieldList("content") ++

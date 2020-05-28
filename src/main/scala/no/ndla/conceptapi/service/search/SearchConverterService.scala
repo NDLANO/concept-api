@@ -46,7 +46,7 @@ trait SearchConverterService {
         subjectIds = c.subjectIds.toSeq,
         lastUpdated = new DateTime(c.updated),
         status = Status(c.status.current.toString, c.status.other.map(_.toString).toSeq),
-        users = c.updatedBy
+        updatedBy = c.updatedBy
       )
     }
 
@@ -84,7 +84,7 @@ trait SearchConverterService {
         supportedLanguages = supportedLanguages,
         lastUpdated = searchableConcept.lastUpdated.toDate,
         status = toApiStatus(searchableConcept.status),
-        updatedBy = searchableConcept.users
+        updatedBy = searchableConcept.updatedBy
       )
     }
 
