@@ -162,7 +162,7 @@ trait InternController {
       }
     }
 
-    post("/dump/concept/") {
+    post("/dump/draft-concept/") {
       val concept = extract[Concept](request.body)
       concept match {
         case Success(c) => Ok(draftConceptRepository.insert(c))
