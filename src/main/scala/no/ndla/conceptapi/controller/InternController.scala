@@ -166,7 +166,7 @@ trait InternController {
       val concept = extract[Concept](request.body)
       concept match {
         case Success(c) => Ok(draftConceptRepository.insert(c))
-        case Failure(f) => f
+        case Failure(f) => errorHandler(f)
       }
     }
 
