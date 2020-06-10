@@ -162,6 +162,14 @@ trait InternController {
       }
     }
 
+    post("/dump/concept/") {
+      val concept = extract[Concept](request.body)
+      concept match {
+        case Success(c) => Ok(draftConceptRepository.insert(c))
+        case Failure(f) => f
+      }
+    }
+
     post("/import/concept") {
       UserInfo.get match {
         case Some(user) if user.canWrite =>
