@@ -36,7 +36,7 @@ case class Concept(
     status: Status
 ) {
 
-  val supportedLanguages: Set[String] =
+  lazy val supportedLanguages: Set[String] =
     (content concat title).map(_.language).toSet
 }
 
