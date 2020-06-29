@@ -18,19 +18,14 @@ import no.ndla.conceptapi.ConceptApiProperties.{
   ElasticSearchIndexMaxResultWindow,
   ElasticSearchScrollKeepAlive
 }
-import no.ndla.conceptapi.auth.User
 import no.ndla.conceptapi.model.api.{
-  Concept,
   Error,
   IllegalStatusStateTransition,
-  NewConcept,
   NotFoundException,
   OperationNotAllowedException,
   OptimisticLockException,
-  ResultWindowTooLargeException,
   ValidationError
 }
-import no.ndla.conceptapi.service.WriteService
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
 import no.ndla.network.model.HttpRequestException
 import no.ndla.validation.{ValidationException, ValidationMessage}
@@ -42,7 +37,7 @@ import org.postgresql.util.PSQLException
 import org.scalatra._
 import org.scalatra.json.NativeJsonSupport
 import org.scalatra.util.NotNothing
-import org.scalatra.swagger.{ParamType, Parameter, ResponseMessage, SwaggerSupport}
+import org.scalatra.swagger.{ResponseMessage, SwaggerSupport}
 
 import scala.util.{Failure, Success, Try}
 

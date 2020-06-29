@@ -144,16 +144,16 @@ class DraftConceptSearchServiceTest extends IntegrationSuite with TestEnvironmen
                                                        content = List(ConceptContent("englandocontent", "en")))
 
   val searchSettings = DraftSearchSettings(
-    List.empty,
-    Language.DefaultLanguage,
-    1,
-    10,
-    Sort.ByIdAsc,
-    false,
-    Set.empty,
-    Set.empty,
-    Set.empty,
-    Seq.empty
+    withIdIn = List.empty,
+    searchLanguage = Language.DefaultLanguage,
+    page = 1,
+    pageSize = 10,
+    sort = Sort.ByIdAsc,
+    fallback = false,
+    subjects = Set.empty,
+    tagsToFilterBy = Set.empty,
+    statusFilter = Set.empty,
+    userFilter = Seq.empty
   )
 
   override def beforeAll: Unit = if (elasticSearchContainer.isSuccess) {
