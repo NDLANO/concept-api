@@ -106,16 +106,16 @@ trait PublishedConceptController {
       "/:concept_id",
       operation(
         apiOperation[String]("getConceptById")
-          summary "Show concept with a specified id"
-          description "Shows the concept for the specified id."
-          parameters (
+          .summary("Show concept with a specified id")
+          .description("Shows the concept for the specified id.")
+          .parameters(
             asHeaderParam(correlationId),
             asQueryParam(language),
             asPathParam(conceptId),
             asQueryParam(fallback)
-        )
-          authorizations "oauth2"
-          responseMessages (response404, response500))
+          )
+          .authorizations("oauth2")
+          .responseMessages(response404, response500))
     ) {
       val conceptId = long(this.conceptId.paramName)
       val language =
@@ -132,9 +132,9 @@ trait PublishedConceptController {
       "/",
       operation(
         apiOperation[ConceptSearchResult]("getAllConcepts")
-          summary "Show all concepts"
-          description "Shows all concepts. You can search it too."
-          parameters (
+          .summary("Show all concepts")
+          .description("Shows all concepts. You can search it too.")
+          .parameters(
             asHeaderParam(correlationId),
             asQueryParam(query),
             asQueryParam(conceptIds),
@@ -146,9 +146,9 @@ trait PublishedConceptController {
             asQueryParam(scrollId),
             asQueryParam(subjects),
             asQueryParam(tagsToFilterBy)
-        )
-          authorizations "oauth2"
-          responseMessages response500)
+          )
+          .authorizations("oauth2")
+          .responseMessages(response500))
     ) {
       val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
       val scrollId = paramOrNone(this.scrollId.paramName)
@@ -172,14 +172,14 @@ trait PublishedConceptController {
       "/search/",
       operation(
         apiOperation[ConceptSearchResult]("searchConcepts")
-          summary "Show all concepts"
-          description "Shows all concepts. You can search it too."
-          parameters (
+          .summary("Show all concepts")
+          .description("Shows all concepts. You can search it too.")
+          .parameters(
             asHeaderParam(correlationId),
             bodyParam[ConceptSearchParams]
-        )
-          authorizations "oauth2"
-          responseMessages (response400, response500))
+          )
+          .authorizations("oauth2")
+          .responseMessages(response400, response500))
     ) {
       val body = extract[ConceptSearchParams](request.body)
       val scrollId = body.map(_.scrollId).getOrElse(None)
@@ -208,13 +208,13 @@ trait PublishedConceptController {
       "/subjects/",
       operation(
         apiOperation[List[String]]("getSubjects")
-          summary "Returns a list of all subjects used in concepts"
-          description "Returns a list of all subjects used in concepts"
-          parameters (
+          .summary("Returns a list of all subjects used in concepts")
+          .description("Returns a list of all subjects used in concepts")
+          .parameters(
             asHeaderParam(correlationId)
           )
-          authorizations "oauth2"
-          responseMessages (response400, response403, response404, response500))
+          .authorizations("oauth2")
+          .responseMessages(response400, response403, response404, response500))
     ) {
       readService.allSubjects() match {
         case Success(subjects) => Ok(subjects)
@@ -226,16 +226,16 @@ trait PublishedConceptController {
       "/tags/",
       operation(
         apiOperation[List[SubjectTags]]("getTags")
-          summary "Returns a list of all tags in the specified subjects"
-          description "Returns a list of all tags in the specified subjects"
-          parameters (
+          .summary("Returns a list of all tags in the specified subjects")
+          .description("Returns a list of all tags in the specified subjects")
+          .parameters(
             asHeaderParam(correlationId),
             asQueryParam(language),
             asQueryParam(fallback),
             asQueryParam(subjects)
-        )
-          authorizations "oauth2"
-          responseMessages (response400, response403, response404, response500))
+          )
+          .authorizations("oauth2")
+          .responseMessages(response400, response403, response404, response500))
     ) {
       val subjects = paramAsListOfString(this.subjects.paramName)
       val language = paramOrDefault(this.language.paramName, Language.AllLanguages)

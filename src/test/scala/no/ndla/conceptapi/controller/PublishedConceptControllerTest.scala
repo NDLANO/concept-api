@@ -24,7 +24,7 @@ class PublishedConceptControllerTest extends UnitSuite with TestEnvironment with
 
   val invalidConcept = """{"title": [{"language": "nb", "titlee": "lol"]}"""
 
-  override def beforeEach: Unit = {
+  override def beforeEach(): Unit = {
     when(user.getUser).thenReturn(TestData.userWithWriteAccess)
   }
 

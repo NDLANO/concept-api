@@ -51,7 +51,7 @@ class V3__AddStatusField extends BaseJavaMigration {
       .map(rs => {
         (rs.long("id"), rs.string("document"))
       })
-      .list
+      .list()
       .apply()
   }
 
@@ -62,7 +62,7 @@ class V3__AddStatusField extends BaseJavaMigration {
 
     sql"update conceptdata set document = $dataObject where id = $id"
       .update()
-      .apply
+      .apply()
   }
 
   private[migration] def convertToNewConcept(document: String): String = {

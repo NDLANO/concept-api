@@ -36,7 +36,7 @@ trait PublishedConceptRepository {
                 document=$dataObject,
                 revision=${concept.revision}
               where id=${concept.id}
-          """.update.apply
+          """.update().apply()
       } match {
         case Success(count) if count == 1 =>
           logger.info(s"Updated published concept ${concept.id}")
@@ -47,7 +47,7 @@ trait PublishedConceptRepository {
             sql"""
                   insert into ${PublishedConcept.table} (id, document, revision)
                   values (${concept.id}, $dataObject, ${concept.revision})
-              """.updateAndReturnGeneratedKey().apply
+              """.updateAndReturnGeneratedKey().apply()
           }.map(_ => concept)
         case Failure(ex) => Failure(ex)
       }
@@ -58,7 +58,7 @@ trait PublishedConceptRepository {
         sql"""
             delete from ${PublishedConcept.table}
             where id=$id
-         """.update.apply
+         """.update().apply()
       ) match {
         case Success(count) if count > 0 => Success(id)
         case Failure(ex)                 => Failure(ex)
@@ -74,8 +74,8 @@ trait PublishedConceptRepository {
         from ${PublishedConcept.table} 
         where jsonb_array_length(document->'subjectIds') != 0;"""
         .map(rs => rs.string("subject_id"))
-        .list
-        .apply
+        .list()
+        .apply()
         .toSet
     }
 
@@ -90,7 +90,7 @@ trait PublishedConceptRepository {
           val jsonStr = rs.string("tags")
           read[List[ConceptTags]](jsonStr)
         })
-        .list
+        .list()
         .apply()
     }
 
@@ -99,7 +99,7 @@ trait PublishedConceptRepository {
       val co = PublishedConcept.syntax("co")
       sql"select ${co.result.*} from ${PublishedConcept.as(co)} where co.document is not NULL and $whereClause"
         .map(Concept.fromResultSet(co))
-        .single
+        .single()
         .apply()
     }
 
@@ -130,7 +130,7 @@ trait PublishedConceptRepository {
       val co = PublishedConcept.syntax("co")
       sql"select ${co.result.*} from ${PublishedConcept.as(co)} where co.document is not NULL and $whereClause"
         .map(Concept.fromResultSet(co))
-        .list
+        .list()
         .apply()
     }
 
@@ -144,7 +144,7 @@ trait PublishedConceptRepository {
            limit $pageSize
       """
         .map(Concept.fromResultSet(co))
-        .list
+        .list()
         .apply()
     }
   }
