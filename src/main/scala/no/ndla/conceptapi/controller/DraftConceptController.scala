@@ -104,16 +104,16 @@ trait DraftConceptController {
       "/:concept_id",
       operation(
         apiOperation[String]("getConceptById")
-          summary "Show concept with a specified id"
-          description "Shows the concept for the specified id."
-          parameters (
+          .summary("Show concept with a specified id")
+          .description("Shows the concept for the specified id.")
+          .parameters(
             asHeaderParam(correlationId),
             asQueryParam(language),
             asPathParam(conceptId),
             asQueryParam(fallback)
-        )
-          authorizations "oauth2"
-          responseMessages (response404, response500))
+          )
+          .authorizations("oauth2")
+          .responseMessages(response404, response500))
     ) {
       val conceptId = long(this.conceptId.paramName)
       val language =
@@ -130,9 +130,9 @@ trait DraftConceptController {
       "/",
       operation(
         apiOperation[ConceptSearchResult]("getAllConcepts")
-          summary "Show all concepts"
-          description "Shows all concepts. You can search it too."
-          parameters (
+          .summary("Show all concepts")
+          .description("Shows all concepts. You can search it too.")
+          .parameters(
             asHeaderParam(correlationId),
             asQueryParam(query),
             asQueryParam(conceptIds),
@@ -146,9 +146,9 @@ trait DraftConceptController {
             asQueryParam(tagsToFilterBy),
             asQueryParam(statusFilter),
             asQueryParam(userFilter)
-        )
-          authorizations "oauth2"
-          responseMessages response500)
+          )
+          .authorizations("oauth2")
+          .responseMessages(response500))
     ) {
       val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
       val scrollId = paramOrNone(this.scrollId.paramName)
@@ -186,14 +186,14 @@ trait DraftConceptController {
       "/search/",
       operation(
         apiOperation[ConceptSearchResult]("searchConcepts")
-          summary "Show all concepts"
-          description "Shows all concepts. You can search it too."
-          parameters (
+          .summary("Show all concepts")
+          .description("Shows all concepts. You can search it too.")
+          .parameters(
             asHeaderParam(correlationId),
             bodyParam[DraftConceptSearchParams]
-        )
-          authorizations "oauth2"
-          responseMessages (response400, response500))
+          )
+          .authorizations("oauth2")
+          .responseMessages(response400, response500))
     ) {
       val body = extract[DraftConceptSearchParams](request.body)
       val scrollId = body.map(_.scrollId).getOrElse(None)
@@ -236,15 +236,15 @@ trait DraftConceptController {
       "/:concept_id",
       operation(
         apiOperation[Concept]("deleteLanguage")
-          summary "Delete language from concept"
-          description "Delete language from concept"
-          parameters (
+          .summary("Delete language from concept")
+          .description("Delete language from concept")
+          .parameters(
             asHeaderParam(correlationId),
             asPathParam(conceptId),
             asQueryParam(pathLanguage)
-        )
-          authorizations "oauth2"
-          responseMessages (response400, response403, response404, response500))
+          )
+          .authorizations("oauth2")
+          .responseMessages(response400, response403, response404, response500))
     ) {
       val userInfo = user.getUser
       val language = paramOrNone(this.language.paramName)
@@ -261,14 +261,14 @@ trait DraftConceptController {
       "/:concept_id/status/:STATUS",
       operation(
         apiOperation[Concept]("updateConceptStatus")
-          summary "Update status of a concept"
-          description "Update status of a concept"
-          parameters (
+          .summary("Update status of a concept")
+          .description("Update status of a concept")
+          .parameters(
             asPathParam(conceptId),
             asPathParam(statuss)
-        )
-          authorizations "oauth2"
-          responseMessages (response400, response403, response404, response500))
+          )
+          .authorizations("oauth2")
+          .responseMessages(response400, response403, response404, response500))
     ) {
       val userInfo = user.getUser
       doOrAccessDenied(userInfo.canWrite) {
@@ -288,10 +288,10 @@ trait DraftConceptController {
       "/status-state-machine/",
       operation(
         apiOperation[Map[String, List[String]]]("getStatusStateMachine")
-          summary "Get status state machine"
-          description "Get status state machine"
-          authorizations "oauth2"
-          responseMessages response500
+          .summary("Get status state machine")
+          .description("Get status state machine")
+          .authorizations("oauth2")
+          .responseMessages(response500)
       )
     ) {
       val userInfo = user.getUser

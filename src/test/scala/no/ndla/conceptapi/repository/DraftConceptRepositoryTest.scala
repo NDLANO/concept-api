@@ -26,7 +26,7 @@ class DraftConceptRepositoryTest extends IntegrationSuite with TestEnvironment {
 
   def emptyTestDatabase = {
     DB autoCommit (implicit session => {
-      sql"delete from conceptapitest.conceptdata;".execute.apply()(session)
+      sql"delete from conceptapitest.conceptdata;".execute().apply()(session)
     })
   }
 

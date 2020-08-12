@@ -45,7 +45,7 @@ class V5__MigrateStatusToQualityAssured extends BaseJavaMigration {
       .map(rs => {
         (rs.long("id"), rs.string("document"))
       })
-      .list
+      .list()
       .apply()
   }
 
@@ -56,7 +56,7 @@ class V5__MigrateStatusToQualityAssured extends BaseJavaMigration {
 
     sql"update conceptdata set document = $dataObject where id = $id"
       .update()
-      .apply
+      .apply()
   }
 
   def renameStatus(status: String): String = {

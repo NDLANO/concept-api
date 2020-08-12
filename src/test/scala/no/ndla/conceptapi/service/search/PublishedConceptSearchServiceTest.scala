@@ -146,7 +146,7 @@ class PublishedConceptSearchServiceTest extends IntegrationSuite with TestEnviro
     Set.empty
   )
 
-  override def beforeAll: Unit = if (elasticSearchContainer.isSuccess) {
+  override def beforeAll(): Unit = if (elasticSearchContainer.isSuccess) {
     publishedConceptIndexService.createIndexWithName(ConceptApiProperties.DraftConceptSearchIndex)
 
     publishedConceptIndexService.indexDocument(concept1)
