@@ -14,7 +14,7 @@ val ElasticsearchVersion = "6.8.11"
 val Json4SVersion = "3.6.7"
 val FlywayVersion = "5.2.0"
 val PostgresVersion = "42.2.14"
-val HikariConnectionPoolVersion = "3.2.0"
+val HikariConnectionPoolVersion = "3.4.5"
 val CatsEffectVersion = "2.1.1"
 val TestContainersVersion = "1.12.2"
 
