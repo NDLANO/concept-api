@@ -156,7 +156,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite with TestEnvironmen
     Seq.empty
   )
 
-  override def beforeAll: Unit = if (elasticSearchContainer.isSuccess) {
+  override def beforeAll(): Unit = if (elasticSearchContainer.isSuccess) {
     draftConceptIndexService.createIndexWithName(ConceptApiProperties.DraftConceptSearchIndex)
 
     draftConceptIndexService.indexDocument(concept1)

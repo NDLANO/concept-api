@@ -30,7 +30,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
 
   val invalidConcept = """{"title": [{"language": "nb", "titlee": "lol"]}"""
 
-  override def beforeEach: Unit = {
+  override def beforeEach(): Unit = {
     when(user.getUser).thenReturn(TestData.userWithWriteAccess)
   }
 

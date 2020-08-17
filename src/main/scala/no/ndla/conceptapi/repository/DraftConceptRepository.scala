@@ -37,7 +37,7 @@ trait DraftConceptRepository {
         sql"""
         insert into ${Concept.table} (document, revision)
         values (${dataObject}, $newRevision)
-          """.updateAndReturnGeneratedKey.apply
+          """.updateAndReturnGeneratedKey().apply()
 
       logger.info(s"Inserted new concept: $conceptId")
       concept.copy(
@@ -57,7 +57,7 @@ trait DraftConceptRepository {
         sql"""
         insert into ${Concept.table} (listing_id, document, revision)
         values ($listingId, $dataObject, $newRevision)
-          """.updateAndReturnGeneratedKey.apply
+          """.updateAndReturnGeneratedKey().apply()
 
       logger.info(s"Inserted new concept: '$conceptId', with listing id '$listingId'")
       concept.copy(id = Some(conceptId))
@@ -74,7 +74,7 @@ trait DraftConceptRepository {
            update ${Concept.table} 
            set document=${dataObject} 
            where listing_id=${listingId}
-         """.updateAndReturnGeneratedKey.apply
+         """.updateAndReturnGeneratedKey().apply()
       ) match {
         case Success(id) => Success(concept.copy(id = Some(id)))
         case Failure(ex) =>
@@ -99,7 +99,7 @@ trait DraftConceptRepository {
             sql"""
                   insert into ${Concept.table} (id, document, revision)
                   values ($id, ${dataObject}, $newRevision)
-               """.update.apply
+               """.update().apply()
           )
 
           logger.info(s"Inserted new concept: $id")
@@ -129,7 +129,7 @@ trait DraftConceptRepository {
               where id=$conceptId
               and revision=$oldRevision
               and revision=(select max(revision) from ${Concept.table} where id=$conceptId)
-            """.update.apply
+            """.update().apply()
           ) match {
             case Success(updatedRows) => failIfRevisionMismatch(updatedRows, concept, newRevision)
             case Failure(ex) =>
@@ -156,7 +156,7 @@ trait DraftConceptRepository {
     def exists(id: Long)(implicit session: DBSession = AutoSession): Boolean = {
       sql"select id from ${Concept.table} where id=${id}"
         .map(rs => rs.long("id"))
-        .single
+        .single()
         .apply()
         .isDefined
     }
@@ -164,7 +164,7 @@ trait DraftConceptRepository {
     def getIdFromExternalId(externalId: String)(implicit session: DBSession = AutoSession): Option[Long] = {
       sql"select id from ${Concept.table} where $externalId = any(external_id)"
         .map(rs => rs.long("id"))
-        .single
+        .single()
         .apply()
     }
 
@@ -188,7 +188,7 @@ trait DraftConceptRepository {
       val co = Concept.syntax("co")
       sql"select ${co.result.*} from ${Concept.as(co)} where co.document is not NULL and $whereClause"
         .map(Concept.fromResultSet(co))
-        .single
+        .single()
         .apply()
     }
 
@@ -197,7 +197,7 @@ trait DraftConceptRepository {
       val co = Concept.syntax("co")
       sql"select ${co.result.*} from ${Concept.as(co)} where co.document is not NULL and $whereClause"
         .map(Concept.fromResultSet(co))
-        .list
+        .list()
         .apply()
     }
 
@@ -240,8 +240,8 @@ trait DraftConceptRepository {
               limit ${pageSize}
                       """
         .map(rs => rs.string("tags"))
-        .toList()
-        .apply
+        .list()
+        .apply()
 
       val tagsCount =
         sql"""
@@ -270,7 +270,7 @@ trait DraftConceptRepository {
            limit $pageSize
       """
         .map(Concept.fromResultSet(co))
-        .list
+        .list()
         .apply()
     }
   }

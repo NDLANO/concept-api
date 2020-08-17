@@ -19,7 +19,7 @@ import scala.util.{Failure, Success}
 
 /*
 This is just to share endpoints between controllers while frontend migration is ongoing.
-TODO: Move the endpoints to [[DraftConceptController]] and delete this file when frontend starts using [[DraftConceptController]] instead of [[PublishedConceptController]] for creating and updating
+TODO: Move the endpoints to [[DraftConceptController]] and delete this file when frontend starts using [[DraftConceptController]] instead of [[PublishedConceptController]] for creating and updating
  */
 trait DraftNdlaController {
   this: ReadService with WriteService with User with DraftConceptSearchService =>
@@ -28,17 +28,17 @@ trait DraftNdlaController {
       "/tag-search/",
       operation(
         apiOperation[TagsSearchResult]("getTags-paginated")
-          summary "Retrieves a list of all previously used tags in concepts"
-          description "Retrieves a list of all previously used tags in concepts"
-          parameters (
+          .summary("Retrieves a list of all previously used tags in concepts")
+          .description("Retrieves a list of all previously used tags in concepts")
+          .parameters(
             asHeaderParam(correlationId),
             asQueryParam(query),
             asQueryParam(pageSize),
             asQueryParam(pageNo),
             asQueryParam(language)
-        )
-          responseMessages response500
-          authorizations "oauth2")
+          )
+          .responseMessages(response500)
+          .authorizations("oauth2"))
     ) {
 
       val query = paramOrDefault(this.query.paramName, "")
@@ -59,14 +59,14 @@ trait DraftNdlaController {
       "/",
       operation(
         apiOperation[Concept]("newConceptById")
-          summary "Create new concept"
-          description "Create new concept"
-          parameters (
+          .summary("Create new concept")
+          .description("Create new concept")
+          .parameters(
             asHeaderParam(correlationId),
             bodyParam[NewConcept]
-        )
-          authorizations "oauth2"
-          responseMessages (response400, response403, response500))
+          )
+          .authorizations("oauth2")
+          .responseMessages(response400, response403, response500))
     ) {
       val userInfo = user.getUser
       doOrAccessDenied(userInfo.canWrite) {
@@ -82,15 +82,15 @@ trait DraftNdlaController {
       "/:concept_id",
       operation(
         apiOperation[Concept]("updateConceptById")
-          summary "Update a concept"
-          description "Update a concept"
-          parameters (
+          .summary("Update a concept")
+          .description("Update a concept")
+          .parameters(
             asHeaderParam(correlationId),
             bodyParam[UpdatedConcept],
             asPathParam(conceptId)
-        )
-          authorizations "oauth2"
-          responseMessages (response400, response403, response404, response500))
+          )
+          .authorizations("oauth2")
+          .responseMessages(response400, response403, response404, response500))
     ) {
       val userInfo = user.getUser
       doOrAccessDenied(userInfo.canWrite) {

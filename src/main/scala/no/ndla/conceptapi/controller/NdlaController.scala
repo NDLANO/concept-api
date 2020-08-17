@@ -65,7 +65,7 @@ abstract class NdlaController() extends ScalatraServlet with NativeJsonSupport w
     CorrelationID.clear()
     ThreadContext.remove(CorrelationIdKey)
     AuthUser.clear()
-    ApplicationUrl.clear
+    ApplicationUrl.clear()
   }
 
   case class Param[T](paramName: String, description: String)(implicit mf: Manifest[T])
