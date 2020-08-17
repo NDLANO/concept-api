@@ -11,7 +11,8 @@ case class SearchSettings(
     sort: Sort.Value,
     fallback: Boolean,
     subjects: Set[String],
-    tagsToFilterBy: Set[String]
+    tagsToFilterBy: Set[String],
+    exactTitleMatch: Boolean
 )
 
 object SearchSettings {
@@ -25,7 +26,8 @@ object SearchSettings {
       sort = Sort.ByRelevanceDesc,
       fallback = false,
       subjects = Set.empty,
-      tagsToFilterBy = Set.empty
+      tagsToFilterBy = Set.empty,
+      exactTitleMatch = false
     )
   }
 }
