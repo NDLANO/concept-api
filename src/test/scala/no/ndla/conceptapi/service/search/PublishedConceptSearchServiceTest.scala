@@ -320,13 +320,13 @@ class PublishedConceptSearchServiceTest extends IntegrationSuite with TestEnviro
 
   test("That search for title matches correct number of concepts") {
     val Success(results) =
-      publishedConceptSearchService.matchingQuery("Baldur har mareritt", searchSettings.copy(sort = Sort.ByTitleAsc))
+      publishedConceptSearchService.matchingQuery("baldur har mareritt", searchSettings.copy(sort = Sort.ByTitleAsc))
     results.totalCount should be(2)
   }
 
   test("That search for title with exact parameter matches correct number of concepts") {
     val Success(results) =
-      publishedConceptSearchService.matchingQuery("Baldur har mareritt",
+      publishedConceptSearchService.matchingQuery("baldur har mareritt",
                                                   searchSettings.copy(sort = Sort.ByTitleAsc, exactTitleMatch = true))
     val hits = results.results
     results.totalCount should be(1)
@@ -336,6 +336,13 @@ class PublishedConceptSearchServiceTest extends IntegrationSuite with TestEnviro
       publishedConceptSearchService.matchingQuery("Pingvinen",
                                                   searchSettings.copy(sort = Sort.ByTitleAsc, exactTitleMatch = true))
     results2.totalCount should be(0)
+
+    val Success(results3) =
+      publishedConceptSearchService.matchingQuery("baldur har MARERITT",
+                                                  searchSettings.copy(sort = Sort.ByTitleAsc, exactTitleMatch = true))
+    val hits3 = results3.results
+    results3.totalCount should be(1)
+    hits3.head.id should be(8)
   }
 
   test("Searching with logical AND only returns results with all terms") {

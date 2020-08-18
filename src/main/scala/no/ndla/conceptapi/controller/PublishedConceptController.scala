@@ -149,7 +149,7 @@ trait PublishedConceptController {
             asQueryParam(subjects),
             asQueryParam(tagsToFilterBy),
             asQueryParam(exactTitleMatch)
-        )
+          )
           authorizations "oauth2"
           responseMessages response500)
     ) {

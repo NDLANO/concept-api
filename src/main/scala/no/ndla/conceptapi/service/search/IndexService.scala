@@ -10,6 +10,7 @@ package no.ndla.conceptapi.service.search
 import java.text.SimpleDateFormat
 import java.util.Calendar
 
+import com.sksamuel.elastic4s.analyzers.{CustomNormalizerDefinition, LowercaseTokenFilter}
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.indexes.IndexRequest
 import com.sksamuel.elastic4s.mappings.{FieldDefinition, MappingDefinition}
@@ -30,6 +31,8 @@ trait IndexService {
     val documentType: String
     val searchIndex: String
     val repository: Repository[D]
+
+    val lowerNormalizer: CustomNormalizerDefinition = customNormalizer("lower").filters(Seq(LowercaseTokenFilter))
 
     def getMapping: MappingDefinition
     def createIndexRequest(domainModel: D, indexName: String): Try[IndexRequest]
@@ -142,6 +145,7 @@ trait IndexService {
         val response = e4sClient.execute {
           createIndex(indexName)
             .mappings(getMapping)
+            .normalizers(lowerNormalizer)
             .indexSetting("max_result_window", ConceptApiProperties.ElasticSearchIndexMaxResultWindow)
         }
 
@@ -241,7 +245,7 @@ trait IndexService {
               textField(s"$fieldName.${langAnalyzer.lang}")
                 .fielddata(false)
                 .analyzer(langAnalyzer.analyzer)
-                .fields(keywordField("raw")))
+                .fields(keywordField("raw"), keywordField("lower").normalizer("lower")))
         case false =>
           languageAnalyzers.map(langAnalyzer =>
             textField(s"$fieldName.${langAnalyzer.lang}").fielddata(false).analyzer(langAnalyzer.analyzer))
