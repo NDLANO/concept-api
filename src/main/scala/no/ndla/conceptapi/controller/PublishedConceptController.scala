@@ -75,7 +75,8 @@ trait PublishedConceptController {
         idList: List[Long],
         fallback: Boolean,
         subjects: Set[String],
-        tagsToFilterBy: Set[String]
+        tagsToFilterBy: Set[String],
+        exactTitleMatch: Boolean
     ) = {
       val settings = SearchSettings(
         withIdIn = idList,
@@ -85,7 +86,8 @@ trait PublishedConceptController {
         sort = sort.getOrElse(Sort.ByRelevanceDesc),
         fallback = fallback,
         subjects = subjects,
-        tagsToFilterBy = tagsToFilterBy
+        tagsToFilterBy = tagsToFilterBy,
+        exactTitleMatch = exactTitleMatch
       )
 
       val result = query match {
@@ -145,10 +147,11 @@ trait PublishedConceptController {
             asQueryParam(fallback),
             asQueryParam(scrollId),
             asQueryParam(subjects),
-            asQueryParam(tagsToFilterBy)
+            asQueryParam(tagsToFilterBy),
+            asQueryParam(exactTitleMatch)
           )
-          .authorizations("oauth2")
-          .responseMessages(response500))
+          authorizations "oauth2"
+          responseMessages response500)
     ) {
       val language = paramOrDefault(this.language.paramName, Language.AllLanguages)
       val scrollId = paramOrNone(this.scrollId.paramName)
@@ -162,8 +165,18 @@ trait PublishedConceptController {
         val fallback = booleanOrDefault(this.fallback.paramName, default = false)
         val subjects = paramAsListOfString(this.subjects.paramName)
         val tagsToFilterBy = paramAsListOfString(this.tagsToFilterBy.paramName)
+        val exactTitleMatch = booleanOrDefault(this.exactTitleMatch.paramName, default = false)
 
-        search(query, sort, language, page, pageSize, idList, fallback, subjects.toSet, tagsToFilterBy.toSet)
+        search(query,
+               sort,
+               language,
+               page,
+               pageSize,
+               idList,
+               fallback,
+               subjects.toSet,
+               tagsToFilterBy.toSet,
+               exactTitleMatch)
 
       }
     }
@@ -197,8 +210,9 @@ trait PublishedConceptController {
             val fallback = searchParams.fallback.getOrElse(false)
             val subjects = searchParams.subjects
             val tagsToFilterBy = searchParams.tags
+            val exactTitleMatch = searchParams.exactTitleMatch.getOrElse(false)
 
-            search(query, sort, language, page, pageSize, idList, fallback, subjects, tagsToFilterBy)
+            search(query, sort, language, page, pageSize, idList, fallback, subjects, tagsToFilterBy, exactTitleMatch)
           case Failure(ex) => errorHandler(ex)
         }
       }

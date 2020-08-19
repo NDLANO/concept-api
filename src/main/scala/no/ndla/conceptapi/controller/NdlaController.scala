@@ -143,6 +143,8 @@ abstract class NdlaController() extends ScalatraServlet with NativeJsonSupport w
     s"""List of users to filter by.
        |The value to search for is the user-id from Auth0.""".stripMargin
   )
+  protected val exactTitleMatch =
+    Param[Option[Boolean]]("exact-match", "If provided, only return concept where query matches title exactly.")
 
   protected def asHeaderParam[T: Manifest: NotNothing](param: Param[T]) =
     headerParam[T](param.paramName).description(param.description)

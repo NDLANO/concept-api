@@ -143,7 +143,8 @@ class PublishedConceptSearchServiceTest extends IntegrationSuite with TestEnviro
     Sort.ByIdAsc,
     false,
     Set.empty,
-    Set.empty
+    Set.empty,
+    false
   )
 
   override def beforeAll(): Unit = if (elasticSearchContainer.isSuccess) {
@@ -315,6 +316,33 @@ class PublishedConceptSearchServiceTest extends IntegrationSuite with TestEnviro
     val hits = results.results
     results.totalCount should be(1)
     hits.head.id should be(2)
+  }
+
+  test("That search for title matches correct number of concepts") {
+    val Success(results) =
+      publishedConceptSearchService.matchingQuery("baldur har mareritt", searchSettings.copy(sort = Sort.ByTitleAsc))
+    results.totalCount should be(2)
+  }
+
+  test("That search for title with exact parameter matches correct number of concepts") {
+    val Success(results) =
+      publishedConceptSearchService.matchingQuery("baldur har mareritt",
+                                                  searchSettings.copy(sort = Sort.ByTitleAsc, exactTitleMatch = true))
+    val hits = results.results
+    results.totalCount should be(1)
+    hits.head.id should be(8)
+
+    val Success(results2) =
+      publishedConceptSearchService.matchingQuery("Pingvinen",
+                                                  searchSettings.copy(sort = Sort.ByTitleAsc, exactTitleMatch = true))
+    results2.totalCount should be(0)
+
+    val Success(results3) =
+      publishedConceptSearchService.matchingQuery("baldur har MARERITT",
+                                                  searchSettings.copy(sort = Sort.ByTitleAsc, exactTitleMatch = true))
+    val hits3 = results3.results
+    results3.totalCount should be(1)
+    hits3.head.id should be(8)
   }
 
   test("Searching with logical AND only returns results with all terms") {
