@@ -32,41 +32,66 @@ object TestData {
   val today = DateTime.now().minusDays(0).toDate
   val yesterday = DateTime.now().minusDays(1).toDate
 
-  val sampleNbApiConcept = api.Concept(
-    1.toLong,
-    1,
-    Some(api.ConceptTitle("Tittel", "nb")),
-    Some(api.ConceptContent("Innhold", "nb")),
-    None,
-    None,
-    Some(api.ConceptMetaImage("http://api-gateway.ndla-local/image-api/raw/id/1", "Hei", "nb")),
-    Some(api.ConceptTags(Seq("stor", "kaktus"), "nb")),
-    Some(Set("urn:subject:3", "urn:subject:4")),
-    yesterday,
-    today,
-    Some(Seq("")),
-    Set("nn", "nb"),
-    Some(42),
+  val emptyApiConcept = api.Concept(
+    id = 0,
+    revision = 0,
+    title = None,
+    content = None,
+    copyright = None,
+    source = None,
+    metaImage = None,
+    tags = None,
+    subjectIds = None,
+    created = today,
+    updated = today,
+    updatedBy = None,
+    supportedLanguages = Set.empty,
+    articleId = None,
     api.Status(
-      current = "DRAFT",
+      current = "",
       other = Seq.empty
     )
   )
 
-  val sampleNbDomainConcept = domain.Concept(
-    id = Some(1),
-    revision = Some(1),
-    title = Seq(domain.ConceptTitle("Tittel", "nb")),
-    content = Seq(domain.ConceptContent("Innhold", "nb")),
+  val emptyApiNewConcept = api.NewConcept(
+    language = "",
+    title = "",
+    content = None,
+    copyright = None,
+    source = None,
+    metaImage = None,
+    tags = None,
+    subjectIds = None,
+    articleId = None
+  )
+
+  val emptyApiUpdatedConcept = api.UpdatedConcept(
+    language = "",
+    title = None,
+    content = None,
+    metaImage = Right(None),
+    copyright = None,
+    source = None,
+    tags = None,
+    subjectIds = None,
+    articleId = Right(None),
+    status = None
+  )
+
+  val emptyDomainConcept = domain.Concept(
+    id = None,
+    revision = None,
+    title = Seq.empty,
+    content = Seq.empty,
     copyright = None,
     source = None,
     created = yesterday,
     updated = today,
-    updatedBy = Seq.empty,
-    metaImage = Seq(domain.ConceptMetaImage("1", "Hei", "nb")),
-    tags = Seq(domain.ConceptTags(Seq("stor", "kaktus"), "nb")),
-    subjectIds = Set("urn:subject:3", "urn:subject:4"),
-    articleId = Some(42),
+    updatedBy = Seq(""),
+    metaImage = Seq.empty,
+    tags = Seq.empty,
+    subjectIds = Set.empty,
+    articleId = None,
     status = Status.default
   )
 
@@ -104,72 +129,4 @@ object TestData {
     status = Status.default
   )
 
-  val domainConcept_toDomainUpdateWithId = domain.Concept(
-    id = None,
-    revision = None,
-    title = Seq.empty,
-    content = Seq.empty,
-    copyright = None,
-    source = None,
-    created = today,
-    updated = today,
-    updatedBy = Seq(""),
-    metaImage = Seq.empty,
-    tags = Seq.empty,
-    subjectIds = Set.empty,
-    articleId = None,
-    status = Status.default
-  )
-
-  val sampleNnApiConcept = api.Concept(
-    1.toLong,
-    1,
-    Some(api.ConceptTitle("Tittelur", "nn")),
-    Some(api.ConceptContent("Innhald", "nn")),
-    None,
-    None,
-    Some(api.ConceptMetaImage("http://api-gateway.ndla-local/image-api/raw/id/2", "Hej", "nn")),
-    Some(api.ConceptTags(Seq("liten", "fisk"), "nn")),
-    Some(Set("urn:subject:3", "urn:subject:4")),
-    yesterday,
-    today,
-    updatedBy = Some(Seq("")),
-    Set("nn", "nb"),
-    Some(42),
-    api.Status(
-      current = "DRAFT",
-      other = Seq.empty
-    )
-  )
-
-  val emptyApiUpdatedConcept = api.UpdatedConcept(
-    language = "",
-    title = None,
-    content = None,
-    metaImage = Right(None),
-    copyright = None,
-    source = None,
-    tags = None,
-    subjectIds = None,
-    articleId = Right(None),
-    status = None
-  )
-
-  val sampleNewConcept = api.NewConcept("nb", "Tittel", Some("Innhold"), None, None, None, None, None, Some(42))
-
-  val emptyApiNewConcept = api.NewConcept(
-    language = "",
-    title = "",
-    content = None,
-    copyright = None,
-    source = None,
-    metaImage = None,
-    tags = None,
-    subjectIds = None,
-    articleId = None
-  )
-
-  val updatedConcept =
-    api.UpdatedConcept("nb", None, Some("Innhold"), Right(None), None, None, None, None, Right(Some(12L)), None)
-  val sampleApiTagsSearchResult = api.TagsSearchResult(10, 1, 1, "nb", Seq("a", "b"))
 }

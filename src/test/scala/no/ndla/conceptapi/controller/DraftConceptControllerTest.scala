@@ -13,8 +13,7 @@ import no.ndla.conceptapi.auth.UserInfo
 import no.ndla.conceptapi.model.api
 import org.json4s.DefaultFormats
 import org.json4s.native.Serialization.write
-import org.mockito.ArgumentMatchers.{any, eq => eqTo, _}
-import org.mockito.Mockito._
+import org.mockito.ArgumentMatchers.anyString
 import org.scalatra.test.scalatest.ScalatraFunSuite
 
 import scala.util.{Failure, Success}
@@ -36,7 +35,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
 
   test("/<concept_id> should return 200 if the concept was found") {
     when(readService.conceptWithId(conceptId, lang, fallback = false))
-      .thenReturn(Success(TestData.sampleNbApiConcept))
+      .thenReturn(Success(TestData.emptyApiConcept))
 
     get(s"/test/$conceptId?language=$lang") {
       status should equal(200)
@@ -68,8 +67,10 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
     when(
       writeService
         .newConcept(any[NewConcept], any[UserInfo]))
-      .thenReturn(Success(TestData.sampleNbApiConcept))
-    post("/test/", write(TestData.sampleNewConcept), headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
+      .thenReturn(Success(TestData.emptyApiConcept))
+    post("/test/",
+         write(TestData.emptyApiNewConcept),
+         headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(201)
     }
   }
@@ -79,8 +80,10 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
     when(
       writeService
         .newConcept(any[NewConcept], any[UserInfo]))
-      .thenReturn(Success(TestData.sampleNbApiConcept))
-    post("/test/", write(TestData.sampleNewConcept), headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
+      .thenReturn(Success(TestData.emptyApiConcept))
+    post("/test/",
+         write(TestData.emptyApiNewConcept),
+         headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(403)
     }
   }
@@ -89,9 +92,11 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
     when(
       writeService
         .updateConcept(eqTo(1.toLong), any[UpdatedConcept], any[UserInfo]))
-      .thenReturn(Success(TestData.sampleNbApiConcept))
+      .thenReturn(Success(TestData.emptyApiConcept))
 
-    patch("/test/1", write(TestData.updatedConcept), headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
+    patch("/test/1",
+          write(TestData.emptyApiUpdatedConcept),
+          headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(200)
     }
   }
@@ -101,9 +106,11 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
     when(
       writeService
         .updateConcept(eqTo(1.toLong), any[UpdatedConcept], any[UserInfo]))
-      .thenReturn(Success(TestData.sampleNbApiConcept))
+      .thenReturn(Success(TestData.emptyApiConcept))
 
-    patch("/test/1", write(TestData.updatedConcept), headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
+    patch("/test/1",
+          write(TestData.emptyApiUpdatedConcept),
+          headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(403)
     }
   }
@@ -113,7 +120,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
     when(
       writeService
         .updateConcept(eqTo(1.toLong), any[UpdatedConcept], any[UserInfo]))
-      .thenReturn(Success(TestData.sampleNbApiConcept))
+      .thenReturn(Success(TestData.emptyApiConcept))
 
     val missing = """{"language":"nb"}"""
     val missingExpected = TestData.emptyApiUpdatedConcept.copy(language = "nb", articleId = Right(None))
@@ -142,7 +149,8 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
 
   test("tags should return 200 OK if the result was not empty") {
     when(readService.getAllTags(anyString, anyInt, anyInt, anyString))
-      .thenReturn(TestData.sampleApiTagsSearchResult)
+      .thenReturn(
+        api.TagsSearchResult(totalCount = 10, page = 1, pageSize = 1, language = "nb", results = Seq("a", "b")))
 
     get("/test/tag-search/") {
       status should equal(200)
@@ -155,7 +163,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
     when(
       writeService
         .updateConcept(eqTo(1.toLong), any[UpdatedConcept], any[UserInfo]))
-      .thenReturn(Success(TestData.sampleNbApiConcept))
+      .thenReturn(Success(TestData.emptyApiConcept))
 
     val missing = """{"language":"nb"}"""
     val missingExpected = TestData.emptyApiUpdatedConcept.copy(language = "nb", metaImage = Right(None))

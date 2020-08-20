@@ -30,7 +30,7 @@ class PublishedConceptControllerTest extends UnitSuite with TestEnvironment with
 
   test("/<concept_id> should return 200 if the concept was found") {
     when(readService.publishedConceptWithId(conceptId, lang, fallback = false))
-      .thenReturn(Success(TestData.sampleNbApiConcept))
+      .thenReturn(Success(TestData.emptyApiConcept))
 
     get(s"/test/$conceptId?language=$lang") {
       status should equal(200)

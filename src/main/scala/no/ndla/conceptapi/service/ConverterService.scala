@@ -14,7 +14,7 @@ import no.ndla.conceptapi.model.domain
 import no.ndla.conceptapi.model.search
 import no.ndla.conceptapi.model.domain.Language._
 import no.ndla.conceptapi.model.api
-import no.ndla.conceptapi.model.api.NotFoundException
+import no.ndla.conceptapi.model.api.{ConceptMissingIdException, NotFoundException}
 import no.ndla.conceptapi.model.domain.{ConceptStatus, LanguageField, Status}
 import no.ndla.mapping.License.getLicense
 import no.ndla.conceptapi.ConceptApiProperties._
@@ -43,25 +43,33 @@ trait ConverterService {
 
         val tags = findByLanguageOrBestEffort(concept.tags, language).map(toApiTags)
 
-        Success(
-          api.Concept(
-            id = concept.id.get,
-            revision = concept.revision.getOrElse(-1),
-            title = Some(title),
-            content = Some(content),
-            copyright = concept.copyright.map(toApiCopyright),
-            source = concept.source,
-            metaImage = Some(metaImage),
-            tags = tags,
-            subjectIds = if (concept.subjectIds.isEmpty) None else Some(concept.subjectIds),
-            created = concept.created,
-            updated = concept.updated,
-            updatedBy = if (concept.updatedBy.isEmpty) None else Some(concept.updatedBy),
-            supportedLanguages = concept.supportedLanguages,
-            articleId = concept.articleId,
-            status = toApiStatus(concept.status)
-          )
-        )
+        concept.id match {
+          case None =>
+            Failure(
+              ConceptMissingIdException(
+                "Missing id when converting domain-concept to api-concept. This is a bug"
+              ))
+          case Some(id) =>
+            Success(
+              api.Concept(
+                id = id,
+                revision = concept.revision.getOrElse(-1),
+                title = Some(title),
+                content = Some(content),
+                copyright = concept.copyright.map(toApiCopyright),
+                source = concept.source,
+                metaImage = Some(metaImage),
+                tags = tags,
+                subjectIds = if (concept.subjectIds.isEmpty) None else Some(concept.subjectIds),
+                created = concept.created,
+                updated = concept.updated,
+                updatedBy = if (concept.updatedBy.isEmpty) None else Some(concept.updatedBy),
+                supportedLanguages = concept.supportedLanguages,
+                articleId = concept.articleId,
+                status = toApiStatus(concept.status)
+              )
+            )
+        }
       } else {
         Failure(
           NotFoundException(s"The concept with id ${concept.id.getOrElse(-1)} and language '$language' was not found.",

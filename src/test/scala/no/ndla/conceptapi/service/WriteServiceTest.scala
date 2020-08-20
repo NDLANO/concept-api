@@ -15,10 +15,8 @@ import no.ndla.conceptapi.model.domain
 import no.ndla.conceptapi.model.domain._
 import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
 import org.joda.time.DateTime
-import org.mockito.ArgumentMatchers._
 
 import scala.util.{Failure, Success, Try}
-import org.mockito.Mockito._
 import org.mockito.{ArgumentCaptor, Mockito}
 import org.mockito.invocation.InvocationOnMock
 import scalikejdbc.DBSession
@@ -33,9 +31,27 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   val userInfo = UserInfo.SystemUser
 
   val concept: api.Concept =
-    TestData.sampleNbApiConcept.copy(id = conceptId.toLong, updated = today, supportedLanguages = Set("nb"))
+    TestData.emptyApiConcept.copy(
+      id = conceptId.toLong,
+      title = Some(api.ConceptTitle("Tittel", "nb")),
+      content = Some(api.ConceptContent(content = "", language = "unknown")),
+      metaImage = Some(api.ConceptMetaImage(url = "", alt = "", language = "unknown")),
+      created = today,
+      updated = today,
+      updatedBy = Some(Seq("")),
+      supportedLanguages = Set("nb"),
+      status = api.Status("DRAFT", Seq.empty)
+    )
 
-  val domainConcept: domain.Concept = TestData.sampleNbDomainConcept.copy(id = Some(conceptId.toLong))
+  val domainConcept: domain.Concept =
+    TestData.emptyDomainConcept.copy(
+      id = Some(conceptId.toLong),
+      revision = Some(0),
+      title = Seq(domain.ConceptTitle("Tittel", "nb")),
+      created = today,
+      updatedBy = Seq(""),
+      status = domain.Status.default
+    )
 
   def mockWithConcept(concept: domain.Concept) = {
     when(draftConceptRepository.withId(conceptId)).thenReturn(Option(concept))
@@ -59,7 +75,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(draftConceptRepository.insert(any[Concept])(any[DBSession])).thenReturn(domainConcept)
     when(contentValidator.validateConcept(any[Concept], any[Boolean])).thenReturn(Success(domainConcept))
 
-    service.newConcept(TestData.sampleNewConcept, userInfo).get.id.toString should equal(domainConcept.id.get.toString)
+    service.newConcept(TestData.emptyApiNewConcept, userInfo).get.id.toString should equal(
+      domainConcept.id.get.toString)
     verify(draftConceptRepository, times(1)).insert(any[Concept])
     verify(draftConceptIndexService, times(1)).indexDocument(any[Concept])
   }
@@ -133,8 +150,8 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   test("That delete concept removes language from all languagefields") {
     val concept =
-      TestData.sampleNbDomainConcept.copy(id = Some(3.toLong),
-                                          title = Seq(ConceptTitle("title", "nb"), ConceptTitle("title", "nn")))
+      TestData.emptyDomainConcept.copy(id = Some(3.toLong),
+                                       title = Seq(ConceptTitle("title", "nb"), ConceptTitle("title", "nn")))
     val conceptCaptor: ArgumentCaptor[Concept] = ArgumentCaptor.forClass(classOf[Concept])
 
     when(draftConceptRepository.withId(anyLong)).thenReturn(Some(concept))
