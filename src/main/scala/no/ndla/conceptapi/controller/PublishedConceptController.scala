@@ -9,6 +9,7 @@ package no.ndla.conceptapi.controller
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.ConceptApiProperties
+import no.ndla.conceptapi.ConceptApiProperties.InitialScrollContextKeywords
 import no.ndla.conceptapi.auth.User
 import no.ndla.conceptapi.model.api.{
   Concept,
@@ -76,7 +77,8 @@ trait PublishedConceptController {
         fallback: Boolean,
         subjects: Set[String],
         tagsToFilterBy: Set[String],
-        exactTitleMatch: Boolean
+        exactTitleMatch: Boolean,
+        shouldScroll: Boolean
     ) = {
       val settings = SearchSettings(
         withIdIn = idList,
@@ -87,7 +89,8 @@ trait PublishedConceptController {
         fallback = fallback,
         subjects = subjects,
         tagsToFilterBy = tagsToFilterBy,
-        exactTitleMatch = exactTitleMatch
+        exactTitleMatch = exactTitleMatch,
+        shouldScroll = shouldScroll
       )
 
       val result = query match {
@@ -166,17 +169,21 @@ trait PublishedConceptController {
         val subjects = paramAsListOfString(this.subjects.paramName)
         val tagsToFilterBy = paramAsListOfString(this.tagsToFilterBy.paramName)
         val exactTitleMatch = booleanOrDefault(this.exactTitleMatch.paramName, default = false)
+        val shouldScroll = paramOrNone(this.scrollId.paramName).exists(InitialScrollContextKeywords.contains)
 
-        search(query,
-               sort,
-               language,
-               page,
-               pageSize,
-               idList,
-               fallback,
-               subjects.toSet,
-               tagsToFilterBy.toSet,
-               exactTitleMatch)
+        search(
+          query,
+          sort,
+          language,
+          page,
+          pageSize,
+          idList,
+          fallback,
+          subjects.toSet,
+          tagsToFilterBy.toSet,
+          exactTitleMatch,
+          shouldScroll
+        )
 
       }
     }
@@ -211,8 +218,21 @@ trait PublishedConceptController {
             val subjects = searchParams.subjects
             val tagsToFilterBy = searchParams.tags
             val exactTitleMatch = searchParams.exactTitleMatch.getOrElse(false)
+            val shouldScroll = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
 
-            search(query, sort, language, page, pageSize, idList, fallback, subjects, tagsToFilterBy, exactTitleMatch)
+            search(
+              query,
+              sort,
+              language,
+              page,
+              pageSize,
+              idList,
+              fallback,
+              subjects,
+              tagsToFilterBy,
+              exactTitleMatch,
+              shouldScroll
+            )
           case Failure(ex) => errorHandler(ex)
         }
       }

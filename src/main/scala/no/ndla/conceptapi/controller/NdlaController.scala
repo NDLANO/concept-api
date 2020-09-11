@@ -16,7 +16,8 @@ import no.ndla.conceptapi.ConceptApiProperties.{
   CorrelationIdHeader,
   CorrelationIdKey,
   ElasticSearchIndexMaxResultWindow,
-  ElasticSearchScrollKeepAlive
+  ElasticSearchScrollKeepAlive,
+  InitialScrollContextKeywords
 }
 import no.ndla.conceptapi.auth.User
 import no.ndla.conceptapi.model.api.{
@@ -127,12 +128,12 @@ abstract class NdlaController() extends ScalatraServlet with NativeJsonSupport w
   protected val fallback = Param[Option[Boolean]]("fallback", "Fallback to existing language if language is specified.")
   protected val scrollId = Param[Option[String]](
     "search-context",
-    s"""A search context retrieved from the response header of a previous search.
-       |If search-context is specified, all other query parameters, except '${this.language.paramName}' and '${this.fallback.paramName}' are ignored
-       |For the rest of the parameters the original search of the search-context is used.
-       |The search context may change between scrolls. Always use the most recent one (The context if unused dies after $ElasticSearchScrollKeepAlive).
-       |Used to enable scrolling past $ElasticSearchIndexMaxResultWindow results.
-      """.stripMargin
+    s"""A unique string obtained from a search you want to keep scrolling in. To obtain one from a search, provide one of the following values: ${InitialScrollContextKeywords
+         .mkString("[", ",", "]")}.
+       |When scrolling, the parameters from the initial search is used, except in the case of '${this.language.paramName}' and '${this.fallback.paramName}'.
+       |This value may change between scrolls. Always use the one in the latest scroll result (The context, if unused, dies after $ElasticSearchScrollKeepAlive).
+       |If you are not paginating past $ElasticSearchIndexMaxResultWindow hits, you can ignore this and use '${this.pageNo.paramName}' and '${this.pageSize.paramName}' instead.
+       |""".stripMargin
   )
   protected val subjects =
     Param[Option[String]]("subjects", "A comma-separated list of subjects that should appear in the search.")

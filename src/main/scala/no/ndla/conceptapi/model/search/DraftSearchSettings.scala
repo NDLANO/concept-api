@@ -13,7 +13,8 @@ case class DraftSearchSettings(
     subjects: Set[String],
     tagsToFilterBy: Set[String],
     statusFilter: Set[String],
-    userFilter: Seq[String]
+    userFilter: Seq[String],
+    shouldScroll: Boolean
 )
 
 object DraftSearchSettings {
@@ -29,7 +30,8 @@ object DraftSearchSettings {
       subjects = Set.empty,
       tagsToFilterBy = Set.empty,
       statusFilter = Set.empty,
-      userFilter = Seq.empty
+      userFilter = Seq.empty,
+      shouldScroll = false
     )
   }
 }

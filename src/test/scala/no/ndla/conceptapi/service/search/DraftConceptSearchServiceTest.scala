@@ -144,16 +144,17 @@ class DraftConceptSearchServiceTest extends IntegrationSuite with TestEnvironmen
                                                        content = List(ConceptContent("englandocontent", "en")))
 
   val searchSettings = DraftSearchSettings(
-    List.empty,
-    Language.DefaultLanguage,
-    1,
-    10,
-    Sort.ByIdAsc,
-    false,
-    Set.empty,
-    Set.empty,
-    Set.empty,
-    Seq.empty
+    withIdIn = List.empty,
+    searchLanguage = Language.DefaultLanguage,
+    page = 1,
+    pageSize = 10,
+    sort = Sort.ByIdAsc,
+    fallback = false,
+    subjects = Set.empty,
+    tagsToFilterBy = Set.empty,
+    statusFilter = Set.empty,
+    userFilter = Seq.empty,
+    shouldScroll = false
   )
 
   override def beforeAll(): Unit = if (elasticSearchContainer.isSuccess) {
@@ -417,7 +418,13 @@ class DraftConceptSearchServiceTest extends IntegrationSuite with TestEnvironmen
     val expectedIds = List(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11).sliding(pageSize, pageSize).toList
 
     val Success(initialSearch) =
-      draftConceptSearchService.all(searchSettings.copy(pageSize = pageSize, searchLanguage = "all", fallback = true))
+      draftConceptSearchService.all(
+        searchSettings.copy(
+          pageSize = pageSize,
+          searchLanguage = "all",
+          fallback = true,
+          shouldScroll = true
+        ))
 
     val Success(scroll1) = draftConceptSearchService.scroll(initialSearch.scrollId.get, "all")
     val Success(scroll2) = draftConceptSearchService.scroll(scroll1.scrollId.get, "all")
