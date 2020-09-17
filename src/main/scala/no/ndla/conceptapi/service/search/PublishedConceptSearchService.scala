@@ -61,7 +61,8 @@ trait PublishedConceptSearchService {
         val settings = SearchSettings.empty.copy(
           subjects = Set(subjectId),
           searchLanguage = language,
-          fallback = fallback
+          fallback = fallback,
+          shouldScroll = true
         )
 
         searchUntilNoMoreResults(settings).map(searchResults => {
@@ -156,9 +157,9 @@ trait PublishedConceptSearchService {
             .sortBy(getSortDefinition(settings.sort, searchLanguage))
 
         val searchWithScroll =
-          if (startAt != 0) { searchToExecute } else {
+          if (startAt == 0 && settings.shouldScroll) {
             searchToExecute.scroll(ConceptApiProperties.ElasticSearchScrollKeepAlive)
-          }
+          } else { searchToExecute }
 
         e4sClient.execute(searchWithScroll) match {
           case Success(response) =>

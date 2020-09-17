@@ -9,6 +9,7 @@ package no.ndla.conceptapi.controller
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.ConceptApiProperties
+import no.ndla.conceptapi.ConceptApiProperties.InitialScrollContextKeywords
 import no.ndla.conceptapi.auth.User
 import no.ndla.conceptapi.model.api.{Concept, ConceptSearchResult, DraftConceptSearchParams, NotFoundException}
 import no.ndla.conceptapi.model.domain.{ConceptStatus, Language, SearchResult, Sort}
@@ -71,7 +72,8 @@ trait DraftConceptController {
         subjects: Set[String],
         tagsToFilterBy: Set[String],
         statusFilter: Set[String],
-        userFilter: Seq[String]
+        userFilter: Seq[String],
+        shouldScroll: Boolean
     ) = {
       val settings = DraftSearchSettings(
         withIdIn = idList,
@@ -83,7 +85,8 @@ trait DraftConceptController {
         subjects = subjects,
         tagsToFilterBy = tagsToFilterBy,
         statusFilter = statusFilter,
-        userFilter = userFilter
+        userFilter = userFilter,
+        shouldScroll = shouldScroll
       )
 
       val result = query match {
@@ -164,6 +167,7 @@ trait DraftConceptController {
         val tagsToFilterBy = paramAsListOfString(this.tagsToFilterBy.paramName)
         val statusesToFilterBy = paramAsListOfString(this.statusFilter.paramName)
         val usersToFilterBy = paramAsListOfString(this.userFilter.paramName)
+        val shouldScroll = paramOrNone(this.scrollId.paramName).exists(InitialScrollContextKeywords.contains)
 
         search(
           query,
@@ -176,7 +180,8 @@ trait DraftConceptController {
           subjects.toSet,
           tagsToFilterBy.toSet,
           statusesToFilterBy.toSet,
-          usersToFilterBy
+          usersToFilterBy,
+          shouldScroll
         )
 
       }
@@ -213,6 +218,7 @@ trait DraftConceptController {
             val tagsToFilterBy = searchParams.tags
             val statusFilter = searchParams.status
             val userFilter = searchParams.users
+            val shouldScroll = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
 
             search(
               query,
@@ -225,7 +231,8 @@ trait DraftConceptController {
               subjects,
               tagsToFilterBy,
               statusFilter,
-              userFilter
+              userFilter,
+              shouldScroll
             )
           case Failure(ex) => errorHandler(ex)
         }

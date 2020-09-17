@@ -136,15 +136,16 @@ class PublishedConceptSearchServiceTest extends IntegrationSuite with TestEnviro
                                                        content = List(ConceptContent("englandocontent", "en")))
 
   val searchSettings = SearchSettings(
-    List.empty,
-    Language.DefaultLanguage,
-    1,
-    10,
-    Sort.ByIdAsc,
-    false,
-    Set.empty,
-    Set.empty,
-    false
+    withIdIn = List.empty,
+    searchLanguage = Language.DefaultLanguage,
+    page = 1,
+    pageSize = 10,
+    sort = Sort.ByIdAsc,
+    fallback = false,
+    subjects = Set.empty,
+    tagsToFilterBy = Set.empty,
+    exactTitleMatch = false,
+    shouldScroll = false
   )
 
   override def beforeAll(): Unit = if (elasticSearchContainer.isSuccess) {
@@ -437,7 +438,12 @@ class PublishedConceptSearchServiceTest extends IntegrationSuite with TestEnviro
 
     val Success(initialSearch) =
       publishedConceptSearchService.all(
-        searchSettings.copy(pageSize = pageSize, searchLanguage = "all", fallback = true))
+        searchSettings.copy(
+          pageSize = pageSize,
+          searchLanguage = "all",
+          fallback = true,
+          shouldScroll = true
+        ))
 
     val Success(scroll1) = publishedConceptSearchService.scroll(initialSearch.scrollId.get, "all")
     val Success(scroll2) = publishedConceptSearchService.scroll(scroll1.scrollId.get, "all")

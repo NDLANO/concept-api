@@ -12,7 +12,8 @@ case class SearchSettings(
     fallback: Boolean,
     subjects: Set[String],
     tagsToFilterBy: Set[String],
-    exactTitleMatch: Boolean
+    exactTitleMatch: Boolean,
+    shouldScroll: Boolean
 )
 
 object SearchSettings {
@@ -27,7 +28,8 @@ object SearchSettings {
       fallback = false,
       subjects = Set.empty,
       tagsToFilterBy = Set.empty,
-      exactTitleMatch = false
+      exactTitleMatch = false,
+      shouldScroll = false
     )
   }
 }
