@@ -11,14 +11,7 @@ import com.typesafe.scalalogging.LazyLogging
 import com.zaxxer.hikari.HikariDataSource
 import no.ndla.conceptapi.auth.User
 import no.ndla.conceptapi.controller.{DraftConceptController, DraftNdlaController, PublishedConceptController}
-import no.ndla.conceptapi.integration.{
-  ArticleApiClient,
-  DataSource,
-  Elastic4sClient,
-  ImageApiClient,
-  ListingApiClient,
-  NdlaE4sClient
-}
+import no.ndla.conceptapi.integration.{ArticleApiClient, DataSource, Elastic4sClient, ImageApiClient, NdlaE4sClient}
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
 import no.ndla.conceptapi.service.search.{
   DraftConceptIndexService,
@@ -65,7 +58,6 @@ trait TestEnvironment
     with ContentValidator
     with ImportService
     with ArticleApiClient
-    with ListingApiClient
     with ImageApiClient
     with NdlaClient
     with Clock
@@ -98,6 +90,5 @@ trait TestEnvironment
   val ndlaClient = mock[NdlaClient]
   val articleApiClient = mock[ArticleApiClient]
   val imageApiClient = mock[ImageApiClient]
-  val listingApiClient = mock[ListingApiClient]
 
 }
