@@ -24,7 +24,6 @@ import no.ndla.conceptapi.integration.{
   Elastic4sClient,
   Elastic4sClientFactory,
   ImageApiClient,
-  ListingApiClient,
   NdlaE4sClient
 }
 import no.ndla.conceptapi.repository.{DraftConceptRepository, PublishedConceptRepository}
@@ -76,7 +75,6 @@ object ComponentRegistry
     with IndexService
     with InternController
     with ArticleApiClient
-    with ListingApiClient
     with ImageApiClient
     with NdlaClient {
 
@@ -98,7 +96,6 @@ object ComponentRegistry
 
   lazy val ndlaClient = new NdlaClient
   lazy val articleApiClient = new ArticleApiClient
-  lazy val listingApiClient = new ListingApiClient
   lazy val imageApiClient = new ImageApiClient
 
   lazy val importService = new ImportService
