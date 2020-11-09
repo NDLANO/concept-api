@@ -160,6 +160,9 @@ trait ConverterService {
 
       val domainTags = updateConcept.tags.map(t => domain.ConceptTags(t, updateConcept.language)).toSeq
 
+      val domainVisualElement =
+        updateConcept.visualElement.map(ve => domain.VisualElement(ve, updateConcept.language)).toSeq
+
       val newArticleId = updateConcept.articleId match {
         case Left(_)                => None
         case Right(Some(articleId)) => Some(articleId)
@@ -194,7 +197,8 @@ trait ConverterService {
         metaImage = newMetaImage,
         tags = mergeLanguageFields(toMergeInto.tags, domainTags),
         subjectIds = updateConcept.subjectIds.map(_.toSet).getOrElse(toMergeInto.subjectIds),
-        articleId = newArticleId
+        articleId = newArticleId,
+        visualElement = mergeLanguageFields(toMergeInto.visualElement, domainVisualElement)
       )
     }
 

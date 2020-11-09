@@ -37,14 +37,23 @@ trait ContentValidator {
     }
 
     def validateConcept(concept: Concept, allowUnknownLanguage: Boolean): Try[Concept] = {
-      val validationErrors = concept.content.flatMap(c => validateConceptContent(c, allowUnknownLanguage)) ++
-        concept.title.flatMap(t => validateTitle(t.title, t.language, allowUnknownLanguage))
+      val validationErrors =
+        concept.content.flatMap(c => validateConceptContent(c, allowUnknownLanguage)) ++
+          concept.title.flatMap(t => validateTitle(t.title, t.language, allowUnknownLanguage)) ++
+          concept.visualElement.flatMap(ve => validateVisualElement(ve, allowUnknownLanguage))
 
       if (validationErrors.isEmpty) {
         Success(concept)
       } else {
         Failure(new ValidationException(errors = validationErrors))
       }
+    }
+
+    private def validateVisualElement(content: VisualElement, allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
+      HtmlValidator
+        .validate("visualElement", content.visualElement, requiredToOptional = Map("image" -> Seq("data-caption")))
+        .toList ++
+        validateLanguage("language", content.language, allowUnknownLanguage)
     }
 
     private def validateConceptContent(content: ConceptContent,
