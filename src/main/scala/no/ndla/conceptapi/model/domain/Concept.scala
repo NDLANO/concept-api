@@ -33,7 +33,8 @@ case class Concept(
     tags: Seq[ConceptTags],
     subjectIds: Set[String],
     articleId: Option[Long],
-    status: Status
+    status: Status,
+    visualElement: Seq[VisualElement]
 ) {
 
   lazy val supportedLanguages: Set[String] =
@@ -70,7 +71,8 @@ object Concept extends SQLSyntaxSupport[Concept] {
       meta.tags,
       meta.subjectIds,
       meta.articleId,
-      meta.status
+      meta.status,
+      meta.visualElement
     )
   }
 
