@@ -102,7 +102,7 @@ object ConceptStatus extends Enumeration {
         Failure(
           new ValidationException(
             errors =
-              Seq(ValidationMessage("status", s"'$s' is not a valid article status. Must be one of $validStatuses"))))
+              Seq(ValidationMessage("status", s"'$s' is not a valid concept status. Must be one of $validStatuses"))))
     }
 
   def valueOf(s: String): Option[ConceptStatus.Value] = values.find(_.toString == s.toUpperCase)
