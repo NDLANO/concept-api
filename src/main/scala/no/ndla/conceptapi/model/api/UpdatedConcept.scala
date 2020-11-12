@@ -23,6 +23,7 @@ case class UpdatedConcept(
     @(ApiModelProperty @field)(description = "A list of searchable tags") tags: Option[Seq[String]],
     @(ApiModelProperty @field)(description = "A list of taxonomy subject ids the concept is connected to") subjectIds: Option[Seq[String]],
     @(ApiModelProperty @field)(description = "Article id to which the concept is connected to") articleId: Deletable[Long],
-    @(ApiModelProperty @field)(description = "The new status of the concept") status: Option[String]
+    @(ApiModelProperty @field)(description = "The new status of the concept") status: Option[String],
+    @(ApiModelProperty @field)(description = "A visual element for the concept. May be anything from an image to a video or H5P") visualElement: Option[String]
     // format: on
 )

@@ -67,7 +67,17 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("That update function updates only content properly") {
     val newContent = "NewContentTest"
     val updatedApiConcept =
-      api.UpdatedConcept("en", None, content = Some(newContent), Right(None), None, None, None, None, Left(null), None)
+      api.UpdatedConcept("en",
+                         None,
+                         content = Some(newContent),
+                         Right(None),
+                         None,
+                         None,
+                         None,
+                         None,
+                         Left(null),
+                         None,
+                         None)
     val expectedConcept = concept.copy(content = Option(api.ConceptContent(newContent, "en")),
                                        updated = today,
                                        supportedLanguages = Set("nb", "en"),
@@ -79,7 +89,17 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
   test("That update function updates only title properly") {
     val newTitle = "NewTitleTest"
     val updatedApiConcept =
-      api.UpdatedConcept("nn", title = Some(newTitle), None, Right(None), None, None, None, None, Left(null), None)
+      api.UpdatedConcept("nn",
+                         title = Some(newTitle),
+                         None,
+                         Right(None),
+                         None,
+                         None,
+                         None,
+                         None,
+                         Left(null),
+                         None,
+                         None)
     val expectedConcept = concept.copy(title = Option(api.ConceptTitle(newTitle, "nn")),
                                        updated = today,
                                        supportedLanguages = Set("nb", "nn"),
@@ -105,6 +125,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       Some(Seq("Nye", "Tags")),
       Some(Seq("urn:subject:900")),
       Right(Some(69L)),
+      None,
       None
     )
 

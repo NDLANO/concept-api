@@ -43,6 +43,8 @@ trait ConverterService {
 
         val tags = findByLanguageOrBestEffort(concept.tags, language).map(toApiTags)
 
+        val visualElement = findByLanguageOrBestEffort(concept.visualElement, language).map(toApiVisualElement)
+
         Success(
           api.Concept(
             id = concept.id.get,
@@ -59,7 +61,8 @@ trait ConverterService {
             updatedBy = if (concept.updatedBy.isEmpty) None else Some(concept.updatedBy),
             supportedLanguages = concept.supportedLanguages,
             articleId = concept.articleId,
-            status = toApiStatus(concept.status)
+            status = toApiStatus(concept.status),
+            visualElement = visualElement
           )
         )
       } else {
@@ -116,6 +119,9 @@ trait ConverterService {
                            metaImage.altText,
                            metaImage.language)
 
+    def toApiVisualElement(visualElement: domain.VisualElement): api.VisualElement =
+      api.VisualElement(visualElement.visualElement, visualElement.language)
+
     def toDomainConcept(concept: api.NewConcept, userInfo: UserInfo): Try[domain.Concept] = {
       Success(
         domain.Concept(
@@ -134,7 +140,8 @@ trait ConverterService {
           tags = concept.tags.map(t => toDomainTags(t, concept.language)).getOrElse(Seq.empty),
           subjectIds = concept.subjectIds.getOrElse(Seq.empty).toSet,
           articleId = concept.articleId,
-          status = Status.default
+          status = Status.default,
+          visualElement = concept.visualElement.map(ve => domain.VisualElement(ve, concept.language)).toSeq
         ))
     }
 
@@ -152,6 +159,9 @@ trait ConverterService {
         .toSeq
 
       val domainTags = updateConcept.tags.map(t => domain.ConceptTags(t, updateConcept.language)).toSeq
+
+      val domainVisualElement =
+        updateConcept.visualElement.map(ve => domain.VisualElement(ve, updateConcept.language)).toSeq
 
       val newArticleId = updateConcept.articleId match {
         case Left(_)                => None
@@ -187,7 +197,8 @@ trait ConverterService {
         metaImage = newMetaImage,
         tags = mergeLanguageFields(toMergeInto.tags, domainTags),
         subjectIds = updateConcept.subjectIds.map(_.toSet).getOrElse(toMergeInto.subjectIds),
-        articleId = newArticleId
+        articleId = newArticleId,
+        visualElement = mergeLanguageFields(toMergeInto.visualElement, domainVisualElement)
       )
     }
 
@@ -221,7 +232,8 @@ trait ConverterService {
         tags = concept.tags.map(t => toDomainTags(t, concept.language)).getOrElse(Seq.empty),
         subjectIds = concept.subjectIds.getOrElse(Seq.empty).toSet,
         articleId = newArticleId,
-        status = Status.default
+        status = Status.default,
+        visualElement = concept.visualElement.map(ve => domain.VisualElement(ve, lang)).toSeq
       )
     }
 

@@ -18,7 +18,7 @@ import org.scalatest.Outcome
 
 import scala.util.Success
 
-class DraftConceptSearchServiceTest extends IntegrationSuite with TestEnvironment {
+class DraftConceptSearchServiceTest extends IntegrationSuite(withSearch = true) with TestEnvironment {
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
   // Skip tests if no docker environment available
