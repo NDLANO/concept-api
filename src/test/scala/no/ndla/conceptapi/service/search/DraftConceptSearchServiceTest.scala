@@ -13,12 +13,13 @@ import no.ndla.conceptapi.integration.Elastic4sClientFactory
 import no.ndla.conceptapi.model.api.SubjectTags
 import no.ndla.conceptapi.model.domain._
 import no.ndla.conceptapi.model.search.DraftSearchSettings
+import no.ndla.scalatestsuite.IntegrationSuite
 import org.joda.time.DateTime
 import org.scalatest.Outcome
 
 import scala.util.Success
 
-class DraftConceptSearchServiceTest extends IntegrationSuite(withSearch = true) with TestEnvironment {
+class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearchContainer = true) with TestEnvironment {
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
   // Skip tests if no docker environment available
@@ -157,28 +158,27 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(withSearch = true) 
     shouldScroll = false
   )
 
-  override def beforeAll(): Unit = if (elasticSearchContainer.isSuccess) {
-    draftConceptIndexService.createIndexWithName(ConceptApiProperties.DraftConceptSearchIndex)
+  override def beforeAll(): Unit = {
+    super.beforeAll()
+    if (elasticSearchContainer.isSuccess) {
+      draftConceptIndexService.createIndexWithName(ConceptApiProperties.DraftConceptSearchIndex)
 
-    draftConceptIndexService.indexDocument(concept1)
-    draftConceptIndexService.indexDocument(concept2)
-    draftConceptIndexService.indexDocument(concept3)
-    draftConceptIndexService.indexDocument(concept4)
-    draftConceptIndexService.indexDocument(concept5)
-    draftConceptIndexService.indexDocument(concept6)
-    draftConceptIndexService.indexDocument(concept7)
-    draftConceptIndexService.indexDocument(concept8)
-    draftConceptIndexService.indexDocument(concept9)
-    draftConceptIndexService.indexDocument(concept10)
-    draftConceptIndexService.indexDocument(concept11)
+      draftConceptIndexService.indexDocument(concept1)
+      draftConceptIndexService.indexDocument(concept2)
+      draftConceptIndexService.indexDocument(concept3)
+      draftConceptIndexService.indexDocument(concept4)
+      draftConceptIndexService.indexDocument(concept5)
+      draftConceptIndexService.indexDocument(concept6)
+      draftConceptIndexService.indexDocument(concept7)
+      draftConceptIndexService.indexDocument(concept8)
+      draftConceptIndexService.indexDocument(concept9)
+      draftConceptIndexService.indexDocument(concept10)
+      draftConceptIndexService.indexDocument(concept11)
 
-    blockUntil(() => {
-      draftConceptSearchService.countDocuments == 11
-    })
-  }
-
-  override def afterAll(): Unit = if (elasticSearchContainer.isSuccess) {
-    draftConceptIndexService.deleteIndexWithName(Some(ConceptApiProperties.DraftConceptSearchIndex))
+      blockUntil(() => {
+        draftConceptSearchService.countDocuments == 11
+      })
+    }
   }
 
   test("That getStartAtAndNumResults returns SEARCH_MAX_PAGE_SIZE for value greater than SEARCH_MAX_PAGE_SIZE") {

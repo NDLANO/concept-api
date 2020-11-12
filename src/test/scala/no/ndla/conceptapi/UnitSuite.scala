@@ -7,44 +7,22 @@
 
 package no.ndla.conceptapi
 
-import org.mockito.scalatest.MockitoSugar
-import org.scalatest._
-import org.scalatest.funsuite.AnyFunSuite
-import org.scalatest.matchers.should.Matchers
+import no.ndla.scalatestsuite.UnitTestSuite
 
-abstract class UnitSuite
-    extends AnyFunSuite
-    with Matchers
-    with OptionValues
-    with Inside
-    with Inspectors
-    with MockitoSugar
-    with BeforeAndAfterEach
-    with BeforeAndAfterAll {
+trait UnitSuite extends UnitTestSuite {
+  setPropEnv("NDLA_ENVIRONMENT", "local")
+  setPropEnv("ENABLE_JOUBEL_H5P_OEMBED", "true")
 
-  setEnv("NDLA_ENVIRONMENT", "local")
-  setEnv("ENABLE_JOUBEL_H5P_OEMBED", "true")
+  setPropEnv("SEARCH_SERVER", "some-server")
+  setPropEnv("SEARCH_REGION", "some-region")
+  setPropEnv("RUN_WITH_SIGNED_SEARCH_REQUESTS", "false")
+  setPropEnv("SEARCH_INDEX_NAME", "draft-integration-test-index")
+  setPropEnv("CONCEPT_SEARCH_INDEX_NAME", "concept-integration-test-index")
+  setPropEnv("AGREEMENT_SEARCH_INDEX_NAME", "agreement-integration-test-index")
 
-  setEnv("SEARCH_SERVER", "some-server")
-  setEnv("SEARCH_REGION", "some-region")
-  setEnv("RUN_WITH_SIGNED_SEARCH_REQUESTS", "false")
-  setEnv("SEARCH_INDEX_NAME", "draft-integration-test-index")
-  setEnv("CONCEPT_SEARCH_INDEX_NAME", "concept-integration-test-index")
-  setEnv("AGREEMENT_SEARCH_INDEX_NAME", "agreement-integration-test-index")
+  setPropEnv("AUDIO_API_URL", "localhost:30014")
+  setPropEnv("IMAGE_API_URL", "localhost:30001")
 
-  setEnv("AUDIO_API_URL", "localhost:30014")
-  setEnv("IMAGE_API_URL", "localhost:30001")
-
-  setEnv("NDLA_BRIGHTCOVE_ACCOUNT_ID", "some-account-id")
-  setEnv("NDLA_BRIGHTCOVE_PLAYER_ID", "some-player-id")
-
-  def setEnv(key: String, value: String) = env.put(key, value)
-
-  def setEnvIfAbsent(key: String, value: String) = env.putIfAbsent(key, value)
-
-  private def env = {
-    val field = System.getenv().getClass.getDeclaredField("m")
-    field.setAccessible(true)
-    field.get(System.getenv()).asInstanceOf[java.util.Map[java.lang.String, java.lang.String]]
-  }
+  setPropEnv("NDLA_BRIGHTCOVE_ACCOUNT_ID", "some-account-id")
+  setPropEnv("NDLA_BRIGHTCOVE_PLAYER_ID", "some-player-id")
 }

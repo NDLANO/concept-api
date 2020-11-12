@@ -13,12 +13,15 @@ import no.ndla.conceptapi.model.api.SubjectTags
 import no.ndla.conceptapi.model.domain._
 import no.ndla.conceptapi.model.search.SearchSettings
 import no.ndla.conceptapi.{TestEnvironment, _}
+import no.ndla.scalatestsuite.IntegrationSuite
 import org.joda.time.DateTime
 import org.scalatest.Outcome
 
 import scala.util.Success
 
-class PublishedConceptSearchServiceTest extends IntegrationSuite(withSearch = true) with TestEnvironment {
+class PublishedConceptSearchServiceTest
+    extends IntegrationSuite(EnableElasticsearchContainer = true)
+    with TestEnvironment {
   e4sClient = Elastic4sClientFactory.getClient(elasticSearchHost.getOrElse("http://localhost:9200"))
 
   // Skip tests if no docker environment available
@@ -166,10 +169,6 @@ class PublishedConceptSearchServiceTest extends IntegrationSuite(withSearch = tr
     blockUntil(() => {
       publishedConceptSearchService.countDocuments == 11
     })
-  }
-
-  override def afterAll(): Unit = if (elasticSearchContainer.isSuccess) {
-    publishedConceptIndexService.deleteIndexWithName(Some(ConceptApiProperties.DraftConceptSearchIndex))
   }
 
   test("That getStartAtAndNumResults returns SEARCH_MAX_PAGE_SIZE for value greater than SEARCH_MAX_PAGE_SIZE") {

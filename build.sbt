@@ -46,6 +46,7 @@ lazy val concept_api = (project in file("."))
       "ndla" %% "network" % "0.44",
       "ndla" %% "mapping" % "0.15",
       "ndla" %% "validation" % "0.44",
+      "ndla" %% "scalatestsuite" % "0.1" % "test",
       "org.scalatra" %% "scalatra" % Scalatraversion,
       "org.eclipse.jetty" % "jetty-webapp" % Jettyversion % "container;compile",
       "org.eclipse.jetty" % "jetty-plus" % Jettyversion % "container",
@@ -73,8 +74,6 @@ lazy val concept_api = (project in file("."))
       "com.sksamuel.elastic4s" %% "elastic4s-http" % Elastic4sVersion,
       "org.typelevel" %% "cats-core" % CatsEffectVersion,
       "org.typelevel" %% "cats-effect" % CatsEffectVersion,
-      "org.testcontainers" % "elasticsearch" % TestContainersVersion % "test",
-      "org.testcontainers" % "testcontainers" % TestContainersVersion % "test",
       "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.22",
     ) ++ vulnerabilityOverrides
   )
