@@ -11,37 +11,44 @@ import java.net.Socket
 import java.util.Date
 
 import no.ndla.conceptapi.model.domain
-import no.ndla.conceptapi.{ConceptApiProperties, DBMigrator, IntegrationSuite, TestData, TestEnvironment}
+import no.ndla.conceptapi.{ConceptApiProperties, DBMigrator, TestData, TestEnvironment, UnitSuite}
 import scalikejdbc.{ConnectionPool, DB, DataSourceConnectionPool}
 import no.ndla.conceptapi.TestData._
 import no.ndla.conceptapi.model.api.OptimisticLockException
+import no.ndla.scalatestsuite.IntegrationSuite
 
 import scala.util.{Failure, Success, Try}
 import scalikejdbc._
 
-class DraftConceptRepositoryTest extends IntegrationSuite with TestEnvironment {
+class DraftConceptRepositoryTest
+    extends IntegrationSuite(EnablePostgresContainer = true)
+    with UnitSuite
+    with TestEnvironment {
 
-  val repository: DraftConceptRepository = new DraftConceptRepository
+  override val dataSource = testDataSource.get
+  var repository: DraftConceptRepository = _
+
   def databaseIsAvailable: Boolean = Try(repository.conceptCount).isSuccess
 
   def emptyTestDatabase = {
     DB autoCommit (implicit session => {
-      sql"delete from conceptapitest.conceptdata;".execute().apply()(session)
+      sql"delete from conceptdata;".execute().apply()(session)
     })
   }
 
   override def beforeEach(): Unit = {
+    repository = new DraftConceptRepository
     if (databaseIsAvailable) {
       emptyTestDatabase
     }
   }
 
   override def beforeAll(): Unit = {
+    super.beforeAll()
     Try {
-      val datasource = testDataSource.get
       if (serverIsListening) {
-        ConnectionPool.singleton(new DataSourceConnectionPool(datasource))
-        DBMigrator.migrate(datasource)
+        ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
+        DBMigrator.migrate(dataSource)
       }
     }
   }

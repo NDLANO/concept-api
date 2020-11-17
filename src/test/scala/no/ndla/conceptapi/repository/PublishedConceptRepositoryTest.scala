@@ -13,13 +13,16 @@ import java.util.Date
 import no.ndla.conceptapi._
 import no.ndla.conceptapi.model.domain
 import no.ndla.conceptapi.model.domain.PublishedConcept
+import no.ndla.scalatestsuite.IntegrationSuite
 import scalikejdbc.{ConnectionPool, DB, DataSourceConnectionPool, _}
 
 import scala.util.{Success, Try}
 
-class PublishedConceptRepositoryTest extends IntegrationSuite with TestEnvironment {
+class PublishedConceptRepositoryTest extends IntegrationSuite(EnablePostgresContainer = true) with TestEnvironment {
 
-  val repository: PublishedConceptRepository = new PublishedConceptRepository
+  override val dataSource = testDataSource.get
+  var repository: PublishedConceptRepository = _
+
   def databaseIsAvailable: Boolean = Try(repository.conceptCount).isSuccess
 
   def emptyTestDatabase = {
@@ -29,17 +32,18 @@ class PublishedConceptRepositoryTest extends IntegrationSuite with TestEnvironme
   }
 
   override def beforeEach(): Unit = {
+    repository = new PublishedConceptRepository
     if (databaseIsAvailable) {
       emptyTestDatabase
     }
   }
 
   override def beforeAll(): Unit = {
+    super.beforeAll()
     Try {
-      val datasource = testDataSource.get
       if (serverIsListening) {
-        ConnectionPool.singleton(new DataSourceConnectionPool(datasource))
-        DBMigrator.migrate(datasource)
+        ConnectionPool.singleton(new DataSourceConnectionPool(dataSource))
+        DBMigrator.migrate(dataSource)
       }
     }
   }

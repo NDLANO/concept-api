@@ -17,6 +17,7 @@ import org.eclipse.jetty.servlet.{DefaultServlet, FilterHolder, ServletContextHa
 import org.scalatra.servlet.ScalatraListener
 
 import scala.io.Source
+import scala.jdk.CollectionConverters.MapHasAsScala
 
 object JettyLauncher extends LazyLogging {
 
@@ -60,6 +61,9 @@ object JettyLauncher extends LazyLogging {
   }
 
   def main(args: Array[String]): Unit = {
+    val envMap = System.getenv()
+    envMap.asScala.foreach { case (k, v) => System.setProperty(k, v) }
+
     val server = startServer(ConceptApiProperties.ApplicationPort)
     server.join()
   }

@@ -9,10 +9,11 @@ package no.ndla.conceptapi
 
 import com.zaxxer.hikari.HikariDataSource
 import org.flywaydb.core.Flyway
+import org.flywaydb.core.api.output.MigrateResult
 
 object DBMigrator {
 
-  def migrate(datasource: HikariDataSource): Int = {
+  def migrate(datasource: HikariDataSource): MigrateResult = {
     val flyway = Flyway
       .configure()
       .dataSource(datasource)
