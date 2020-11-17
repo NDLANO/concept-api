@@ -19,7 +19,9 @@ import no.ndla.conceptapi.model.domain.{ConceptStatus, LanguageField, Status}
 import no.ndla.mapping.License.getLicense
 import no.ndla.conceptapi.ConceptApiProperties._
 import no.ndla.conceptapi.auth.UserInfo
+import no.ndla.validation.{EmbedTagRules, HtmlTagRules, ResourceType, TagAttributes}
 
+import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 
 trait ConverterService {
@@ -145,6 +147,28 @@ trait ConverterService {
         ))
     }
 
+    private def removeUnknownEmbedTagAttributes(html: String): String = {
+      val document = HtmlTagRules.stringToJsoupDocument(html)
+      document
+        .select("embed")
+        .asScala
+        .map(el => {
+          ResourceType
+            .valueOf(el.attr(TagAttributes.DataResource.toString))
+            .map(EmbedTagRules.attributesForResourceType)
+            .map(knownAttributes => HtmlTagRules.removeIllegalAttributes(el, knownAttributes.all.map(_.toString)))
+        })
+
+      HtmlTagRules.jsoupDocumentToString(document)
+    }
+
+    private def toDomainVisualElement(visualElement: String, language: String): domain.VisualElement = {
+      domain.VisualElement(
+        visualElement = removeUnknownEmbedTagAttributes(visualElement),
+        language = language
+      )
+    }
+
     private def toDomainTags(tags: Seq[String], language: String): Seq[domain.ConceptTags] =
       if (tags.isEmpty) Seq.empty else Seq(domain.ConceptTags(tags, language))
 
@@ -161,7 +185,7 @@ trait ConverterService {
       val domainTags = updateConcept.tags.map(t => domain.ConceptTags(t, updateConcept.language)).toSeq
 
       val domainVisualElement =
-        updateConcept.visualElement.map(ve => domain.VisualElement(ve, updateConcept.language)).toSeq
+        updateConcept.visualElement.map(ve => toDomainVisualElement(ve, updateConcept.language)).toSeq
 
       val newArticleId = updateConcept.articleId match {
         case Left(_)                => None
