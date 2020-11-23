@@ -65,6 +65,14 @@ object ConceptApiProperties extends LazyLogging {
 
   lazy val Domain = Domains.get(Environment)
 
+  lazy val H5PAddress = propOrElse(
+    "NDLA_H5P_ADDRESS",
+    Map(
+      "test" -> "https://h5p-test.ndla.no",
+      "staging" -> "https://h5p-staging.ndla.no"
+    ).getOrElse(Environment, "https://h5p.ndla.no")
+  )
+
   lazy val secrets = {
     val SecretsFile = "concept-api.secrets"
     readSecrets(SecretsFile) match {
@@ -75,7 +83,9 @@ object ConceptApiProperties extends LazyLogging {
   }
 
   val externalApiUrls: Map[String, String] = Map(
-    "raw-image" -> s"$Domain/image-api/raw/id"
+    ResourceType.Image.toString -> s"$Domain/image-api/v2/images",
+    "raw-image" -> s"$Domain/image-api/raw/id",
+    ResourceType.H5P.toString -> H5PAddress
   )
 
   def booleanProp(key: String): Boolean = prop(key).toBoolean
