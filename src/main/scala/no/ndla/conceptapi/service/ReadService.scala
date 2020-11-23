@@ -28,7 +28,7 @@ trait ReadService {
   class ReadService {
 
     def conceptWithId(id: Long, language: String, fallback: Boolean): Try[api.Concept] =
-      draftConceptRepository.withId(id) match {
+      draftConceptRepository.withId(id).map(addUrlOnVisualElement) match {
         case Some(concept) =>
           converterService.toApiConcept(concept, language, fallback)
         case None =>
