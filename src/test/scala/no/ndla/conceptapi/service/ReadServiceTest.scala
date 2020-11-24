@@ -7,7 +7,8 @@
 
 package no.ndla.conceptapi.service
 import no.ndla.conceptapi.model.domain
-import no.ndla.conceptapi.{TestEnvironment, UnitSuite}
+import no.ndla.conceptapi.model.domain.{Concept, VisualElement}
+import no.ndla.conceptapi.{TestData, TestEnvironment, UnitSuite}
 import org.mockito.Mockito._
 
 class ReadServiceTest extends UnitSuite with TestEnvironment {
@@ -44,5 +45,23 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     result_en should equal(List("king", "bro", "lul", "maymay"))
     result_zh should equal(List("zing", "xiongdi", "kek", "mimi"))
     result_all should equal(List("konge", "bror", "lol", "meme"))
+  }
+
+  test("that visualElement gets url-property added") {
+    val visualElements = Seq(
+      VisualElement(
+        "<embed data-resource=\"image\" data-resource_id=\"1\" data-alt=\"Alt\" data-size=\"full\" data-align=\"\">",
+        "nb"),
+      VisualElement("<embed data-resource=\"h5p\" data-path=\"/resource/uuid\" data-title=\"Title\">", "nn")
+    )
+    when(publishedConceptRepository.withId(anyLong))
+      .thenReturn(Some(TestData.sampleConcept.copy(visualElement = visualElements)))
+    val concept = service.publishedConceptWithId(id = 1L, language = "nb", fallback = true)
+    concept.get.visualElement.get.visualElement should equal(
+      "<embed data-resource=\"image\" data-resource_id=\"1\" data-alt=\"Alt\" data-size=\"full\" data-align=\"\" data-url=\"http://api-gateway.ndla-local/image-api/v2/images/1\">")
+    val concept2 = service.publishedConceptWithId(id = 1L, language = "nn", fallback = true)
+    concept2.get.visualElement.get.visualElement should equal(
+      "<embed data-resource=\"h5p\" data-path=\"/resource/uuid\" data-title=\"Title\" data-url=\"https://h5p.ndla.no/resource/uuid\">")
+
   }
 }
