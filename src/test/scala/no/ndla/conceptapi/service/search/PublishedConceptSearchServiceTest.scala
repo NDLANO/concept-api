@@ -73,7 +73,7 @@ class PublishedConceptSearchServiceTest
 
   val concept2: Concept = TestData.sampleConcept.copy(
     id = Option(2),
-    title = List(ConceptTitle("Pingvinen er ute og går", "nb")),
+    title = List(ConceptTitle("pingvinen er ute og går", "nb")),
     content = List(ConceptContent("<p>Bilde av en</p><p> en <em>pingvin</em> som vagger borover en gate</p>", "nb"))
   )
 
@@ -119,7 +119,7 @@ class PublishedConceptSearchServiceTest
 
   val concept9: Concept = TestData.sampleConcept.copy(
     id = Option(9),
-    title = List(ConceptTitle("Baldur har mareritt om Ragnarok", "nb")),
+    title = List(ConceptTitle("baldur har mareritt om Ragnarok", "nb")),
     content = List(ConceptContent("<p>Bilde av <em>Baldurs</em> som har  mareritt.", "nb")),
     tags = Seq(ConceptTags(Seq("stor", "klovn"), "nb")),
     subjectIds = Set("urn:subject:1", "urn:subject:100")
