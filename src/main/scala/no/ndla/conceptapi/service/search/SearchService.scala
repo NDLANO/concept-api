@@ -91,12 +91,12 @@ trait SearchService {
         case Sort.ByTitleAsc =>
           language match {
             case "*" | Language.AllLanguages => fieldSort("defaultTitle").order(SortOrder.ASC).missing("_last")
-            case _                           => fieldSort(s"title.$sortLanguage.raw").order(SortOrder.ASC).missing("_last")
+            case _                           => fieldSort(s"title.$sortLanguage.lower").order(SortOrder.ASC).missing("_last")
           }
         case Sort.ByTitleDesc =>
           language match {
             case "*" | Language.AllLanguages => fieldSort("defaultTitle").order(SortOrder.DESC).missing("_last")
-            case _                           => fieldSort(s"title.$sortLanguage.raw").order(SortOrder.DESC).missing("_last")
+            case _                           => fieldSort(s"title.$sortLanguage.lower").order(SortOrder.DESC).missing("_last")
           }
         case Sort.ByRelevanceAsc    => fieldSort("_score").order(SortOrder.ASC)
         case Sort.ByRelevanceDesc   => fieldSort("_score").order(SortOrder.DESC)
@@ -109,8 +109,8 @@ trait SearchService {
 
     def getSortDefinition(sort: Sort.Value): FieldSort = {
       sort match {
-        case Sort.ByTitleAsc        => fieldSort("title.raw").order(SortOrder.ASC).missing("_last")
-        case Sort.ByTitleDesc       => fieldSort("title.raw").order(SortOrder.DESC).missing("_last")
+        case Sort.ByTitleAsc        => fieldSort("title.lower").order(SortOrder.ASC).missing("_last")
+        case Sort.ByTitleDesc       => fieldSort("title.lower").order(SortOrder.DESC).missing("_last")
         case Sort.ByRelevanceAsc    => fieldSort("_score").order(SortOrder.ASC)
         case Sort.ByRelevanceDesc   => fieldSort("_score").order(SortOrder.DESC)
         case Sort.ByLastUpdatedAsc  => fieldSort("lastUpdated").order(SortOrder.ASC).missing("_last")
