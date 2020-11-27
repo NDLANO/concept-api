@@ -46,7 +46,7 @@ trait DraftConceptIndexService {
       mapping(documentType).fields(
         List(
           intField("id"),
-          keywordField("defaultTitle").fields(keywordField("lower").normalizer("lower")),
+          keywordField("defaultTitle").normalizer("lower"),
           keywordField("subjectIds"),
           nestedField("metaImage").fields(
             keywordField("imageId"),
