@@ -90,12 +90,12 @@ trait SearchService {
       sort match {
         case Sort.ByTitleAsc =>
           language match {
-            case "*" | Language.AllLanguages => fieldSort("defaultTitle.lower").order(SortOrder.ASC).missing("_last")
+            case "*" | Language.AllLanguages => fieldSort("defaultTitle").order(SortOrder.ASC).missing("_last")
             case _                           => fieldSort(s"title.$sortLanguage.lower").order(SortOrder.ASC).missing("_last")
           }
         case Sort.ByTitleDesc =>
           language match {
-            case "*" | Language.AllLanguages => fieldSort("defaultTitle.lower").order(SortOrder.DESC).missing("_last")
+            case "*" | Language.AllLanguages => fieldSort("defaultTitle").order(SortOrder.DESC).missing("_last")
             case _                           => fieldSort(s"title.$sortLanguage.lower").order(SortOrder.DESC).missing("_last")
           }
         case Sort.ByRelevanceAsc    => fieldSort("_score").order(SortOrder.ASC)
