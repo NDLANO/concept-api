@@ -46,7 +46,7 @@ trait PublishedConceptIndexService {
       mapping(documentType).fields(
         List(
           intField("id"),
-          keywordField("defaultTitle"),
+          keywordField("defaultTitle").fields(keywordField("lower").normalizer("lower")),
           keywordField("subjectIds"),
           nestedField("metaImage").fields(
             keywordField("imageId"),

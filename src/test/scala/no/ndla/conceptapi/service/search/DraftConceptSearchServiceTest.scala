@@ -228,35 +228,39 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
 
   test("That all returns all documents ordered by title ascending") {
     val Success(results) =
-      draftConceptSearchService.all(searchSettings.copy(sort = Sort.ByTitleAsc))
+      draftConceptSearchService.all(searchSettings.copy(sort = Sort.ByTitleAsc, pageSize = 20, fallback = true))
     val hits = results.results
 
-    results.totalCount should be(10)
+    results.totalCount should be(11)
+    results.totalCount should be(11)
     hits.head.id should be(8)
     hits(1).id should be(9)
     hits(2).id should be(1)
     hits(3).id should be(3)
-    hits(4).id should be(5)
-    hits(5).id should be(6)
-    hits(6).id should be(2)
-    hits(7).id should be(4)
+    hits(4).id should be(11)
+    hits(5).id should be(5)
+    hits(6).id should be(6)
+    hits(7).id should be(2)
+    hits(8).id should be(4)
+    hits(9).id should be(10)
     hits.last.id should be(7)
   }
 
   test("That all returns all documents ordered by title descending") {
     val Success(results) =
-      draftConceptSearchService.all(searchSettings.copy(sort = Sort.ByTitleDesc))
+      draftConceptSearchService.all(searchSettings.copy(sort = Sort.ByTitleDesc, pageSize = 20, fallback = true))
     val hits = results.results
-    results.totalCount should be(10)
+    results.totalCount should be(11)
     hits.head.id should be(7)
     hits(1).id should be(10)
     hits(2).id should be(4)
     hits(3).id should be(2)
     hits(4).id should be(6)
     hits(5).id should be(5)
-    hits(6).id should be(3)
-    hits(7).id should be(1)
-    hits(8).id should be(9)
+    hits(6).id should be(11)
+    hits(7).id should be(3)
+    hits(8).id should be(1)
+    hits(9).id should be(9)
     hits.last.id should be(8)
 
   }
