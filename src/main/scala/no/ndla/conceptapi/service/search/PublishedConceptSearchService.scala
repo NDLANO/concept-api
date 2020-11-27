@@ -104,7 +104,6 @@ trait PublishedConceptSearchService {
 
       val titleSearch = simpleStringQuery(query).field(s"title.$language", 2)
       val contentSearch = simpleStringQuery(query).field(s"content.$language", 1)
-      val tagSearch = simpleStringQuery(query).field(s"tags.$language", 1)
 
       val exactTitleSearch = termQuery(s"title.$language.lower", query)
 
@@ -116,8 +115,7 @@ trait PublishedConceptSearchService {
             boolQuery()
               .should(
                 titleSearch,
-                contentSearch,
-                tagSearch
+                contentSearch
               ))
       }
       executeSearch(fullQuery, settings)
