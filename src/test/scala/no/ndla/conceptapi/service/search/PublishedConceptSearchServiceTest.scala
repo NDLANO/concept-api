@@ -460,14 +460,6 @@ class PublishedConceptSearchServiceTest
     scroll6.results.map(_.id) should be(List.empty)
   }
 
-  test("that searching for tags works") {
-    val Success(search) =
-      publishedConceptSearchService.matchingQuery("burugle", searchSettings.copy(searchLanguage = "all"))
-
-    search.totalCount should be(1)
-    search.results.head.id should be(10)
-  }
-
   test("that filtering with subject id should work as expected") {
     val Success(search) =
       publishedConceptSearchService.all(searchSettings.copy(subjects = Set("urn:subject:1", "urn:subject:2")))
