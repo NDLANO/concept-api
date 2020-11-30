@@ -67,6 +67,7 @@ trait StateTransitionRules {
       (QUEUED_FOR_LANGUAGE        -> PUBLISHED)                  keepStates Set() require UserInfo.PublishRoles withSideEffect publishConcept,
        TRANSLATED                 -> TRANSLATED,
        TRANSLATED                 -> QUALITY_ASSURED             keepStates Set(PUBLISHED),
+       TRANSLATED                 -> DRAFT                       keepStates Set(PUBLISHED),
       (TRANSLATED                 -> PUBLISHED)                  keepStates Set() require UserInfo.PublishRoles withSideEffect publishConcept,
     )
     // format: on
