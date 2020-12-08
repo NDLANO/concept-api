@@ -228,16 +228,17 @@ trait IndexService {
 
     def getTimestamp: String = new SimpleDateFormat("yyyyMMddHHmmss").format(Calendar.getInstance.getTime)
 
-    /**
-      * Returns Sequence of FieldDefinitions for a given field.
+    /** Returns Sequence of FieldDefinitions for a given field.
       *
       * @param fieldName Name of field in mapping.
       * @param keepRaw   Whether to add a keywordField named raw.
       *                  Usually used for sorting, aggregations or scripts.
       * @return Sequence of FieldDefinitions for a field.
       */
-    protected def generateLanguageSupportedFieldList(fieldName: String,
-                                                     keepRaw: Boolean = false): Seq[FieldDefinition] = {
+    protected def generateLanguageSupportedFieldList(
+        fieldName: String,
+        keepRaw: Boolean = false
+    ): Seq[FieldDefinition] = {
       keepRaw match {
         case true =>
           languageAnalyzers.map(

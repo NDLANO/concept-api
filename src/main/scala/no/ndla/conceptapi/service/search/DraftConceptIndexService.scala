@@ -57,6 +57,7 @@ trait DraftConceptIndexService {
           keywordField("status.current"),
           keywordField("status.other"),
           keywordField("updatedBy"),
+          keywordField("license")
         ) ++
           generateLanguageSupportedFieldList("title", keepRaw = true) ++
           generateLanguageSupportedFieldList("content") ++

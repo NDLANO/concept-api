@@ -53,7 +53,8 @@ trait PublishedConceptIndexService {
             keywordField("altText"),
             keywordField("language")
           ),
-          dateField("lastUpdated")
+          dateField("lastUpdated"),
+          keywordField("license")
         ) ++
           generateLanguageSupportedFieldList("title", keepRaw = true) ++
           generateLanguageSupportedFieldList("content") ++
