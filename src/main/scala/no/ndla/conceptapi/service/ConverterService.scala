@@ -143,7 +143,8 @@ trait ConverterService {
           subjectIds = concept.subjectIds.getOrElse(Seq.empty).toSet,
           articleId = concept.articleId,
           status = Status.default,
-          visualElement = concept.visualElement.map(ve => domain.VisualElement(ve, concept.language)).toSeq
+          visualElement =
+            concept.visualElement.filterNot(_.isEmpty).map(ve => domain.VisualElement(ve, concept.language)).toSeq
         ))
     }
 
