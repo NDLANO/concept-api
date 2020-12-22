@@ -75,13 +75,13 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
                          None,
                          None,
                          None,
-                         Left(null),
+                         Some(Seq.empty),
                          None,
                          None)
     val expectedConcept = concept.copy(content = Option(api.ConceptContent(newContent, "en")),
                                        updated = today,
                                        supportedLanguages = Set("nb", "en"),
-                                       articleId = None)
+                                       articleIds = None)
     val result = service.updateConcept(conceptId, updatedApiConcept, userInfo.copy(id = "")).get
     result should equal(expectedConcept)
   }
@@ -97,13 +97,13 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
                          None,
                          None,
                          None,
-                         Left(null),
+                         Some(Seq.empty),
                          None,
                          None)
     val expectedConcept = concept.copy(title = Option(api.ConceptTitle(newTitle, "nn")),
                                        updated = today,
                                        supportedLanguages = Set("nb", "nn"),
-                                       articleId = None)
+                                       articleIds = None)
     service.updateConcept(conceptId, updatedApiConcept, userInfo.copy(id = "")).get should equal(expectedConcept)
   }
 
@@ -124,7 +124,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       Some(updatedSource),
       Some(Seq("Nye", "Tags")),
       Some(Seq("urn:subject:900")),
-      Right(Some(69L)),
+      Some(Seq(69L)),
       None,
       None
     )
@@ -139,7 +139,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       supportedLanguages = Set("nb", "en"),
       tags = Some(api.ConceptTags(Seq("Nye", "Tags"), "en")),
       subjectIds = Some(Set("urn:subject:900")),
-      articleId = Some(69L)
+      articleIds = Some(Seq(69L))
     )
 
     service.updateConcept(conceptId, updatedApiConcept, userInfo.copy(id = "")) should equal(Success(expectedConcept))

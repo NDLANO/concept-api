@@ -52,7 +52,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     when(clock.now()).thenReturn(updated)
 
     val updateWith =
-      UpdatedConcept("nb", Some("heisann"), None, Right(None), None, None, None, None, Right(Some(42L)), None, None)
+      UpdatedConcept("nb", Some("heisann"), None, Right(None), None, None, None, None, Some(Seq(42L)), None, None)
     service.toDomainConcept(TestData.domainConcept, updateWith, userInfo) should be(
       TestData.domainConcept.copy(
         title = Seq(
@@ -69,17 +69,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     when(clock.now()).thenReturn(updated)
 
     val updateWith =
-      UpdatedConcept("nn",
-                     None,
-                     Some("Nytt innhald"),
-                     Right(None),
-                     None,
-                     None,
-                     None,
-                     None,
-                     Right(Some(42L)),
-                     None,
-                     None)
+      UpdatedConcept("nn", None, Some("Nytt innhald"), Right(None), None, None, None, None, Some(Seq(42L)), None, None)
     service.toDomainConcept(TestData.domainConcept, updateWith, userInfo) should be(
       TestData.domainConcept.copy(
         content = Seq(
@@ -104,7 +94,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
                      None,
                      None,
                      None,
-                     Right(Some(42L)),
+                     Some(Seq(42L)),
                      None,
                      None)
     service.toDomainConcept(TestData.domainConcept, updateWith, userInfo) should be(
@@ -146,7 +136,7 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
       None,
       None,
       None,
-      Right(Some(42L)),
+      Some(Seq(42L)),
       None,
       None
     )
@@ -172,36 +162,36 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     )
   }
 
-  test("toDomainConcept deletes articleId when getting null as a parameter") {
+  test("toDomainConcept deletes removes all articleIds when getting empty list as parameter") {
     val updated = new Date()
     when(clock.now()).thenReturn(updated)
 
     val beforeUpdate = TestData.domainConcept.copy(
-      articleId = Some(12),
+      articleIds = Seq(12),
       updated = updated
     )
     val afterUpdate = TestData.domainConcept.copy(
-      articleId = None,
+      articleIds = Seq.empty,
       updated = updated
     )
-    val updateWith = TestData.emptyApiUpdatedConcept.copy(articleId = Left(null))
+    val updateWith = TestData.emptyApiUpdatedConcept.copy(articleIds = Some(Seq.empty))
 
     service.toDomainConcept(beforeUpdate, updateWith, userInfo) should be(afterUpdate)
   }
 
-  test("toDomainConcept updates articleId when getting new articleId as a parameter") {
+  test("toDomainConcept updates articleIds when getting list as a parameter") {
     val updated = new Date()
     when(clock.now()).thenReturn(updated)
 
     val beforeUpdate = TestData.domainConcept.copy(
-      articleId = None,
+      articleIds = Seq.empty,
       updated = updated
     )
     val afterUpdate = TestData.domainConcept.copy(
-      articleId = Some(12),
+      articleIds = Seq(12),
       updated = updated
     )
-    val updateWith = TestData.emptyApiUpdatedConcept.copy(articleId = Right(Some(12)))
+    val updateWith = TestData.emptyApiUpdatedConcept.copy(articleIds = Some(Seq(12)))
 
     service.toDomainConcept(beforeUpdate, updateWith, userInfo) should be(afterUpdate)
   }
@@ -211,14 +201,14 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     when(clock.now()).thenReturn(updated)
 
     val beforeUpdate = TestData.domainConcept.copy(
-      articleId = Some(12),
+      articleIds = Seq(12),
       updated = updated
     )
     val afterUpdate = TestData.domainConcept.copy(
-      articleId = Some(12),
+      articleIds = Seq(12),
       updated = updated
     )
-    val updateWith = TestData.emptyApiUpdatedConcept.copy(articleId = Right(None))
+    val updateWith = TestData.emptyApiUpdatedConcept.copy(articleIds = None)
 
     service.toDomainConcept(beforeUpdate, updateWith, userInfo) should be(afterUpdate)
   }
@@ -229,28 +219,28 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
 
     val afterUpdate = TestData.domainConcept_toDomainUpdateWithId.copy(
       id = Some(12),
-      articleId = Some(15),
+      articleIds = Seq(15),
       created = today,
       updated = today,
     )
-    val updateWith = TestData.emptyApiUpdatedConcept.copy(articleId = Right(Some(15)))
+    val updateWith = TestData.emptyApiUpdatedConcept.copy(articleIds = Some(Seq(15)))
 
     service.toDomainConcept(12, updateWith, userInfo) should be(
       afterUpdate
     )
   }
 
-  test("toDomainConcept update concept with ID sets articleId to None when articleId is not specified") {
+  test("toDomainConcept update concept with ID sets articleIds to empty list when articleId is not specified") {
     val today = new Date()
     when(clock.now()).thenReturn(today)
 
     val afterUpdate = TestData.domainConcept_toDomainUpdateWithId.copy(
       id = Some(12),
-      articleId = None,
+      articleIds = Seq.empty,
       created = today,
       updated = today,
     )
-    val updateWith = TestData.emptyApiUpdatedConcept.copy(articleId = Left(null))
+    val updateWith = TestData.emptyApiUpdatedConcept.copy(articleIds = None)
 
     service.toDomainConcept(12, updateWith, userInfo) should be(
       afterUpdate

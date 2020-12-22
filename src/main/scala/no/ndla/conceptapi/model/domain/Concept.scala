@@ -32,7 +32,7 @@ case class Concept(
     metaImage: Seq[ConceptMetaImage],
     tags: Seq[ConceptTags],
     subjectIds: Set[String],
-    articleId: Option[Long],
+    articleIds: Seq[Long],
     status: Status,
     visualElement: Seq[VisualElement]
 ) {
@@ -70,7 +70,7 @@ object Concept extends SQLSyntaxSupport[Concept] {
       meta.metaImage,
       meta.tags,
       meta.subjectIds,
-      meta.articleId,
+      meta.articleIds,
       meta.status,
       meta.visualElement
     )
