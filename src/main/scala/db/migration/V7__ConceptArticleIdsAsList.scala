@@ -67,18 +67,10 @@ class V7__ConceptArticleIdsAsList extends BaseJavaMigration {
 
   private[migration] def convertToNewConcept(document: String): String = {
     val oldArticle = parse(document).asInstanceOf[JObject]
-    // var oldArticleId = oldArticle findField { case (n, v) => n == "articleId" }
 
     val newArticle = oldArticle.mapField {
       case ("articleId", articleId: JInt) =>
         "articleIds" -> JArray(List(articleId))
-
-      /*match {
-          case number: JInt => JArray(List(articleId))
-          case null         => JArray(List())
-
-        }*/
-
       case x => x
     }
 

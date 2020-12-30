@@ -179,6 +179,6 @@ object TestData {
   )
 
   val updatedConcept =
-    api.UpdatedConcept("nb", None, Some("Innhold"), Right(None), None, None, None, None, Some(Seq(42)), None, None)
+    api.UpdatedConcept("nb", None, Some("Innhold"), Right(None), None, None, None, None, Some(Seq(12L)), None, None)
   val sampleApiTagsSearchResult = api.TagsSearchResult(10, 1, 1, "nb", Seq("a", "b"))
 }
