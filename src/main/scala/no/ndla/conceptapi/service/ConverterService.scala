@@ -62,7 +62,7 @@ trait ConverterService {
             updated = concept.updated,
             updatedBy = if (concept.updatedBy.isEmpty) None else Some(concept.updatedBy),
             supportedLanguages = concept.supportedLanguages,
-            articleIds = if (concept.articleIds.isEmpty) None else Some(concept.articleIds),
+            articleIds = concept.articleIds,
             status = toApiStatus(concept.status),
             visualElement = visualElement
           )

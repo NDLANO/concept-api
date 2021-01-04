@@ -46,7 +46,7 @@ object TestData {
     today,
     Some(Seq("")),
     Set("nn", "nb"),
-    Some(Seq(42)),
+    Seq(42),
     api.Status(
       current = "DRAFT",
       other = Seq.empty
@@ -140,7 +140,7 @@ object TestData {
     today,
     updatedBy = Some(Seq("")),
     Set("nn", "nb"),
-    Some(Seq(42)),
+    Seq(42),
     api.Status(
       current = "DRAFT",
       other = Seq.empty

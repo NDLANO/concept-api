@@ -81,7 +81,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val expectedConcept = concept.copy(content = Option(api.ConceptContent(newContent, "en")),
                                        updated = today,
                                        supportedLanguages = Set("nb", "en"),
-                                       articleIds = None)
+                                       articleIds = Seq.empty)
     val result = service.updateConcept(conceptId, updatedApiConcept, userInfo.copy(id = "")).get
     result should equal(expectedConcept)
   }
@@ -103,7 +103,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     val expectedConcept = concept.copy(title = Option(api.ConceptTitle(newTitle, "nn")),
                                        updated = today,
                                        supportedLanguages = Set("nb", "nn"),
-                                       articleIds = None)
+                                       articleIds = Seq.empty)
     service.updateConcept(conceptId, updatedApiConcept, userInfo.copy(id = "")).get should equal(expectedConcept)
   }
 
@@ -139,7 +139,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
       supportedLanguages = Set("nb", "en"),
       tags = Some(api.ConceptTags(Seq("Nye", "Tags"), "en")),
       subjectIds = Some(Set("urn:subject:900")),
-      articleIds = Some(Seq(69L))
+      articleIds = Seq(69L)
     )
 
     service.updateConcept(conceptId, updatedApiConcept, userInfo.copy(id = "")) should equal(Success(expectedConcept))

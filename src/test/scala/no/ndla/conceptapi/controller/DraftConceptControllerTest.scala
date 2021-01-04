@@ -6,7 +6,7 @@
  */
 package no.ndla.conceptapi.controller
 
-import no.ndla.conceptapi.model.api.{NewConcept, NotFoundException, UpdatedConcept}
+import no.ndla.conceptapi.model.api.{NewConcept, NotFoundException, UpdatedConcept, NewConceptMetaImage}
 import no.ndla.conceptapi.{ConceptSwagger, TestData, TestEnvironment}
 import no.ndla.conceptapi.UnitSuite
 import no.ndla.conceptapi.auth.UserInfo
@@ -116,13 +116,14 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
       .thenReturn(Success(TestData.sampleNbApiConcept))
 
     val missing = """{"language":"nb"}"""
-    val missingExpected = TestData.emptyApiUpdatedConcept.copy(language = "nb", articleIds = None)
+    val missingExpected = TestData.emptyApiUpdatedConcept.copy(language = "nb", metaImage = Right(None))
 
-    val nullArtId = """{"language":"nb","articleIds":null}"""
-    val missingExpectedWhenNull = TestData.emptyApiUpdatedConcept.copy(language = "nb", articleIds = null)
+    val nullArtId = """{"language":"nb","metaImage":null}"""
+    val nullExpected = TestData.emptyApiUpdatedConcept.copy(language = "nb", metaImage = Left(null))
 
-    val existingArtId = """{"language":"nb","articleIds":[10]}"""
-    val existingExpected = TestData.emptyApiUpdatedConcept.copy(language = "nb", articleIds = Some(Seq(10)))
+    val existingArtId = """{"language":"nb","metaImage":{"id":"123","alt":"alt123"}}"""
+    val existingExpected = TestData.emptyApiUpdatedConcept
+      .copy(language = "nb", metaImage = Right(Some(NewConceptMetaImage(id = "123", alt = "alt123"))))
 
     patch("/test/1", missing, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(200)
@@ -131,7 +132,7 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
 
     patch("/test/1", nullArtId, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(200)
-      verify(writeService, times(2)).updateConcept(eqTo(1), eqTo(missingExpected), any[UserInfo])
+      verify(writeService, times(1)).updateConcept(eqTo(1), eqTo(nullExpected), any[UserInfo])
     }
 
     patch("/test/1", existingArtId, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {

@@ -66,7 +66,7 @@ class V7__ConceptArticleIdsAsList extends BaseJavaMigration {
   }
 
   private[migration] def convertToNewConcept(document: String): String = {
-    val oldArticle = parse(document).asInstanceOf[JObject]
+    val oldArticle = parse(document)
 
     val newArticle = oldArticle.mapField {
       case ("articleId", articleId: JInt) =>
