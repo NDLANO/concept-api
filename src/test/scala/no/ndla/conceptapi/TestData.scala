@@ -46,7 +46,7 @@ object TestData {
     today,
     Some(Seq("")),
     Set("nn", "nb"),
-    Some(42),
+    Seq(42),
     api.Status(
       current = "DRAFT",
       other = Seq.empty
@@ -67,7 +67,7 @@ object TestData {
     metaImage = Seq(domain.ConceptMetaImage("1", "Hei", "nb")),
     tags = Seq(domain.ConceptTags(Seq("stor", "kaktus"), "nb")),
     subjectIds = Set("urn:subject:3", "urn:subject:4"),
-    articleId = Some(42),
+    articleIds = Seq(42),
     status = Status.default,
     visualElement = Seq(domain.VisualElement("VisueltElement", "nb"))
   )
@@ -85,7 +85,7 @@ object TestData {
     metaImage = Seq(domain.ConceptMetaImage("1", "Hei", "nb")),
     tags = Seq(domain.ConceptTags(Seq("liten", "fisk"), "nb")),
     subjectIds = Set("urn:subject:3", "urn:subject:4"),
-    articleId = Some(42),
+    articleIds = Seq(42),
     status = Status.default,
     visualElement = Seq(domain.VisualElement("VisualElement for begrep", "nb"))
   )
@@ -103,7 +103,7 @@ object TestData {
     metaImage = Seq(domain.ConceptMetaImage("1", "Hei", "nb"), domain.ConceptMetaImage("2", "Hej", "nn")),
     tags = Seq(domain.ConceptTags(Seq("stor", "kaktus"), "nb"), domain.ConceptTags(Seq("liten", "fisk"), "nn")),
     subjectIds = Set("urn:subject:3", "urn:subject:4"),
-    articleId = Some(42),
+    articleIds = Seq(42),
     status = Status.default,
     visualElement = Seq(domain.VisualElement("VisueltElement", "nb"))
   )
@@ -121,7 +121,7 @@ object TestData {
     metaImage = Seq.empty,
     tags = Seq.empty,
     subjectIds = Set.empty,
-    articleId = None,
+    articleIds = Seq.empty,
     status = Status.default,
     visualElement = Seq.empty
   )
@@ -140,7 +140,7 @@ object TestData {
     today,
     updatedBy = Some(Seq("")),
     Set("nn", "nb"),
-    Some(42),
+    Seq(42),
     api.Status(
       current = "DRAFT",
       other = Seq.empty
@@ -157,12 +157,13 @@ object TestData {
     source = None,
     tags = None,
     subjectIds = None,
-    articleId = Right(None),
+    articleIds = None,
     status = None,
     visualElement = None
   )
 
-  val sampleNewConcept = api.NewConcept("nb", "Tittel", Some("Innhold"), None, None, None, None, None, Some(42), None)
+  val sampleNewConcept =
+    api.NewConcept("nb", "Tittel", Some("Innhold"), None, None, None, None, None, Some(Seq(42)), None)
 
   val emptyApiNewConcept = api.NewConcept(
     language = "",
@@ -173,11 +174,11 @@ object TestData {
     metaImage = None,
     tags = None,
     subjectIds = None,
-    articleId = None,
+    articleIds = None,
     visualElement = None
   )
 
   val updatedConcept =
-    api.UpdatedConcept("nb", None, Some("Innhold"), Right(None), None, None, None, None, Right(Some(12L)), None, None)
+    api.UpdatedConcept("nb", None, Some("Innhold"), Right(None), None, None, None, None, Some(Seq(12L)), None, None)
   val sampleApiTagsSearchResult = api.TagsSearchResult(10, 1, 1, "nb", Seq("a", "b"))
 }

@@ -62,7 +62,7 @@ trait ConverterService {
             updated = concept.updated,
             updatedBy = if (concept.updatedBy.isEmpty) None else Some(concept.updatedBy),
             supportedLanguages = concept.supportedLanguages,
-            articleId = concept.articleId,
+            articleIds = concept.articleIds,
             status = toApiStatus(concept.status),
             visualElement = visualElement
           )
@@ -141,7 +141,7 @@ trait ConverterService {
           metaImage = concept.metaImage.map(m => domain.ConceptMetaImage(m.id, m.alt, concept.language)).toSeq,
           tags = concept.tags.map(t => toDomainTags(t, concept.language)).getOrElse(Seq.empty),
           subjectIds = concept.subjectIds.getOrElse(Seq.empty).toSet,
-          articleId = concept.articleId,
+          articleIds = concept.articleIds.getOrElse(Seq.empty),
           status = Status.default,
           visualElement =
             concept.visualElement.filterNot(_.isEmpty).map(ve => domain.VisualElement(ve, concept.language)).toSeq
@@ -188,12 +188,6 @@ trait ConverterService {
       val domainVisualElement =
         updateConcept.visualElement.map(ve => toDomainVisualElement(ve, updateConcept.language)).toSeq
 
-      val newArticleId = updateConcept.articleId match {
-        case Left(_)                => None
-        case Right(Some(articleId)) => Some(articleId)
-        case Right(None)            => toMergeInto.articleId
-      }
-
       val newMetaImage = updateConcept.metaImage match {
         case Left(_) => toMergeInto.metaImage.filterNot(_.language == updateConcept.language)
         case Right(meta) =>
@@ -222,7 +216,7 @@ trait ConverterService {
         metaImage = newMetaImage,
         tags = mergeLanguageFields(toMergeInto.tags, domainTags),
         subjectIds = updateConcept.subjectIds.map(_.toSet).getOrElse(toMergeInto.subjectIds),
-        articleId = newArticleId,
+        articleIds = updateConcept.articleIds.map(_.toSeq).getOrElse(toMergeInto.articleIds),
         visualElement = mergeLanguageFields(toMergeInto.visualElement, domainVisualElement)
       )
     }
@@ -232,11 +226,6 @@ trait ConverterService {
 
     def toDomainConcept(id: Long, concept: api.UpdatedConcept, userInfo: UserInfo): domain.Concept = {
       val lang = concept.language
-
-      val newArticleId = concept.articleId match {
-        case Right(Some(articleId)) => Some(articleId)
-        case _                      => None
-      }
 
       val newMetaImage = concept.metaImage match {
         case Right(meta) => meta.map(m => domain.ConceptMetaImage(m.id, m.alt, lang)).toSeq
@@ -256,7 +245,7 @@ trait ConverterService {
         metaImage = newMetaImage,
         tags = concept.tags.map(t => toDomainTags(t, concept.language)).getOrElse(Seq.empty),
         subjectIds = concept.subjectIds.getOrElse(Seq.empty).toSet,
-        articleId = newArticleId,
+        articleIds = concept.articleIds.getOrElse(Seq.empty),
         status = Status.default,
         visualElement = concept.visualElement.map(ve => domain.VisualElement(ve, lang)).toSeq
       )
