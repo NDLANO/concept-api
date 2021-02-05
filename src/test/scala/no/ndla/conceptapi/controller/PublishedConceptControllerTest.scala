@@ -6,7 +6,9 @@
  */
 package no.ndla.conceptapi.controller
 
-import no.ndla.conceptapi.model.api.NotFoundException
+import no.ndla.conceptapi.model.api.{ConceptSummary, NotFoundException}
+import no.ndla.conceptapi.model.domain.{SearchResult, Sort}
+import no.ndla.conceptapi.model.search.SearchSettings
 import no.ndla.conceptapi.{ConceptSwagger, TestData, TestEnvironment, UnitSuite}
 import org.json4s.DefaultFormats
 import org.scalatra.test.scalatest.ScalatraFunSuite
@@ -58,6 +60,22 @@ class PublishedConceptControllerTest extends UnitSuite with TestEnvironment with
 
     get(s"/test/tags/?language=$lang") {
       status should equal(200)
+    }
+  }
+
+  test("that scrolling published doesn'thappen on 'initial'") {
+    reset(publishedConceptSearchService)
+
+    val multiResult =
+      SearchResult[ConceptSummary](0, None, 10, "nn", Seq.empty, Some("heiheihei"))
+    when(publishedConceptSearchService.all(any[SearchSettings])).thenReturn(Success(multiResult))
+
+    val expectedSettings =
+      SearchSettings.empty.copy(shouldScroll = true, pageSize = 10, sort = Sort.ByTitleDesc)
+
+    get("/test/?search-context=initial") {
+      status should be(200)
+      verify(publishedConceptSearchService, times(1)).all(eqTo(expectedSettings))
     }
   }
 

@@ -6,14 +6,17 @@
  */
 package no.ndla.conceptapi.controller
 
-import no.ndla.conceptapi.model.api.{NewConcept, NotFoundException, UpdatedConcept, NewConceptMetaImage}
+import no.ndla.conceptapi.model.api.{ConceptSummary, NewConcept, NewConceptMetaImage, NotFoundException, UpdatedConcept}
 import no.ndla.conceptapi.{ConceptSwagger, TestData, TestEnvironment}
 import no.ndla.conceptapi.UnitSuite
 import no.ndla.conceptapi.auth.UserInfo
 import no.ndla.conceptapi.model.api
+import no.ndla.conceptapi.model.domain.{SearchResult, Sort}
+import no.ndla.conceptapi.model.search.{DraftSearchSettings, SearchSettings}
 import org.json4s.DefaultFormats
 import org.json4s.native.Serialization.write
 import org.mockito.ArgumentMatchers.{any, eq => eqTo, _}
+import org.mockito.Mockito
 import org.mockito.Mockito._
 import org.scalatra.test.scalatest.ScalatraFunSuite
 
@@ -182,6 +185,22 @@ class DraftConceptControllerTest extends UnitSuite with TestEnvironment with Sca
     patch("/test/1", existingArtId, headers = Map("Authorization" -> TestData.authHeaderWithWriteRole)) {
       status should equal(200)
       verify(writeService, times(1)).updateConcept(eqTo(1), eqTo(existingExpected), any[UserInfo])
+    }
+  }
+
+  test("that scrolling doesn't happen on 'initial'") {
+    reset(draftConceptSearchService)
+
+    val multiResult =
+      SearchResult[ConceptSummary](0, None, 10, "nn", Seq.empty, Some("heiheihei"))
+    when(draftConceptSearchService.all(any[DraftSearchSettings])).thenReturn(Success(multiResult))
+
+    val expectedSettings =
+      DraftSearchSettings.empty.copy(shouldScroll = true, pageSize = 10, sort = Sort.ByTitleDesc)
+
+    get("/test/?search-context=initial") {
+      status should be(200)
+      verify(draftConceptSearchService, times(1)).all(eqTo(expectedSettings))
     }
   }
 
