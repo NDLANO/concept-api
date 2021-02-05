@@ -199,7 +199,7 @@ trait DraftConceptController {
           .authorizations("oauth2")
           .responseMessages(response400, response403, response404, response500))
     ) {
-      readService.allSubjects() match {
+      readService.allSubjects(true) match {
         case Success(subjects) => Ok(subjects)
         case Failure(ex)       => errorHandler(ex)
       }
@@ -231,7 +231,7 @@ trait DraftConceptController {
           case Failure(ex)                  => errorHandler(ex)
         }
       } else {
-        readService.allTagsFromConcepts(language, fallback)
+        readService.allTagsFromDraftConcepts(language, fallback)
       }
     }
 

@@ -83,6 +83,32 @@ trait DraftConceptRepository {
       }
     }
 
+    def allSubjectIds(implicit session: DBSession = ReadOnlyAutoSession): Set[String] = {
+      sql"""
+        select distinct jsonb_array_elements_text(document->'subjectIds') as subject_id
+        from ${Concept.table}
+        where jsonb_array_length(document->'subjectIds') != 0;"""
+        .map(rs => rs.string("subject_id"))
+        .list()
+        .apply()
+        .toSet
+    }
+
+    def everyTagFromEveryConcept(implicit session: DBSession = ReadOnlyAutoSession) = {
+      sql"""
+           select distinct id, document#>'{tags}' as tags
+           from ${Concept.table}
+           where jsonb_array_length(document#>'{tags}') > 0
+           order by id
+         """
+        .map(rs => {
+          val jsonStr = rs.string("tags")
+          read[List[ConceptTags]](jsonStr)
+        })
+        .list()
+        .apply()
+    }
+
     def withListingId(listingId: Long) =
       conceptWhere(sqls"co.listing_id=$listingId")
 

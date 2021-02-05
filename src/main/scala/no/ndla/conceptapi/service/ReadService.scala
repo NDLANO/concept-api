@@ -85,9 +85,14 @@ trait ReadService {
       }
     }
 
-    def allSubjects(): Try[Set[String]] = {
-      val subjectIds = publishedConceptRepository.allSubjectIds
-      if (subjectIds.nonEmpty) Success(subjectIds) else Failure(NotFoundException("Could not find any subjects"))
+    def allSubjects(draft: Boolean = false): Try[Set[String]] = {
+      if (draft) {
+        val subjectIds = draftConceptRepository.allSubjectIds
+        if (subjectIds.nonEmpty) Success(subjectIds) else Failure(NotFoundException("Could not find any subjects"))
+      } else {
+        val subjectIds = publishedConceptRepository.allSubjectIds
+        if (subjectIds.nonEmpty) Success(subjectIds) else Failure(NotFoundException("Could not find any subjects"))
+      }
     }
 
     def allTagsFromConcepts(language: String, fallback: Boolean): List[String] = {
@@ -99,6 +104,17 @@ trait ReadService {
        } else {
          allConceptTags.flatMap(_.filter(_.language == language))
        }).flatMap(_.tags).distinct
+    }
+
+    def allTagsFromDraftConcepts(language: String, fallback: Boolean): List[String] = {
+      val allConceptTags = draftConceptRepository.everyTagFromEveryConcept
+      (if (fallback || language == Language.AllLanguages) {
+        allConceptTags.flatMap(t => {
+          Language.findByLanguageOrBestEffort(t, language)
+        })
+      } else {
+        allConceptTags.flatMap(_.filter(_.language == language))
+      }).flatMap(_.tags).distinct
     }
 
     def getAllTags(input: String, pageSize: Int, offset: Int, language: String): api.TagsSearchResult = {
