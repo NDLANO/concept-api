@@ -8,8 +8,8 @@
 package no.ndla.conceptapi.controller
 
 import java.nio.file.AccessDeniedException
-
 import com.typesafe.scalalogging.LazyLogging
+
 import javax.servlet.http.HttpServletRequest
 import no.ndla.conceptapi.ComponentRegistry
 import no.ndla.conceptapi.ConceptApiProperties.{
@@ -31,6 +31,7 @@ import no.ndla.conceptapi.model.api.{
   ResultWindowTooLargeException,
   ValidationError
 }
+import no.ndla.conceptapi.model.domain.NdlaSearchException
 import no.ndla.conceptapi.service.WriteService
 import no.ndla.network.{ApplicationUrl, AuthUser, CorrelationID}
 import no.ndla.network.model.HttpRequestException
@@ -72,12 +73,16 @@ abstract class NdlaController() extends ScalatraServlet with NativeJsonSupport w
   case class Param[T](paramName: String, description: String)(implicit mf: Manifest[T])
 
   error {
-    case a: AccessDeniedException          => Forbidden(body = Error(Error.ACCESS_DENIED, a.getMessage))
-    case v: ValidationException            => BadRequest(body = ValidationError(messages = v.errors))
-    case n: NotFoundException              => NotFound(body = Error(Error.NOT_FOUND, n.getMessage))
-    case o: OptimisticLockException        => Conflict(body = Error(Error.RESOURCE_OUTDATED, o.getMessage))
-    case st: IllegalStatusStateTransition  => BadRequest(body = Error(Error.VALIDATION, st.getMessage))
-    case e: IndexNotFoundException         => InternalServerError(body = Error.IndexMissingError)
+    case a: AccessDeniedException         => Forbidden(body = Error(Error.ACCESS_DENIED, a.getMessage))
+    case v: ValidationException           => BadRequest(body = ValidationError(messages = v.errors))
+    case n: NotFoundException             => NotFound(body = Error(Error.NOT_FOUND, n.getMessage))
+    case o: OptimisticLockException       => Conflict(body = Error(Error.RESOURCE_OUTDATED, o.getMessage))
+    case st: IllegalStatusStateTransition => BadRequest(body = Error(Error.VALIDATION, st.getMessage))
+    case e: IndexNotFoundException        => InternalServerError(body = Error.IndexMissingError)
+    case nse: NdlaSearchException
+        if nse.rf.error.rootCause.exists(x =>
+          x.`type` == "search_context_missing_exception" || x.reason == "Cannot parse scroll id") =>
+      BadRequest(body = Error.InvalidSearchContext)
     case ona: OperationNotAllowedException => BadRequest(body = Error(Error.OPERATION_NOT_ALLOWED, ona.getMessage))
     case psqle: PSQLException =>
       ComponentRegistry.connectToDatabase()

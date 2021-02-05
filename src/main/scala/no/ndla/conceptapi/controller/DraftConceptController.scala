@@ -49,13 +49,13 @@ trait DraftConceptController {
 
     private def scrollSearchOr(scrollId: Option[String], language: String)(orFunction: => Any): Any =
       scrollId match {
-        case Some(scroll) =>
+        case Some(scroll) if !InitialScrollContextKeywords.contains(scroll) =>
           draftConceptSearchService.scroll(scroll, language) match {
             case Success(scrollResult) =>
               Ok(searchConverterService.asApiConceptSearchResult(scrollResult), getResponseScrollHeader(scrollResult))
             case Failure(ex) => errorHandler(ex)
           }
-        case None => orFunction
+        case _ => orFunction
       }
 
     private def getResponseScrollHeader(result: SearchResult[_]) =
