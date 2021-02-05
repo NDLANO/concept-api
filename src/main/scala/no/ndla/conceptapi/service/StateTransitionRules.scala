@@ -46,7 +46,6 @@ trait StateTransitionRules {
        DRAFT                      -> DRAFT,
        DRAFT                      -> ARCHIVED                    require UserInfo.WriteRoles illegalStatuses Set(PUBLISHED),
        DRAFT                      -> QUEUED_FOR_LANGUAGE         keepStates Set(PUBLISHED),
-       DRAFT                      -> QUALITY_ASSURED             keepStates Set(PUBLISHED) require UserInfo.WriteRoles,
       (DRAFT                      -> PUBLISHED)                  keepStates Set() require UserInfo.PublishRoles withSideEffect publishConcept,
        ARCHIVED                   -> ARCHIVED,
        ARCHIVED                   -> DRAFT,
