@@ -11,7 +11,13 @@ import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.ConceptApiProperties
 import no.ndla.conceptapi.ConceptApiProperties.InitialScrollContextKeywords
 import no.ndla.conceptapi.auth.User
-import no.ndla.conceptapi.model.api.{Concept, ConceptSearchResult, DraftConceptSearchParams, NotFoundException, SubjectTags}
+import no.ndla.conceptapi.model.api.{
+  Concept,
+  ConceptSearchResult,
+  DraftConceptSearchParams,
+  NotFoundException,
+  SubjectTags
+}
 import no.ndla.conceptapi.model.domain.{ConceptStatus, Language, SearchResult, Sort}
 import no.ndla.conceptapi.model.search.DraftSearchSettings
 import no.ndla.conceptapi.service.search.{DraftConceptSearchService, SearchConverterService}
@@ -186,7 +192,7 @@ trait DraftConceptController {
 
       }
     }
-    
+
     get(
       "/subjects/",
       operation(

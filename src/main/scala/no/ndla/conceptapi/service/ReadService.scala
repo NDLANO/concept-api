@@ -109,12 +109,12 @@ trait ReadService {
     def allTagsFromDraftConcepts(language: String, fallback: Boolean): List[String] = {
       val allConceptTags = draftConceptRepository.everyTagFromEveryConcept
       (if (fallback || language == Language.AllLanguages) {
-        allConceptTags.flatMap(t => {
-          Language.findByLanguageOrBestEffort(t, language)
-        })
-      } else {
-        allConceptTags.flatMap(_.filter(_.language == language))
-      }).flatMap(_.tags).distinct
+         allConceptTags.flatMap(t => {
+           Language.findByLanguageOrBestEffort(t, language)
+         })
+       } else {
+         allConceptTags.flatMap(_.filter(_.language == language))
+       }).flatMap(_.tags).distinct
     }
 
     def getAllTags(input: String, pageSize: Int, offset: Int, language: String): api.TagsSearchResult = {
