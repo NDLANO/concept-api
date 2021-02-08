@@ -106,6 +106,76 @@ class DraftConceptRepositoryTest
     result3 should be(expected3)
   }
 
+  test("That getting subjects works as expected") {
+    assume(databaseIsAvailable, "Database is unavailable")
+    val concept1 = TestData.domainConcept.copy(id = Some(1), subjectIds = Set("urn:subject:1", "urn:subject:2"))
+    val concept2 = TestData.domainConcept.copy(id = Some(2), subjectIds = Set("urn:subject:1", "urn:subject:19"))
+    val concept3 = TestData.domainConcept.copy(id = Some(3), subjectIds = Set("urn:subject:12"))
+
+    repository.insert(concept1)
+    repository.insert(concept2)
+    repository.insert(concept3)
+
+    repository.allSubjectIds should be(
+      Set(
+        "urn:subject:1",
+        "urn:subject:2",
+        "urn:subject:12",
+        "urn:subject:19"
+      )
+    )
+  }
+
+  test("Fetching concepts tags works as expected") {
+    assume(databaseIsAvailable, "Database is unavailable")
+    val concept1 =
+      TestData.domainConcept.copy(
+        id = Some(1),
+        tags = Seq(
+          domain.ConceptTags(Seq("konge", "bror"), "nb"),
+          domain.ConceptTags(Seq("konge", "brur"), "nn"),
+          domain.ConceptTags(Seq("king", "bro"), "en"),
+          domain.ConceptTags(Seq("zing", "xiongdi"), "zh")
+        )
+      )
+    val concept2 =
+      TestData.domainConcept.copy(
+        id = Some(2),
+        tags = Seq(
+          domain.ConceptTags(Seq("konge", "lol", "meme"), "nb"),
+          domain.ConceptTags(Seq("konge", "lel", "meem"), "nn"),
+          domain.ConceptTags(Seq("king", "lul", "maymay"), "en"),
+          domain.ConceptTags(Seq("zing", "kek", "mimi"), "zh")
+        )
+      )
+    val concept3 =
+      TestData.domainConcept.copy(
+        id = Some(3),
+        tags = Seq()
+      )
+
+    repository.insert(concept1)
+    repository.insert(concept2)
+    repository.insert(concept3)
+
+    repository.everyTagFromEveryConcept should be(
+      List(
+        List(
+          domain.ConceptTags(Seq("konge", "bror"), "nb"),
+          domain.ConceptTags(Seq("konge", "brur"), "nn"),
+          domain.ConceptTags(Seq("king", "bro"), "en"),
+          domain.ConceptTags(Seq("zing", "xiongdi"), "zh"),
+        ),
+        List(
+          domain.ConceptTags(Seq("konge", "lol", "meme"), "nb"),
+          domain.ConceptTags(Seq("konge", "lel", "meem"), "nn"),
+          domain.ConceptTags(Seq("king", "lul", "maymay"), "en"),
+          domain.ConceptTags(Seq("zing", "kek", "mimi"), "zh")
+        )
+      )
+    )
+  }
+
   test("getTags returns non-duplicate tags and correct number of them") {
     assume(databaseIsAvailable, "Database is unavailable")
     val sampleArticle1 = TestData.domainConcept.copy(
