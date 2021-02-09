@@ -68,7 +68,6 @@ class V8__PublishedConceptArticleIdsAsList extends BaseJavaMigration {
   private[migration] def convertToNewConcept(document: String): String = {
     val oldArticle = parse(document)
 
-
     val newArticle = oldArticle.mapField {
       case ("articleId", articleId: JInt) =>
         "articleIds" -> JArray(List(articleId))
