@@ -110,7 +110,7 @@ trait PublishedConceptController {
     get(
       "/:concept_id",
       operation(
-        apiOperation[String]("getConceptById")
+        apiOperation[Concept]("getConceptById")
           .summary("Show concept with a specified id")
           .description("Shows the concept for the specified id.")
           .parameters(
