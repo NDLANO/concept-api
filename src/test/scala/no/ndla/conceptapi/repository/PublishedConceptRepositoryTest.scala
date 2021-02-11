@@ -9,21 +9,32 @@ package no.ndla.conceptapi.repository
 
 import java.net.Socket
 import java.util.Date
-
 import no.ndla.conceptapi._
 import no.ndla.conceptapi.model.domain
 import no.ndla.conceptapi.model.domain.PublishedConcept
 import no.ndla.scalatestsuite.IntegrationSuite
+import org.scalatest.Outcome
 import scalikejdbc.{ConnectionPool, DB, DataSourceConnectionPool, _}
 
-import scala.util.{Success, Try}
+import scala.util.{Failure, Success, Try}
 
 class PublishedConceptRepositoryTest extends IntegrationSuite(EnablePostgresContainer = true) with TestEnvironment {
 
   override val dataSource = testDataSource.get
   var repository: PublishedConceptRepository = _
 
-  def databaseIsAvailable: Boolean = Try(repository.conceptCount).isSuccess
+  // Skip tests if no docker environment available
+  override def withFixture(test: NoArgTest): Outcome = {
+    postgresContainer match {
+      case Failure(ex) =>
+        println(s"Postgres container not running, cancelling '${this.getClass.getName}'")
+        println(s"Got exception: ${ex.getMessage}")
+        ex.printStackTrace()
+      case _ =>
+    }
+    assume(postgresContainer.isSuccess, "Docker environment unavailable for postgres container")
+    super.withFixture(test)
+  }
 
   def emptyTestDatabase = {
     DB autoCommit (implicit session => {
@@ -33,7 +44,7 @@ class PublishedConceptRepositoryTest extends IntegrationSuite(EnablePostgresCont
 
   override def beforeEach(): Unit = {
     repository = new PublishedConceptRepository
-    if (databaseIsAvailable) {
+    if (serverIsListening) {
       emptyTestDatabase
     }
   }
@@ -58,7 +69,6 @@ class PublishedConceptRepositoryTest extends IntegrationSuite(EnablePostgresCont
   }
 
   test("That inserting and updating works") {
-    assume(databaseIsAvailable, "Database is unavailable")
     val consistentDate = new Date(0)
     val concept1 = TestData.domainConcept.copy(
       id = Some(10),
@@ -90,7 +100,6 @@ class PublishedConceptRepositoryTest extends IntegrationSuite(EnablePostgresCont
   }
 
   test("That deletion works as expected") {
-    assume(databaseIsAvailable, "Database is unavailable")
     val consistentDate = new Date(0)
     val concept1 = TestData.domainConcept.copy(
       id = Some(10),
@@ -119,7 +128,6 @@ class PublishedConceptRepositoryTest extends IntegrationSuite(EnablePostgresCont
   }
 
   test("That getting subjects works as expected") {
-    assume(databaseIsAvailable, "Database is unavailable")
     val concept1 = TestData.domainConcept.copy(id = Some(1), subjectIds = Set("urn:subject:1", "urn:subject:2"))
     val concept2 = TestData.domainConcept.copy(id = Some(2), subjectIds = Set("urn:subject:1", "urn:subject:19"))
     val concept3 = TestData.domainConcept.copy(id = Some(3), subjectIds = Set("urn:subject:12"))
@@ -139,7 +147,6 @@ class PublishedConceptRepositoryTest extends IntegrationSuite(EnablePostgresCont
   }
 
   test("Fetching concepts tags works as expected") {
-    assume(databaseIsAvailable, "Database is unavailable")
     val concept1 =
       TestData.domainConcept.copy(
         id = Some(1),
@@ -189,7 +196,6 @@ class PublishedConceptRepositoryTest extends IntegrationSuite(EnablePostgresCont
   }
 
   test("That count works as expected") {
-    assume(databaseIsAvailable, "Database is unavailable")
     val consistentDate = new Date(0)
     val concept1 = TestData.domainConcept.copy(
       id = Some(10),
@@ -227,7 +233,6 @@ class PublishedConceptRepositoryTest extends IntegrationSuite(EnablePostgresCont
   }
 
   test("That getByPage returns all concepts in database") {
-    assume(databaseIsAvailable, "Database is unavailable")
     val con1 = TestData.domainConcept.copy(
       id = Some(1),
       content = Seq(domain.ConceptContent("Hei", "nb")),

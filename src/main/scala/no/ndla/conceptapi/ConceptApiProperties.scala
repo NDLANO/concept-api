@@ -29,12 +29,12 @@ object ConceptApiProperties extends LazyLogging {
   val ApplicationPort = propOrElse("APPLICATION_PORT", "80").toInt
   val ContactEmail = "support+api@ndla.no"
 
-  lazy val MetaUserName = prop(PropertyKeys.MetaUserNameKey)
-  lazy val MetaPassword = prop(PropertyKeys.MetaPasswordKey)
-  lazy val MetaResource = prop(PropertyKeys.MetaResourceKey)
-  lazy val MetaServer = prop(PropertyKeys.MetaServerKey)
-  lazy val MetaPort = prop(PropertyKeys.MetaPortKey).toInt
-  lazy val MetaSchema = prop(PropertyKeys.MetaSchemaKey)
+  def MetaUserName = prop(PropertyKeys.MetaUserNameKey)
+  def MetaPassword = prop(PropertyKeys.MetaPasswordKey)
+  def MetaResource = prop(PropertyKeys.MetaResourceKey)
+  def MetaServer = prop(PropertyKeys.MetaServerKey)
+  def MetaPort = prop(PropertyKeys.MetaPortKey).toInt
+  def MetaSchema = prop(PropertyKeys.MetaSchemaKey)
   val MetaMaxConnections = 10
 
   val resourceHtmlEmbedTag = "embed"
