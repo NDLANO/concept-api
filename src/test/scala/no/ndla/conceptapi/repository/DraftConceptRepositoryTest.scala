@@ -37,7 +37,9 @@ class DraftConceptRepositoryTest
         ex.printStackTrace()
       case _ =>
     }
-    assume(postgresContainer.isSuccess, "Docker environment unavailable for postgres container")
+    if (!sys.env.getOrElse("CI", "false").toBoolean) {
+      assume(postgresContainer.isSuccess, "Docker environment unavailable for postgres container")
+    }
     super.withFixture(test)
   }
 
