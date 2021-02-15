@@ -9,13 +9,13 @@ package no.ndla.conceptapi.repository
 
 import java.net.Socket
 import java.util.Date
-
 import no.ndla.conceptapi.model.domain
 import no.ndla.conceptapi.{ConceptApiProperties, DBMigrator, TestData, TestEnvironment, UnitSuite}
 import scalikejdbc.{ConnectionPool, DB, DataSourceConnectionPool}
 import no.ndla.conceptapi.TestData._
 import no.ndla.conceptapi.model.api.OptimisticLockException
 import no.ndla.scalatestsuite.IntegrationSuite
+import org.scalatest.Outcome
 
 import scala.util.{Failure, Success, Try}
 import scalikejdbc._
@@ -28,7 +28,20 @@ class DraftConceptRepositoryTest
   override val dataSource = testDataSource.get
   var repository: DraftConceptRepository = _
 
-  def databaseIsAvailable: Boolean = Try(repository.conceptCount).isSuccess
+  // Skip tests if no docker environment available
+  override def withFixture(test: NoArgTest): Outcome = {
+    postgresContainer match {
+      case Failure(ex) =>
+        println(s"Postgres container not running, cancelling '${this.getClass.getName}'")
+        println(s"Got exception: ${ex.getMessage}")
+        ex.printStackTrace()
+      case _ =>
+    }
+    if (!sys.env.getOrElse("CI", "false").toBoolean) {
+      assume(postgresContainer.isSuccess, "Docker environment unavailable for postgres container")
+    }
+    super.withFixture(test)
+  }
 
   def emptyTestDatabase = {
     DB autoCommit (implicit session => {
@@ -38,7 +51,7 @@ class DraftConceptRepositoryTest
 
   override def beforeEach(): Unit = {
     repository = new DraftConceptRepository
-    if (databaseIsAvailable) {
+    if (serverIsListening) {
       emptyTestDatabase
     }
   }
@@ -63,7 +76,6 @@ class DraftConceptRepositoryTest
   }
 
   test("Inserting and Updating an concept should work as expected") {
-    assume(databaseIsAvailable, "Database is unavailable")
     val art1 = domainConcept.copy()
     val art2 = domainConcept.copy()
     val art3 = domainConcept.copy()
@@ -81,7 +93,6 @@ class DraftConceptRepositoryTest
   }
 
   test("Inserting and fetching with listing id works as expected") {
-    assume(databaseIsAvailable, "Database is unavailable")
     val concept1 = domainConcept.copy(title = Seq(domain.ConceptTitle("Really good title", "nb")))
     val concept2 = domainConcept.copy(title = Seq(domain.ConceptTitle("Not so bad title", "nb")))
     val concept3 = domainConcept.copy(title = Seq(domain.ConceptTitle("Whatchu doin", "nb")))
@@ -107,7 +118,6 @@ class DraftConceptRepositoryTest
   }
 
   test("That getting subjects works as expected") {
-    assume(databaseIsAvailable, "Database is unavailable")
     val concept1 = TestData.domainConcept.copy(id = Some(1), subjectIds = Set("urn:subject:1", "urn:subject:2"))
     val concept2 = TestData.domainConcept.copy(id = Some(2), subjectIds = Set("urn:subject:1", "urn:subject:19"))
     val concept3 = TestData.domainConcept.copy(id = Some(3), subjectIds = Set("urn:subject:12"))
@@ -127,7 +137,6 @@ class DraftConceptRepositoryTest
   }
 
   test("Fetching concepts tags works as expected") {
-    assume(databaseIsAvailable, "Database is unavailable")
     val concept1 =
       TestData.domainConcept.copy(
         id = Some(1),
@@ -177,7 +186,6 @@ class DraftConceptRepositoryTest
   }
 
   test("getTags returns non-duplicate tags and correct number of them") {
-    assume(databaseIsAvailable, "Database is unavailable")
     val sampleArticle1 = TestData.domainConcept.copy(
       tags = Seq(domain.ConceptTags(Seq("abc", "bcd", "ddd"), "nb"), domain.ConceptTags(Seq("abc", "bcd"), "nn")))
     val sampleArticle2 = TestData.domainConcept.copy(
@@ -239,8 +247,6 @@ class DraftConceptRepositoryTest
   }
 
   test("Revision mismatch fail with optimistic lock exception") {
-    assume(databaseIsAvailable, "Database is unavailable")
-
     val art1 = domainConcept.copy(
       revision = None,
       content = Seq(domain.ConceptContent("Originalpls", "nb")),
@@ -272,7 +278,6 @@ class DraftConceptRepositoryTest
   }
 
   test("That getByPage returns all concepts in database") {
-    assume(databaseIsAvailable, "Database is unavailable")
     val con1 = domainConcept.copy(
       content = Seq(domain.ConceptContent("Hei", "nb")),
       updated = new Date(0),

@@ -16,7 +16,6 @@ val FlywayVersion = "7.1.1"
 val PostgresVersion = "42.2.14"
 val HikariConnectionPoolVersion = "3.4.5"
 val CatsEffectVersion = "2.1.1"
-val TestContainersVersion = "1.12.2"
 
 val appProperties = settingKey[Properties]("The application properties")
 
@@ -49,7 +48,7 @@ lazy val concept_api = (project in file("."))
       "ndla" %% "network" % "0.44",
       "ndla" %% "mapping" % "0.15",
       "ndla" %% "validation" % "0.44",
-      "ndla" %% "scalatestsuite" % "0.1" % "test",
+      "ndla" %% "scalatestsuite" % "0.3" % "test",
       "org.scalatra" %% "scalatra" % Scalatraversion,
       "org.eclipse.jetty" % "jetty-webapp" % Jettyversion % "container;compile",
       "org.eclipse.jetty" % "jetty-plus" % Jettyversion % "container",
@@ -77,7 +76,7 @@ lazy val concept_api = (project in file("."))
       "com.sksamuel.elastic4s" %% "elastic4s-http" % Elastic4sVersion,
       "org.typelevel" %% "cats-core" % CatsEffectVersion,
       "org.typelevel" %% "cats-effect" % CatsEffectVersion,
-      "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.22",
+      "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.22"
     ) ++ vulnerabilityOverrides
   )
   .enablePlugins(DockerPlugin)
