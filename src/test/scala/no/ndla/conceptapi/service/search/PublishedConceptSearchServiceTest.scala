@@ -575,6 +575,50 @@ class PublishedConceptSearchServiceTest
     search.results.head.id should be(9)
   }
 
+  test("that search on query parameter as embedId matches meta image") {
+    val Success(search) =
+      publishedConceptSearchService.matchingQuery(
+        "test.image",
+        searchSettings.copy()
+      )
+
+    search.totalCount should be(1)
+    search.results.head.id should be(9)
+  }
+
+  test("that search on query parameter as embedResource matches visual element") {
+    val Success(search) =
+      publishedConceptSearchService.matchingQuery(
+        "image",
+        searchSettings.copy()
+      )
+
+    search.totalCount should be(1)
+    search.results.head.id should be(10)
+  }
+
+  test("that search on query parameter as embedId matches visual element") {
+    val Success(search) =
+      publishedConceptSearchService.matchingQuery(
+        "test.url",
+        searchSettings.copy()
+      )
+
+    search.totalCount should be(1)
+    search.results.head.id should be(10)
+  }
+
+  test("that search on query parameter matches on concept id") {
+    val Success(search) =
+      publishedConceptSearchService.matchingQuery(
+        "2",
+        searchSettings.copy()
+      )
+
+    search.totalCount should be(1)
+    search.results.head.id should be(2)
+  }
+
   def blockUntil(predicate: () => Boolean): Unit = {
     var backoff = 0
     var done = false

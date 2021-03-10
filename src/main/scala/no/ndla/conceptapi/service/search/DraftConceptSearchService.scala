@@ -109,7 +109,8 @@ trait DraftConceptSearchService {
               List(
                 simpleStringQuery(query).field(s"title.$language", 2),
                 simpleStringQuery(query).field(s"content.$language", 1),
-                simpleStringQuery(query).field(s"tags.$language", 1)
+                simpleStringQuery(query).field(s"tags.$language", 1),
+                idsQuery(query)
               ) ++
                 buildTermQueryForField(query, "embedResources", settings.searchLanguage, settings.fallback) ++
                 buildTermQueryForField(query, "embedIds", settings.searchLanguage, settings.fallback)
