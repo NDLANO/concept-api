@@ -102,21 +102,21 @@ trait PublishedConceptSearchService {
     def matchingQuery(query: String, settings: SearchSettings): Try[SearchResult[api.ConceptSummary]] = {
       val language = if (settings.searchLanguage == Language.AllLanguages) "*" else settings.searchLanguage
 
-      val titleSearch = simpleStringQuery(query).field(s"title.$language", 2)
-      val contentSearch = simpleStringQuery(query).field(s"content.$language", 1)
-
-      val exactTitleSearch = termQuery(s"title.$language.lower", query)
-
       val fullQuery = settings.exactTitleMatch match {
         case true =>
-          boolQuery().must(exactTitleSearch)
+          boolQuery().must(termQuery(s"title.$language.lower", query))
         case false =>
           boolQuery().must(
             boolQuery()
               .should(
-                titleSearch,
-                contentSearch
-              ))
+                List(
+                  simpleStringQuery(query).field(s"title.$language", 2),
+                  simpleStringQuery(query).field(s"content.$language", 1)
+                ) ++
+                  buildTermQueryForField(query, "embedResources", settings.searchLanguage, settings.fallback) ++
+                  buildTermQueryForField(query, "embedIds", settings.searchLanguage, settings.fallback)
+              )
+          )
       }
       executeSearch(fullQuery, settings)
     }
@@ -136,7 +136,27 @@ trait PublishedConceptSearchService {
             (Some(existsQuery(s"title.$lang")), lang)
       }
 
-      val filters = List(idFilter, languageFilter, subjectFilter, tagFilter)
+      val embedResourceFilter = settings.embedResource match {
+        case Some("") | None => None
+        case Some(q) =>
+          Some(
+            boolQuery()
+              .should(
+                buildTermQueryForField(q, "embedResources", settings.searchLanguage, settings.fallback)
+              ))
+      }
+
+      val embedIdFilter = settings.embedId match {
+        case Some("") | None => None
+        case Some(q) =>
+          Some(
+            boolQuery()
+              .should(
+                buildTermQueryForField(q, "embedIds", settings.searchLanguage, settings.fallback)
+              ))
+      }
+
+      val filters = List(idFilter, languageFilter, subjectFilter, tagFilter, embedResourceFilter, embedIdFilter)
       val filteredSearch = queryBuilder.filter(filters.flatten)
 
       val (startAt, numResults) = getStartAtAndNumResults(settings.page, settings.pageSize)

@@ -149,6 +149,10 @@ abstract class NdlaController() extends ScalatraServlet with NativeJsonSupport w
     s"""List of users to filter by.
        |The value to search for is the user-id from Auth0.""".stripMargin
   )
+
+  protected val embedResource = Param[Option[String]]("embed-resource", "Return concepts with matching embed type.")
+  protected val embedId = Param[Option[String]]("embed-id", "Return concepts with matching embed id.")
+
   protected val exactTitleMatch =
     Param[Option[Boolean]]("exact-match", "If provided, only return concept where query matches title exactly.")
 

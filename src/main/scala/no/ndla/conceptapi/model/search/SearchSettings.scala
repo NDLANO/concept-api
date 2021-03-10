@@ -13,7 +13,9 @@ case class SearchSettings(
     subjects: Set[String],
     tagsToFilterBy: Set[String],
     exactTitleMatch: Boolean,
-    shouldScroll: Boolean
+    shouldScroll: Boolean,
+    embedResource: Option[String],
+    embedId: Option[String]
 )
 
 object SearchSettings {
@@ -29,7 +31,9 @@ object SearchSettings {
       subjects = Set.empty,
       tagsToFilterBy = Set.empty,
       exactTitleMatch = false,
-      shouldScroll = false
+      shouldScroll = false,
+      embedResource = None,
+      embedId = None
     )
   }
 }

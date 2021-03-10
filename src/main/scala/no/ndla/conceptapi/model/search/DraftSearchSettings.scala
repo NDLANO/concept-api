@@ -14,7 +14,9 @@ case class DraftSearchSettings(
     tagsToFilterBy: Set[String],
     statusFilter: Set[String],
     userFilter: Seq[String],
-    shouldScroll: Boolean
+    shouldScroll: Boolean,
+    embedResource: Option[String],
+    embedId: Option[String]
 )
 
 object DraftSearchSettings {
@@ -31,7 +33,9 @@ object DraftSearchSettings {
       tagsToFilterBy = Set.empty,
       statusFilter = Set.empty,
       userFilter = Seq.empty,
-      shouldScroll = false
+      shouldScroll = false,
+      embedResource = None,
+      embedId = None
     )
   }
 }

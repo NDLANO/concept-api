@@ -78,7 +78,9 @@ trait PublishedConceptController {
         subjects: Set[String],
         tagsToFilterBy: Set[String],
         exactTitleMatch: Boolean,
-        shouldScroll: Boolean
+        shouldScroll: Boolean,
+        embedResource: Option[String],
+        embedId: Option[String]
     ) = {
       val settings = SearchSettings(
         withIdIn = idList,
@@ -90,7 +92,9 @@ trait PublishedConceptController {
         subjects = subjects,
         tagsToFilterBy = tagsToFilterBy,
         exactTitleMatch = exactTitleMatch,
-        shouldScroll = shouldScroll
+        shouldScroll = shouldScroll,
+        embedResource = embedResource,
+        embedId = embedId
       )
 
       val result = query match {
@@ -170,6 +174,8 @@ trait PublishedConceptController {
         val tagsToFilterBy = paramAsListOfString(this.tagsToFilterBy.paramName)
         val exactTitleMatch = booleanOrDefault(this.exactTitleMatch.paramName, default = false)
         val shouldScroll = paramOrNone(this.scrollId.paramName).exists(InitialScrollContextKeywords.contains)
+        val embedResource = paramOrNone(this.embedResource.paramName)
+        val embedId = paramOrNone(this.embedId.paramName)
 
         search(
           query,
@@ -182,7 +188,9 @@ trait PublishedConceptController {
           subjects.toSet,
           tagsToFilterBy.toSet,
           exactTitleMatch,
-          shouldScroll
+          shouldScroll,
+          embedResource,
+          embedId
         )
 
       }
@@ -219,6 +227,8 @@ trait PublishedConceptController {
             val tagsToFilterBy = searchParams.tags
             val exactTitleMatch = searchParams.exactTitleMatch.getOrElse(false)
             val shouldScroll = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
+            val embedResource = searchParams.embedResource
+            val embedId = searchParams.embedId
 
             search(
               query,
@@ -231,7 +241,9 @@ trait PublishedConceptController {
               subjects,
               tagsToFilterBy,
               exactTitleMatch,
-              shouldScroll
+              shouldScroll,
+              embedResource,
+              embedId
             )
           case Failure(ex) => errorHandler(ex)
         }
