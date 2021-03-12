@@ -459,7 +459,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     search2.totalCount should be(0)
 
     val Success(search3) =
-      draftConceptSearchService.matchingQuery("burugle", searchSettings.copy(searchLanguage = "all"))
+      draftConceptSearchService.matchingQuery("burugle", searchSettings.copy(searchLanguage = "en", fallback = true))
 
     search3.totalCount should be(1)
     search3.results.head.id should be(10)
