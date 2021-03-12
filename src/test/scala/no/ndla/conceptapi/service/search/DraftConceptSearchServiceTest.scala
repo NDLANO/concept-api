@@ -446,12 +446,23 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     scroll6.results.map(_.id) should be(List.empty)
   }
 
-  test("that searching for tags works") {
+  test("that searching for tags works and respects language/fallback") {
     val Success(search) =
       draftConceptSearchService.matchingQuery("burugle", searchSettings.copy(searchLanguage = "all"))
 
     search.totalCount should be(1)
     search.results.head.id should be(10)
+
+    val Success(search2) =
+      draftConceptSearchService.matchingQuery("burugle", searchSettings.copy(searchLanguage = "en"))
+
+    search2.totalCount should be(0)
+
+    val Success(search3) =
+      draftConceptSearchService.matchingQuery("burugle", searchSettings.copy(searchLanguage = "all"))
+
+    search3.totalCount should be(1)
+    search3.results.head.id should be(10)
   }
 
   test("that filtering with subject id should work as expected") {

@@ -100,7 +100,8 @@ trait PublishedConceptSearchService {
     def all(settings: SearchSettings): Try[SearchResult[api.ConceptSummary]] = executeSearch(boolQuery(), settings)
 
     def matchingQuery(query: String, settings: SearchSettings): Try[SearchResult[api.ConceptSummary]] = {
-      val language = if (settings.searchLanguage == Language.AllLanguages) "*" else settings.searchLanguage
+      val language =
+        if (settings.searchLanguage == Language.AllLanguages || settings.fallback) "*" else settings.searchLanguage
 
       val titleSearch = simpleStringQuery(query).field(s"title.$language", 2)
       val contentSearch = simpleStringQuery(query).field(s"content.$language", 1)
@@ -124,7 +125,7 @@ trait PublishedConceptSearchService {
     def executeSearch(queryBuilder: BoolQuery, settings: SearchSettings): Try[SearchResult[api.ConceptSummary]] = {
       val idFilter = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
       val subjectFilter = orFilter(settings.subjects, "subjectIds")
-      val tagFilter = languageOrFilter(settings.tagsToFilterBy, "tags")
+      val tagFilter = languageOrFilter(settings.tagsToFilterBy, "tags", settings.searchLanguage, settings.fallback)
 
       val (languageFilter, searchLanguage) = settings.searchLanguage match {
         case "" | Language.AllLanguages | "*" =>

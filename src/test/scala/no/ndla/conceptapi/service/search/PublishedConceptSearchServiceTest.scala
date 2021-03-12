@@ -468,7 +468,7 @@ class PublishedConceptSearchServiceTest
     search.results.map(_.id) should be(Seq(9, 10))
   }
 
-  test("that filtering for tags works as expected") {
+  test("that filtering for tags works as expected and respects language/fallback") {
     val Success(search) = publishedConceptSearchService.all(searchSettings.copy(tagsToFilterBy = Set("burugle")))
     search.totalCount should be(1)
     search.results.map(_.id) should be(Seq(10))
@@ -477,6 +477,16 @@ class PublishedConceptSearchServiceTest
       publishedConceptSearchService.all(searchSettings.copy(tagsToFilterBy = Set("burugle"), searchLanguage = "all"))
     search1.totalCount should be(1)
     search1.results.map(_.id) should be(Seq(10))
+
+    val Success(search2) =
+      publishedConceptSearchService.all(searchSettings.copy(tagsToFilterBy = Set("burugle"), searchLanguage = "en"))
+    search2.totalCount should be(0)
+
+    val Success(search3) =
+      publishedConceptSearchService.all(
+        searchSettings.copy(tagsToFilterBy = Set("burugle"), searchLanguage = "en", fallback = true))
+    search3.totalCount should be(1)
+    search3.results.map(_.id) should be(Seq(10))
   }
 
   test("That tag search works as expected") {

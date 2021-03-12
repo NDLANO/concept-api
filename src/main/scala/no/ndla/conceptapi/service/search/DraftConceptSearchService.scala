@@ -100,7 +100,8 @@ trait DraftConceptSearchService {
     def all(settings: DraftSearchSettings): Try[SearchResult[api.ConceptSummary]] = executeSearch(boolQuery(), settings)
 
     def matchingQuery(query: String, settings: DraftSearchSettings): Try[SearchResult[api.ConceptSummary]] = {
-      val language = if (settings.searchLanguage == Language.AllLanguages) "*" else settings.searchLanguage
+      val language =
+        if (settings.searchLanguage == Language.AllLanguages || settings.fallback) "*" else settings.searchLanguage
 
       val titleSearch = simpleStringQuery(query).field(s"title.$language", 2)
       val contentSearch = simpleStringQuery(query).field(s"content.$language", 1)
@@ -122,17 +123,13 @@ trait DraftConceptSearchService {
       val idFilter = if (settings.withIdIn.isEmpty) None else Some(idsQuery(settings.withIdIn))
       val statusFilter = orFilter(settings.statusFilter, "status.current", "status.other")
       val subjectFilter = orFilter(settings.subjects, "subjectIds")
-      val tagFilter = languageOrFilter(settings.tagsToFilterBy, "tags")
+      val tagFilter = languageOrFilter(settings.tagsToFilterBy, "tags", settings.searchLanguage, settings.fallback)
       val userFilter = orFilter(settings.userFilter, "updatedBy")
 
       val (languageFilter, searchLanguage) = settings.searchLanguage match {
-        case "" | Language.AllLanguages | "*" =>
-          (None, "*")
-        case lang =>
-          if (settings.fallback)
-            (None, "*")
-          else
-            (Some(existsQuery(s"title.$lang")), lang)
+        case "" | Language.AllLanguages | "*" => (None, "*")
+        case lang if settings.fallback        => (None, "*")
+        case lang                             => (Some(existsQuery(s"title.$lang")), lang)
       }
 
       val filters = List(idFilter, languageFilter, subjectFilter, tagFilter, statusFilter, userFilter)
