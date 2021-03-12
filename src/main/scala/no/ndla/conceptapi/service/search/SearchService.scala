@@ -8,10 +8,10 @@
 package no.ndla.conceptapi.service.search
 
 import java.lang.Math.max
-
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.http.search.SearchResponse
 import com.sksamuel.elastic4s.searches.queries.BoolQuery
+import com.sksamuel.elastic4s.searches.queries.term.TermQuery
 import com.sksamuel.elastic4s.searches.sort.{FieldSort, SortOrder}
 import com.typesafe.scalalogging.LazyLogging
 import org.elasticsearch.ElasticsearchException
@@ -153,6 +153,19 @@ trait SearchService {
               Failure(new ElasticsearchException(s"Unable to execute search in $searchIndex", e.getMessage))
           }
         case t: Throwable => Failure(t)
+      }
+    }
+
+    def buildTermQueryForField(
+        query: String,
+        field: String,
+        language: String,
+        fallback: Boolean
+    ): Seq[TermQuery] = {
+      if (language == Language.AllLanguages || fallback) {
+        Language.languageAnalyzers.map(lang => termQuery(s"$field.${lang.lang}.raw", query))
+      } else {
+        Seq(termQuery(s"$field.$language.raw", query))
       }
     }
   }

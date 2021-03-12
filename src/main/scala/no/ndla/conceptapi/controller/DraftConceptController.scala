@@ -79,7 +79,9 @@ trait DraftConceptController {
         tagsToFilterBy: Set[String],
         statusFilter: Set[String],
         userFilter: Seq[String],
-        shouldScroll: Boolean
+        shouldScroll: Boolean,
+        embedResource: Option[String],
+        embedId: Option[String]
     ) = {
       val settings = DraftSearchSettings(
         withIdIn = idList,
@@ -92,7 +94,9 @@ trait DraftConceptController {
         tagsToFilterBy = tagsToFilterBy,
         statusFilter = statusFilter,
         userFilter = userFilter,
-        shouldScroll = shouldScroll
+        shouldScroll = shouldScroll,
+        embedResource = embedResource,
+        embedId = embedId
       )
 
       val result = query match {
@@ -174,6 +178,8 @@ trait DraftConceptController {
         val statusesToFilterBy = paramAsListOfString(this.statusFilter.paramName)
         val usersToFilterBy = paramAsListOfString(this.userFilter.paramName)
         val shouldScroll = paramOrNone(this.scrollId.paramName).exists(InitialScrollContextKeywords.contains)
+        val embedResource = paramOrNone(this.embedResource.paramName)
+        val embedId = paramOrNone(this.embedId.paramName)
 
         search(
           query,
@@ -187,7 +193,9 @@ trait DraftConceptController {
           tagsToFilterBy.toSet,
           statusesToFilterBy.toSet,
           usersToFilterBy,
-          shouldScroll
+          shouldScroll,
+          embedResource,
+          embedId
         )
 
       }
@@ -273,6 +281,8 @@ trait DraftConceptController {
             val statusFilter = searchParams.status
             val userFilter = searchParams.users
             val shouldScroll = searchParams.scrollId.exists(InitialScrollContextKeywords.contains)
+            val embedResource = searchParams.embedResource
+            val embedId = searchParams.embedId
 
             search(
               query,
@@ -286,7 +296,9 @@ trait DraftConceptController {
               tagsToFilterBy,
               statusFilter,
               userFilter,
-              shouldScroll
+              shouldScroll,
+              embedResource,
+              embedId
             )
           case Failure(ex) => errorHandler(ex)
         }

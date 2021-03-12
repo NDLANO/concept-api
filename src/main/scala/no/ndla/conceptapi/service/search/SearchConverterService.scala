@@ -9,7 +9,7 @@ package no.ndla.conceptapi.service.search
 
 import com.sksamuel.elastic4s.http.search.SearchHit
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.conceptapi.model.api.ConceptSearchResult
+import no.ndla.conceptapi.model.api.{ConceptMetaImage, ConceptSearchResult}
 import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.model.domain.Language.getSupportedLanguages
 import no.ndla.conceptapi.model.domain.{Concept, Language, SearchResult}
@@ -20,6 +20,11 @@ import no.ndla.mapping.ISO639
 import org.joda.time.DateTime
 import org.json4s._
 import org.json4s.native.Serialization.read
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Element
+import org.jsoup.nodes.Entities.EscapeMode
+
+import scala.jdk.CollectionConverters._
 
 trait SearchConverterService {
   this: ConverterService =>
@@ -28,6 +33,79 @@ trait SearchConverterService {
   class SearchConverterService extends LazyLogging {
     implicit val formats: Formats = SearchableLanguageFormats.JSonFormats
 
+    private def parseHtml(html: String) = {
+      val document = Jsoup.parseBodyFragment(html)
+      document.outputSettings().escapeMode(EscapeMode.xhtml).prettyPrint(false)
+      document.body()
+    }
+
+    private[service] def getEmbedResources(html: String): List[String] = {
+      parseHtml(html)
+        .select("embed")
+        .asScala
+        .flatMap(getEmbedResources)
+        .toList
+    }
+
+    private def getEmbedResources(embed: Element): List[String] = {
+      val attributesToKeep = List(
+        "data-resource",
+      )
+
+      attributesToKeep.flatMap(attr =>
+        embed.attr(attr) match {
+          case "" => None
+          case a  => Some(a)
+      })
+    }
+
+    private[service] def getEmbedIds(html: String): List[String] = {
+      parseHtml(html)
+        .select("embed")
+        .asScala
+        .flatMap(getEmbedIds)
+        .toList
+    }
+
+    private def getEmbedIds(embed: Element): List[String] = {
+      val attributesToKeep = List(
+        "data-videoid",
+        "data-url",
+        "data-resource_id",
+        "data-content-id",
+      )
+
+      attributesToKeep.flatMap(attr =>
+        embed.attr(attr) match {
+          case "" => None
+          case a  => Some(a)
+      })
+    }
+
+    private def getEmbedResourcesToIndex(visualElement: Seq[domain.VisualElement]): SearchableLanguageList = {
+      val visualElementTuples = visualElement.map(v => v.language -> getEmbedResources(v.visualElement))
+      val attrsGroupedByLanguage = visualElementTuples.groupBy(_._1)
+
+      val languageValues = attrsGroupedByLanguage.map {
+        case (language, values) => LanguageValue(language, values.flatMap(_._2))
+      }
+
+      SearchableLanguageList(languageValues.toSeq)
+    }
+
+    private def getEmbedIdsToIndex(visualElement: Seq[domain.VisualElement],
+                                   metaImage: Seq[domain.ConceptMetaImage]): SearchableLanguageList = {
+      val visualElementTuples = visualElement.map(v => v.language -> getEmbedIds(v.visualElement))
+      val metaImageTuples = metaImage.map(m => m.language -> List(m.imageId))
+      val attrsGroupedByLanguage = (visualElementTuples ++ metaImageTuples).groupBy(_._1)
+
+      val languageValues = attrsGroupedByLanguage.map {
+        case (language, values) => LanguageValue(language, values.flatMap(_._2))
+      }
+
+      SearchableLanguageList(languageValues.toSeq)
+    }
+
     def asSearchableConcept(c: Concept): SearchableConcept = {
       val defaultTitle = c.title
         .sortBy(title => {
@@ -35,6 +113,8 @@ trait SearchConverterService {
           languagePriority.indexOf(title.language)
         })
         .lastOption
+      val embedResources = getEmbedResourcesToIndex(c.visualElement)
+      val embedIds = getEmbedIdsToIndex(c.visualElement, c.metaImage)
 
       SearchableConcept(
         id = c.id.get,
@@ -47,7 +127,9 @@ trait SearchConverterService {
         lastUpdated = new DateTime(c.updated),
         status = Status(c.status.current.toString, c.status.other.map(_.toString).toSeq),
         updatedBy = c.updatedBy,
-        license = c.copyright.flatMap(_.license)
+        license = c.copyright.flatMap(_.license),
+        embedResources = embedResources,
+        embedIds = embedIds
       )
     }
 

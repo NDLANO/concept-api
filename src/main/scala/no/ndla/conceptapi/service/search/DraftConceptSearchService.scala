@@ -102,18 +102,20 @@ trait DraftConceptSearchService {
     def matchingQuery(query: String, settings: DraftSearchSettings): Try[SearchResult[api.ConceptSummary]] = {
       val language = if (settings.searchLanguage == Language.AllLanguages) "*" else settings.searchLanguage
 
-      val titleSearch = simpleStringQuery(query).field(s"title.$language", 2)
-      val contentSearch = simpleStringQuery(query).field(s"content.$language", 1)
-      val tagSearch = simpleStringQuery(query).field(s"tags.$language", 1)
-
       val fullQuery = boolQuery()
         .must(
           boolQuery()
             .should(
-              titleSearch,
-              contentSearch,
-              tagSearch
-            ))
+              List(
+                simpleStringQuery(query).field(s"title.$language", 2),
+                simpleStringQuery(query).field(s"content.$language", 1),
+                simpleStringQuery(query).field(s"tags.$language", 1),
+                idsQuery(query)
+              ) ++
+                buildTermQueryForField(query, "embedResources", settings.searchLanguage, settings.fallback) ++
+                buildTermQueryForField(query, "embedIds", settings.searchLanguage, settings.fallback)
+            )
+        )
 
       executeSearch(fullQuery, settings)
     }
@@ -135,7 +137,35 @@ trait DraftConceptSearchService {
             (Some(existsQuery(s"title.$lang")), lang)
       }
 
-      val filters = List(idFilter, languageFilter, subjectFilter, tagFilter, statusFilter, userFilter)
+      val embedResourceFilter = settings.embedResource match {
+        case Some("") | None => None
+        case Some(q) =>
+          Some(
+            boolQuery()
+              .should(
+                buildTermQueryForField(q, "embedResources", settings.searchLanguage, settings.fallback)
+              ))
+      }
+
+      val embedIdFilter = settings.embedId match {
+        case Some("") | None => None
+        case Some(q) =>
+          Some(
+            boolQuery()
+              .should(
+                buildTermQueryForField(q, "embedIds", settings.searchLanguage, settings.fallback)
+              ))
+      }
+
+      val filters = List(idFilter,
+                         languageFilter,
+                         subjectFilter,
+                         tagFilter,
+                         statusFilter,
+                         userFilter,
+                         embedResourceFilter,
+                         embedIdFilter)
+
       val filteredSearch = queryBuilder.filter(filters.flatten)
 
       val (startAt, numResults) = getStartAtAndNumResults(settings.page, settings.pageSize)

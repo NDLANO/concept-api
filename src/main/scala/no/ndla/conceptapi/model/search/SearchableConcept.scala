@@ -21,5 +21,7 @@ case class SearchableConcept(
     lastUpdated: DateTime,
     status: Status,
     updatedBy: Seq[String],
-    license: Option[String]
+    license: Option[String],
+    embedResources: SearchableLanguageList,
+    embedIds: SearchableLanguageList
 )
