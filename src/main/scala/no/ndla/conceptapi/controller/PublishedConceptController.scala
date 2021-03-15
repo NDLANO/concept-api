@@ -155,7 +155,9 @@ trait PublishedConceptController {
             asQueryParam(scrollId),
             asQueryParam(subjects),
             asQueryParam(tagsToFilterBy),
-            asQueryParam(exactTitleMatch)
+            asQueryParam(exactTitleMatch),
+            asQueryParam(embedResource),
+            asQueryParam(embedId)
           )
           authorizations "oauth2"
           responseMessages response500)

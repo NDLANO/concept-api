@@ -158,7 +158,9 @@ trait DraftConceptController {
             asQueryParam(subjects),
             asQueryParam(tagsToFilterBy),
             asQueryParam(statusFilter),
-            asQueryParam(userFilter)
+            asQueryParam(userFilter),
+            asQueryParam(embedResource),
+            asQueryParam(embedId)
           )
           .authorizations("oauth2")
           .responseMessages(response500))
