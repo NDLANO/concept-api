@@ -669,6 +669,14 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     search.results.head.id should be(2)
   }
 
+  test("that search on embedId and embedResource only returns results matching both params") {
+    val Success(search) =
+      draftConceptSearchService.all(
+        searchSettings.copy(embedId = Some("test.image"), embedResource=(Some("image")), searchLanguage = Language.AllLanguages))
+
+    search.totalCount should be(0)
+  }
+
   def blockUntil(predicate: () => Boolean): Unit = {
     var backoff = 0
     var done = false
