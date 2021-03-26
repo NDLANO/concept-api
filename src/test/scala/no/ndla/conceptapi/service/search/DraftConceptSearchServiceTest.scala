@@ -672,7 +672,8 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
   test("that search on embedId and embedResource only returns results matching both params") {
     val Success(search) =
       draftConceptSearchService.all(
-        searchSettings.copy(embedId = Some("test.image"), embedResource=(Some("image")), searchLanguage = Language.AllLanguages))
+        searchSettings
+          .copy(embedId = Some("test.image"), embedResource = (Some("image")), searchLanguage = Language.AllLanguages))
 
     search.totalCount should be(0)
   }
