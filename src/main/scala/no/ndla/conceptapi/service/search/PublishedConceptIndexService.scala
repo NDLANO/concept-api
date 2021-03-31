@@ -54,7 +54,12 @@ trait PublishedConceptIndexService {
             keywordField("language")
           ),
           dateField("lastUpdated"),
-          keywordField("license")
+          keywordField("license"),
+          nestedField("embedResourcesAndIds").fields(
+            keywordField("resource"),
+            keywordField("id"),
+            keywordField("language")
+          )
         ) ++
           generateLanguageSupportedFieldList("title", keepRaw = true) ++
           generateLanguageSupportedFieldList("content") ++

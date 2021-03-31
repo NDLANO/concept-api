@@ -112,9 +112,9 @@ trait DraftConceptSearchService {
                 simpleStringQuery(query).field(s"content.$language", 1),
                 simpleStringQuery(query).field(s"tags.$language", 1),
                 idsQuery(query)
-              ) ++
-                buildTermQueryForField(query, "embedResources", settings.searchLanguage, settings.fallback) ++
-                buildTermQueryForField(query, "embedIds", settings.searchLanguage, settings.fallback)
+              )
+                ++ buildNestedLanguageFieldForEmbeds(Some(query), None, settings.searchLanguage, settings.fallback) ++
+                buildNestedLanguageFieldForEmbeds(None, Some(query), settings.searchLanguage, settings.fallback)
             )
         )
 
@@ -134,34 +134,13 @@ trait DraftConceptSearchService {
         case lang                             => (Some(existsQuery(s"title.$lang")), lang)
       }
 
-      val embedResourceFilter = settings.embedResource match {
-        case Some("") | None => None
-        case Some(q) =>
-          Some(
-            boolQuery()
-              .should(
-                buildTermQueryForField(q, "embedResources", settings.searchLanguage, settings.fallback)
-              ))
-      }
+      val embedResourceAndIdFilter = buildNestedLanguageFieldForEmbeds(settings.embedResource,
+                                                                       settings.embedId,
+                                                                       settings.searchLanguage,
+                                                                       settings.fallback)
 
-      val embedIdFilter = settings.embedId match {
-        case Some("") | None => None
-        case Some(q) =>
-          Some(
-            boolQuery()
-              .should(
-                buildTermQueryForField(q, "embedIds", settings.searchLanguage, settings.fallback)
-              ))
-      }
-
-      val filters = List(idFilter,
-                         languageFilter,
-                         subjectFilter,
-                         tagFilter,
-                         statusFilter,
-                         userFilter,
-                         embedResourceFilter,
-                         embedIdFilter)
+      val filters =
+        List(idFilter, languageFilter, subjectFilter, tagFilter, statusFilter, userFilter, embedResourceAndIdFilter)
 
       val filteredSearch = queryBuilder.filter(filters.flatten)
 

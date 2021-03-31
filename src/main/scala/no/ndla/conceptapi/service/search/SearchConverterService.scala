@@ -39,35 +39,19 @@ trait SearchConverterService {
       document.body()
     }
 
-    private[service] def getEmbedResources(html: String): List[String] = {
-      parseHtml(html)
-        .select("embed")
-        .asScala
-        .flatMap(getEmbedResources)
-        .toList
+    private def getEmbedValuesFromEmbed(embed: Element, language: String): EmbedValues = {
+      EmbedValues(resource = getEmbedResource(embed), id = getEmbedId(embed), language = language)
     }
 
-    private def getEmbedResources(embed: Element): List[String] = {
-      val attributesToKeep = List(
-        "data-resource",
-      )
+    private def getEmbedResource(embed: Element): Option[String] = {
 
-      attributesToKeep.flatMap(attr =>
-        embed.attr(attr) match {
-          case "" => None
-          case a  => Some(a)
-      })
+      embed.attr("data-resource") match {
+        case "" => None
+        case a  => Some(a)
+      }
     }
 
-    private[service] def getEmbedIds(html: String): List[String] = {
-      parseHtml(html)
-        .select("embed")
-        .asScala
-        .flatMap(getEmbedIds)
-        .toList
-    }
-
-    private def getEmbedIds(embed: Element): List[String] = {
+    private def getEmbedId(embed: Element): Option[String] = {
       val attributesToKeep = List(
         "data-videoid",
         "data-url",
@@ -75,35 +59,34 @@ trait SearchConverterService {
         "data-content-id",
       )
 
-      attributesToKeep.flatMap(attr =>
+      val attributes = attributesToKeep.map(attr =>
         embed.attr(attr) match {
           case "" => None
           case a  => Some(a)
       })
+
+      attributes.find(attr => attr.nonEmpty) match {
+        case None           => None
+        case Some(Some("")) => None
+        case Some(a)        => a
+      }
     }
 
-    private def getEmbedResourcesToIndex(visualElement: Seq[domain.VisualElement]): SearchableLanguageList = {
-      val visualElementTuples = visualElement.map(v => v.language -> getEmbedResources(v.visualElement))
-      val attrsGroupedByLanguage = visualElementTuples.groupBy(_._1)
-
-      val languageValues = attrsGroupedByLanguage.map {
-        case (language, values) => LanguageValue(language, values.flatMap(_._2))
-      }
-
-      SearchableLanguageList(languageValues.toSeq)
+    private[service] def getEmbedValues(html: String, language: String): List[EmbedValues] = {
+      parseHtml(html)
+        .select("embed")
+        .asScala
+        .flatMap(embed => Some(getEmbedValuesFromEmbed(embed, language)))
+        .toList
     }
 
-    private def getEmbedIdsToIndex(visualElement: Seq[domain.VisualElement],
-                                   metaImage: Seq[domain.ConceptMetaImage]): SearchableLanguageList = {
-      val visualElementTuples = visualElement.map(v => v.language -> getEmbedIds(v.visualElement))
-      val metaImageTuples = metaImage.map(m => m.language -> List(m.imageId))
-      val attrsGroupedByLanguage = (visualElementTuples ++ metaImageTuples).groupBy(_._1)
+    private def getEmbedResourcesAndIdsToIndex(visualElement: Seq[domain.VisualElement],
+                                               metaImage: Seq[domain.ConceptMetaImage]): List[EmbedValues] = {
+      val visualElementTuples = visualElement.map(v => getEmbedValues(v.visualElement, v.language)).flatten
+      val metaImageTuples =
+        metaImage.map(m => EmbedValues(id = Some(m.imageId), resource = Some("image"), language = m.language))
+      (visualElementTuples ++ metaImageTuples).toList
 
-      val languageValues = attrsGroupedByLanguage.map {
-        case (language, values) => LanguageValue(language, values.flatMap(_._2))
-      }
-
-      SearchableLanguageList(languageValues.toSeq)
     }
 
     def asSearchableConcept(c: Concept): SearchableConcept = {
@@ -113,8 +96,7 @@ trait SearchConverterService {
           languagePriority.indexOf(title.language)
         })
         .lastOption
-      val embedResources = getEmbedResourcesToIndex(c.visualElement)
-      val embedIds = getEmbedIdsToIndex(c.visualElement, c.metaImage)
+      val embedResourcesAndIds = getEmbedResourcesAndIdsToIndex(c.visualElement, c.metaImage)
 
       SearchableConcept(
         id = c.id.get,
@@ -128,8 +110,7 @@ trait SearchConverterService {
         status = Status(c.status.current.toString, c.status.other.map(_.toString).toSeq),
         updatedBy = c.updatedBy,
         license = c.copyright.flatMap(_.license),
-        embedResources = embedResources,
-        embedIds = embedIds
+        embedResourcesAndIds = embedResourcesAndIds
       )
     }
 
