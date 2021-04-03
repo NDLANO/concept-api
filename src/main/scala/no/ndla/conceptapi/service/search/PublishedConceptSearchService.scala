@@ -114,9 +114,9 @@ trait PublishedConceptSearchService {
                   simpleStringQuery(query).field(s"title.$language", 2),
                   simpleStringQuery(query).field(s"content.$language", 1),
                   idsQuery(query)
-                )
-                  ++ buildNestedLanguageFieldForEmbeds(Some(query), None, settings.searchLanguage, settings.fallback) ++
-                  buildNestedLanguageFieldForEmbeds(None, Some(query), settings.searchLanguage, settings.fallback)
+                ) ++
+                  buildNestedEmbedField(Some(query), None, settings.searchLanguage, settings.fallback) ++
+                  buildNestedEmbedField(None, Some(query), settings.searchLanguage, settings.fallback)
               )
           )
       }
@@ -138,10 +138,8 @@ trait PublishedConceptSearchService {
             (Some(existsQuery(s"title.$lang")), lang)
       }
 
-      val embedResourceAndIdFilter = buildNestedLanguageFieldForEmbeds(settings.embedResource,
-                                                                       settings.embedId,
-                                                                       settings.searchLanguage,
-                                                                       settings.fallback)
+      val embedResourceAndIdFilter =
+        buildNestedEmbedField(settings.embedResource, settings.embedId, settings.searchLanguage, settings.fallback)
 
       val filters = List(idFilter, languageFilter, subjectFilter, tagFilter, embedResourceAndIdFilter)
       val filteredSearch = queryBuilder.filter(filters.flatten)

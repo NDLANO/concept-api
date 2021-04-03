@@ -133,7 +133,10 @@ class PublishedConceptSearchServiceTest
     tags = Seq(ConceptTags(Seq("cageowl"), "en"), ConceptTags(Seq("burugle"), "nb")),
     updated = DateTime.now().minusDays(1).toDate,
     subjectIds = Set("urn:subject:2"),
-    visualElement = List(VisualElement("""<embed data-resource="image" data-url="test.url" /><embed data-resource="video" data-url="test.url2" />""", "nb"))
+    visualElement = List(
+      VisualElement(
+        """<embed data-resource="image" data-url="test.url" /><embed data-resource="video" data-url="test.url2" />""",
+        "nb"))
   )
 
   val concept11: Concept = TestData.sampleConcept.copy(id = Option(11),

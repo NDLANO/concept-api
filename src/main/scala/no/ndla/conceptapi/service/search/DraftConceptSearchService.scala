@@ -112,9 +112,9 @@ trait DraftConceptSearchService {
                 simpleStringQuery(query).field(s"content.$language", 1),
                 simpleStringQuery(query).field(s"tags.$language", 1),
                 idsQuery(query)
-              )
-                ++ buildNestedLanguageFieldForEmbeds(Some(query), None, settings.searchLanguage, settings.fallback) ++
-                buildNestedLanguageFieldForEmbeds(None, Some(query), settings.searchLanguage, settings.fallback)
+              ) ++
+                buildNestedEmbedField(Some(query), None, settings.searchLanguage, settings.fallback) ++
+                buildNestedEmbedField(None, Some(query), settings.searchLanguage, settings.fallback)
             )
         )
 
@@ -134,10 +134,8 @@ trait DraftConceptSearchService {
         case lang                             => (Some(existsQuery(s"title.$lang")), lang)
       }
 
-      val embedResourceAndIdFilter = buildNestedLanguageFieldForEmbeds(settings.embedResource,
-                                                                       settings.embedId,
-                                                                       settings.searchLanguage,
-                                                                       settings.fallback)
+      val embedResourceAndIdFilter =
+        buildNestedEmbedField(settings.embedResource, settings.embedId, settings.searchLanguage, settings.fallback)
 
       val filters =
         List(idFilter, languageFilter, subjectFilter, tagFilter, statusFilter, userFilter, embedResourceAndIdFilter)

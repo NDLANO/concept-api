@@ -39,10 +39,6 @@ trait SearchConverterService {
       document.body()
     }
 
-    private def getEmbedValuesFromEmbed(embed: Element, language: String): EmbedValues = {
-      EmbedValues(resource = getEmbedResource(embed), id = getEmbedId(embed), language = language)
-    }
-
     private def getEmbedResource(embed: Element): Option[String] = {
 
       embed.attr("data-resource") match {
@@ -65,11 +61,11 @@ trait SearchConverterService {
           case a  => Some(a)
       })
 
-      attributes.find(attr => attr.nonEmpty) match {
-        case None           => None
-        case Some(Some("")) => None
-        case Some(a)        => a
-      }
+      attributes.find(attr => attr.nonEmpty).get
+    }
+
+    private def getEmbedValuesFromEmbed(embed: Element, language: String): EmbedValues = {
+      EmbedValues(resource = getEmbedResource(embed), id = getEmbedId(embed), language = language)
     }
 
     private[service] def getEmbedValues(html: String, language: String): List[EmbedValues] = {
