@@ -23,4 +23,8 @@ case class SearchableConcept(
     updatedBy: Seq[String],
     license: Option[String],
     embedResourcesAndIds: List[EmbedValues],
+    // To be removed
+    embedResources: SearchableLanguageList,
+    // To be removed
+    embedIds: SearchableLanguageList
 )

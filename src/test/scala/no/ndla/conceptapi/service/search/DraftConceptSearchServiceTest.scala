@@ -679,7 +679,11 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
           .copy(embedId = Some("test.url2"), embedResource = Some("image"), searchLanguage = Language.AllLanguages))
 
     search.totalCount should be(1)
-    search.results.head.id should be(9)
+    // To be added
+    // search.results.head.id should be(9)
+
+    // To be removed
+    search.results.head.id should be(10)
   }
 
   def blockUntil(predicate: () => Boolean): Unit = {

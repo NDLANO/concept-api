@@ -66,7 +66,11 @@ trait DraftConceptIndexService {
         ) ++
           generateLanguageSupportedFieldList("title", keepRaw = true) ++
           generateLanguageSupportedFieldList("content") ++
-          generateLanguageSupportedFieldList("tags", keepRaw = true)
+          generateLanguageSupportedFieldList("tags", keepRaw = true) ++
+          // To be removed
+          generateLanguageSupportedFieldList("embedResources", keepRaw = true) ++
+          // To be removed
+          generateLanguageSupportedFieldList("embedIds", keepRaw = true)
       )
     }
 
