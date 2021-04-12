@@ -115,14 +115,8 @@ trait PublishedConceptSearchService {
                   simpleStringQuery(query).field(s"content.$language", 1),
                   idsQuery(query)
                 ) ++
-                  // To be removed
-                  buildTermQueryForField(query, "embedResources", settings.searchLanguage, settings.fallback) ++
-                  // To be removed
-                  buildTermQueryForField(query, "embedIds", settings.searchLanguage, settings.fallback)
-                // To be added
-                /*++
                   buildNestedEmbedField(Some(query), None, settings.searchLanguage, settings.fallback) ++
-                  buildNestedEmbedField(None, Some(query), settings.searchLanguage, settings.fallback)*/
+                  buildNestedEmbedField(None, Some(query), settings.searchLanguage, settings.fallback)
               )
           )
       }
@@ -144,43 +138,15 @@ trait PublishedConceptSearchService {
             (Some(existsQuery(s"title.$lang")), lang)
       }
 
-      // To be added
-      /* val embedResourceAndIdFilter =
-        buildNestedEmbedField(settings.embedResource, settings.embedId, settings.searchLanguage, settings.fallback)*/
-
-      // To be removed
-      val embedResourceFilter = settings.embedResource match {
-        case Some("") | None => None
-        case Some(q) =>
-          Some(
-            boolQuery()
-              .should(
-                buildTermQueryForField(q, "embedResources", settings.searchLanguage, settings.fallback)
-              ))
-      }
-
-      // To be removed
-      val embedIdFilter = settings.embedId match {
-        case Some("") | None => None
-        case Some(q) =>
-          Some(
-            boolQuery()
-              .should(
-                buildTermQueryForField(q, "embedIds", settings.searchLanguage, settings.fallback)
-              ))
-      }
+      val embedResourceAndIdFilter =
+        buildNestedEmbedField(settings.embedResource, settings.embedId, settings.searchLanguage, settings.fallback)
 
       val filters = List(
         idFilter,
         languageFilter,
         subjectFilter,
         tagFilter,
-        // To be added
-        // embedResourceAndIdFilter,
-        // To be removed
-        embedResourceFilter,
-        // To be removed
-        embedIdFilter
+        embedResourceAndIdFilter
       )
 
       val filteredSearch = queryBuilder.filter(filters.flatten)

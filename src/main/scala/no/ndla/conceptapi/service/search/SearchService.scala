@@ -205,18 +205,5 @@ trait SearchService {
         case t: Throwable => Failure(t)
       }
     }
-
-    def buildTermQueryForField(
-        query: String,
-        field: String,
-        language: String,
-        fallback: Boolean
-    ): Seq[TermQuery] = {
-      if (language == Language.AllLanguages || fallback) {
-        Language.languageAnalyzers.map(lang => termQuery(s"$field.${lang.lang}.raw", query))
-      } else {
-        Seq(termQuery(s"$field.$language.raw", query))
-      }
-    }
   }
 }
