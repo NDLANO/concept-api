@@ -39,6 +39,7 @@ trait SearchConverterService {
       document.body()
     }
 
+    // To be removed
     private[service] def getEmbedResources(html: String): List[String] = {
       parseHtml(html)
         .select("embed")
@@ -47,6 +48,7 @@ trait SearchConverterService {
         .toList
     }
 
+    // To be removed
     private def getEmbedResources(embed: Element): List[String] = {
       val attributesToKeep = List(
         "data-resource",
@@ -59,6 +61,7 @@ trait SearchConverterService {
       })
     }
 
+    // To be removed
     private[service] def getEmbedIds(html: String): List[String] = {
       parseHtml(html)
         .select("embed")
@@ -67,6 +70,7 @@ trait SearchConverterService {
         .toList
     }
 
+    // To be removed
     private def getEmbedIds(embed: Element): List[String] = {
       val attributesToKeep = List(
         "data-videoid",
@@ -82,6 +86,7 @@ trait SearchConverterService {
       })
     }
 
+    // To be removed
     private def getEmbedResourcesToIndex(visualElement: Seq[domain.VisualElement]): SearchableLanguageList = {
       val visualElementTuples = visualElement.map(v => v.language -> getEmbedResources(v.visualElement))
       val attrsGroupedByLanguage = visualElementTuples.groupBy(_._1)
@@ -92,7 +97,7 @@ trait SearchConverterService {
 
       SearchableLanguageList(languageValues.toSeq)
     }
-
+    // To be removed
     private def getEmbedIdsToIndex(visualElement: Seq[domain.VisualElement],
                                    metaImage: Seq[domain.ConceptMetaImage]): SearchableLanguageList = {
       val visualElementTuples = visualElement.map(v => v.language -> getEmbedIds(v.visualElement))
@@ -106,6 +111,52 @@ trait SearchConverterService {
       SearchableLanguageList(languageValues.toSeq)
     }
 
+    private def getEmbedResource(embed: Element): Option[String] = {
+
+      embed.attr("data-resource") match {
+        case "" => None
+        case a  => Some(a)
+      }
+    }
+
+    private def getEmbedId(embed: Element): Option[String] = {
+      val attributesToKeep = List(
+        "data-videoid",
+        "data-url",
+        "data-resource_id",
+        "data-content-id",
+      )
+
+      val attributes = attributesToKeep.map(attr =>
+        embed.attr(attr) match {
+          case "" => None
+          case a  => Some(a)
+      })
+
+      attributes.find(attr => attr.nonEmpty).getOrElse(None)
+    }
+
+    private def getEmbedValuesFromEmbed(embed: Element, language: String): EmbedValues = {
+      EmbedValues(resource = getEmbedResource(embed), id = getEmbedId(embed), language = language)
+    }
+
+    private[service] def getEmbedValues(html: String, language: String): List[EmbedValues] = {
+      parseHtml(html)
+        .select("embed")
+        .asScala
+        .flatMap(embed => Some(getEmbedValuesFromEmbed(embed, language)))
+        .toList
+    }
+
+    private def getEmbedResourcesAndIdsToIndex(visualElement: Seq[domain.VisualElement],
+                                               metaImage: Seq[domain.ConceptMetaImage]): List[EmbedValues] = {
+      val visualElementTuples = visualElement.map(v => getEmbedValues(v.visualElement, v.language)).flatten
+      val metaImageTuples =
+        metaImage.map(m => EmbedValues(id = Some(m.imageId), resource = Some("image"), language = m.language))
+      (visualElementTuples ++ metaImageTuples).toList
+
+    }
+
     def asSearchableConcept(c: Concept): SearchableConcept = {
       val defaultTitle = c.title
         .sortBy(title => {
@@ -113,7 +164,11 @@ trait SearchConverterService {
           languagePriority.indexOf(title.language)
         })
         .lastOption
+      val embedResourcesAndIds = getEmbedResourcesAndIdsToIndex(c.visualElement, c.metaImage)
+
+      // To be removed
       val embedResources = getEmbedResourcesToIndex(c.visualElement)
+      // To be removed
       val embedIds = getEmbedIdsToIndex(c.visualElement, c.metaImage)
 
       SearchableConcept(
@@ -128,7 +183,10 @@ trait SearchConverterService {
         status = Status(c.status.current.toString, c.status.other.map(_.toString).toSeq),
         updatedBy = c.updatedBy,
         license = c.copyright.flatMap(_.license),
+        embedResourcesAndIds = embedResourcesAndIds,
+        // To be removed
         embedResources = embedResources,
+        // To be removed
         embedIds = embedIds
       )
     }

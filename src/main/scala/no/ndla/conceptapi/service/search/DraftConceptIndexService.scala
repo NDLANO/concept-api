@@ -7,7 +7,7 @@
 
 package no.ndla.conceptapi.service.search
 
-import com.sksamuel.elastic4s.http.ElasticDsl._
+import com.sksamuel.elastic4s.http.ElasticDsl.{nestedField, _}
 import com.sksamuel.elastic4s.indexes.IndexRequest
 import com.sksamuel.elastic4s.mappings.MappingDefinition
 import com.typesafe.scalalogging.LazyLogging
@@ -57,12 +57,19 @@ trait DraftConceptIndexService {
           keywordField("status.current"),
           keywordField("status.other"),
           keywordField("updatedBy"),
-          keywordField("license")
+          keywordField("license"),
+          nestedField("embedResourcesAndIds").fields(
+            keywordField("resource"),
+            keywordField("id"),
+            keywordField("language")
+          )
         ) ++
           generateLanguageSupportedFieldList("title", keepRaw = true) ++
           generateLanguageSupportedFieldList("content") ++
           generateLanguageSupportedFieldList("tags", keepRaw = true) ++
+          // To be removed
           generateLanguageSupportedFieldList("embedResources", keepRaw = true) ++
+          // To be removed
           generateLanguageSupportedFieldList("embedIds", keepRaw = true)
       )
     }
