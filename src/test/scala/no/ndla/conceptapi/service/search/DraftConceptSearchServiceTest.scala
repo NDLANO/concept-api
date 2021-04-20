@@ -141,7 +141,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
     updatedBy = Seq("Test1"),
     visualElement = List(
       VisualElement(
-        """<embed data-resource="image" data-url="test.url" /><embed data-resource="video" data-url="test.url2" />""",
+        """<embed data-resource="image" data-url="test.url" /><embed data-resource="video" data-url="test.url2" data-resource_id="test.id2" />""",
         "nb"))
   )
 
@@ -680,6 +680,23 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
 
     search.totalCount should be(1)
     search.results.head.id should be(9)
+  }
+
+  test("That search on embed id supports embed with multiple id attributes") {
+    val Success(search1) =
+      draftConceptSearchService.all(
+        searchSettings.copy(embedId = Some("test.url2"))
+      )
+    val Success(search2) =
+      draftConceptSearchService.all(
+        searchSettings.copy(embedId = Some("test.id2"))
+      )
+
+    search1.totalCount should be(1)
+    search1.results.head.id should be(10)
+    search2.totalCount should be(1)
+    search2.results.head.id should be(10)
+
   }
 
   def blockUntil(predicate: () => Boolean): Unit = {
