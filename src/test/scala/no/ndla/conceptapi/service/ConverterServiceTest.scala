@@ -64,23 +64,6 @@ class ConverterServiceTest extends UnitSuite with TestEnvironment {
     )
   }
 
-  test("toDomainConcept with empty title uses the existing title") {
-    val updated = new Date()
-    when(clock.now()).thenReturn(updated)
-
-    val updateWith =
-      UpdatedConcept("nb", Some(""), None, Right(None), None, None, None, None, Some(Seq(42L)), None, None)
-    service.toDomainConcept(TestData.domainConcept, updateWith, userInfo) should be(
-      TestData.domainConcept.copy(
-        title = Seq(
-          domain.ConceptTitle("Tittel", "nb"),
-          domain.ConceptTitle("Tittelur", "nn")
-        ),
-        updated = updated
-      )
-    )
-  }
-
   test("toDomainConcept updates content in concept correctly") {
     val updated = new Date()
     when(clock.now()).thenReturn(updated)

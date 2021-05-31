@@ -177,7 +177,6 @@ trait ConverterService {
                         updateConcept: api.UpdatedConcept,
                         userInfo: UserInfo): domain.Concept = {
       val domainTitle = updateConcept.title
-        .filter(t => t != "")
         .map(t => domain.ConceptTitle(t, updateConcept.language))
         .toSeq
       val domainContent = updateConcept.content

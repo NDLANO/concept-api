@@ -39,8 +39,8 @@ trait ContentValidator {
     def validateConcept(concept: Concept, allowUnknownLanguage: Boolean): Try[Concept] = {
       val validationErrors =
         concept.content.flatMap(c => validateConceptContent(c, allowUnknownLanguage)) ++
-          concept.title.flatMap(t => validateTitle(t.title, t.language, allowUnknownLanguage)) ++
-          concept.visualElement.flatMap(ve => validateVisualElement(ve, allowUnknownLanguage))
+          concept.visualElement.flatMap(ve => validateVisualElement(ve, allowUnknownLanguage)) ++
+          validateTitles(concept.title, allowUnknownLanguage)
 
       if (validationErrors.isEmpty) {
         Success(concept)
@@ -60,6 +60,11 @@ trait ContentValidator {
                                        allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
       NoHtmlValidator.validate("content", content.content).toList ++
         validateLanguage("language", content.language, allowUnknownLanguage)
+    }
+
+    private def validateTitles(titles: Seq[ConceptTitle], allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
+      titles.flatMap(t => validateTitle(t.title, t.language, allowUnknownLanguage)) ++
+        validateExistingLanguageField("title", titles)
     }
 
     private def validateTitle(title: String,
@@ -105,6 +110,17 @@ trait ContentValidator {
         case false =>
           Some(ValidationMessage(fieldPath, s"Language '$languageCode' is not a supported value."))
       }
+    }
+
+    private def validateExistingLanguageField(fieldPath: String,
+                                              fields: Seq[LanguageField]): Option[ValidationMessage] = {
+      if (fields.size > 0) None
+      else
+        Some(
+          ValidationMessage(
+            fieldPath,
+            s"The field does not have any entries, whereas at least one is required."
+          ))
     }
 
     private def validateLength(fieldPath: String, content: String, maxLength: Int): Option[ValidationMessage] = {
