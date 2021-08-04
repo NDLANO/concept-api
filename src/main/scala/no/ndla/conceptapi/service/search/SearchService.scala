@@ -17,7 +17,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.elasticsearch.ElasticsearchException
 import org.elasticsearch.index.IndexNotFoundException
 import no.ndla.conceptapi.model.domain.{Language, NdlaSearchException, SearchResult, Sort}
-import no.ndla.conceptapi.ConceptApiProperties.{ElasticSearchScrollKeepAlive, MaxPageSize}
+import no.ndla.conceptapi.ConceptApiProperties.{DefaultLanguage, ElasticSearchScrollKeepAlive, MaxPageSize}
 import no.ndla.conceptapi.integration.Elastic4sClient
 import no.ndla.mapping.ISO639
 
@@ -133,7 +133,7 @@ trait SearchService {
 
     def getSortDefinition(sort: Sort.Value, language: String): FieldSort = {
       val sortLanguage = language match {
-        case Language.NoLanguage => Language.DefaultLanguage
+        case Language.NoLanguage => DefaultLanguage
         case _                   => language
       }
 

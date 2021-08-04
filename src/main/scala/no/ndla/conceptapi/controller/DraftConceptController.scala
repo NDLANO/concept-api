@@ -9,7 +9,7 @@ package no.ndla.conceptapi.controller
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.ConceptApiProperties
-import no.ndla.conceptapi.ConceptApiProperties.InitialScrollContextKeywords
+import no.ndla.conceptapi.ConceptApiProperties.{DefaultLanguage, InitialScrollContextKeywords}
 import no.ndla.conceptapi.auth.User
 import no.ndla.conceptapi.model.api.{
   Concept,
@@ -268,7 +268,7 @@ trait DraftConceptController {
       val scrollId = body.map(_.scrollId).getOrElse(None)
       val lang = body.map(_.language).toOption.flatten
 
-      scrollSearchOr(scrollId, lang.getOrElse(Language.DefaultLanguage)) {
+      scrollSearchOr(scrollId, lang.getOrElse(DefaultLanguage)) {
         body match {
           case Success(searchParams) =>
             val query = searchParams.query

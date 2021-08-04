@@ -27,14 +27,18 @@ object ConceptApiProperties extends LazyLogging {
   val ConceptRoleWithWriteAccess = "concept:write"
 
   val ApplicationPort = propOrElse("APPLICATION_PORT", "80").toInt
-  val ContactEmail = "support+api@ndla.no"
+  val DefaultLanguage: String = propOrElse("DEFAULT_LANGUAGE", "nb")
+  val ContactName: String = propOrElse("CONTACT_NAME", "NDLA")
+  val ContactUrl: String = propOrElse("CONTACT_URL", "ndla.no")
+  val ContactEmail: String = propOrElse("CONTACT_EMAIL", "support+api@ndla.no")
+  val TermsUrl: String = propOrElse("TERMS_URL", "https://om.ndla.no/tos")
 
-  def MetaUserName = prop(PropertyKeys.MetaUserNameKey)
-  def MetaPassword = prop(PropertyKeys.MetaPasswordKey)
-  def MetaResource = prop(PropertyKeys.MetaResourceKey)
-  def MetaServer = prop(PropertyKeys.MetaServerKey)
-  def MetaPort = prop(PropertyKeys.MetaPortKey).toInt
-  def MetaSchema = prop(PropertyKeys.MetaSchemaKey)
+  def MetaUserName: String = prop(PropertyKeys.MetaUserNameKey)
+  def MetaPassword: String = prop(PropertyKeys.MetaPasswordKey)
+  def MetaResource: String = prop(PropertyKeys.MetaResourceKey)
+  def MetaServer: String = prop(PropertyKeys.MetaServerKey)
+  def MetaPort: Int = prop(PropertyKeys.MetaPortKey).toInt
+  def MetaSchema: String = prop(PropertyKeys.MetaSchemaKey)
   val MetaMaxConnections = 10
 
   val resourceHtmlEmbedTag = "embed"
@@ -46,8 +50,6 @@ object ConceptApiProperties extends LazyLogging {
 
   val SearchApiHost: String = propOrElse("SEARCH_API_HOST", "search-api.ndla-local")
   val SearchServer: String = propOrElse("SEARCH_SERVER", "http://search-concept-api.ndla-local")
-  val SearchRegion: String = propOrElse("SEARCH_REGION", "eu-central-1")
-
   val RunWithSignedSearchRequests: Boolean = propOrElse("RUN_WITH_SIGNED_SEARCH_REQUESTS", "true").toBoolean
 
   val DraftConceptSearchIndex: String = propOrElse("CONCEPT_SEARCH_INDEX_NAME", "concepts")
@@ -63,7 +65,7 @@ object ConceptApiProperties extends LazyLogging {
   val CorrelationIdKey = "correlationID"
   val CorrelationIdHeader = "X-Correlation-ID"
 
-  lazy val Domain = Domains.get(Environment)
+  lazy val Domain: String = propOrElse("BACKEND_API_DOMAIN", Domains.get(Environment))
 
   lazy val H5PAddress = propOrElse(
     "NDLA_H5P_ADDRESS",
