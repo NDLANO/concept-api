@@ -7,7 +7,7 @@
 
 package no.ndla.conceptapi.service.search
 
-import no.ndla.conceptapi.ConceptApiProperties.DefaultPageSize
+import no.ndla.conceptapi.ConceptApiProperties.{DefaultLanguage, DefaultPageSize}
 import no.ndla.conceptapi.{TestEnvironment, _}
 import no.ndla.conceptapi.integration.Elastic4sClientFactory
 import no.ndla.conceptapi.model.api.SubjectTags
@@ -151,7 +151,7 @@ class DraftConceptSearchServiceTest extends IntegrationSuite(EnableElasticsearch
 
   val searchSettings = DraftSearchSettings(
     withIdIn = List.empty,
-    searchLanguage = Language.DefaultLanguage,
+    searchLanguage = DefaultLanguage,
     page = 1,
     pageSize = 10,
     sort = Sort.ByIdAsc,
