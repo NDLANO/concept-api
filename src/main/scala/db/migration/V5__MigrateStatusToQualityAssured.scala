@@ -37,7 +37,6 @@ class V5__MigrateStatusToQualityAssured extends BaseJavaMigration {
     sql"select count(*) from conceptdata where document is not NULL"
       .map(rs => rs.long("count"))
       .single()
-      .apply()
   }
 
   def allConcepts(offset: Long)(implicit session: DBSession): Seq[(Long, String)] = {
@@ -46,7 +45,6 @@ class V5__MigrateStatusToQualityAssured extends BaseJavaMigration {
         (rs.long("id"), rs.string("document"))
       })
       .list()
-      .apply()
   }
 
   def updateConcept(document: String, id: Long)(implicit session: DBSession): Int = {
@@ -56,7 +54,6 @@ class V5__MigrateStatusToQualityAssured extends BaseJavaMigration {
 
     sql"update conceptdata set document = $dataObject where id = $id"
       .update()
-      .apply()
   }
 
   def renameStatus(status: String): String = {
