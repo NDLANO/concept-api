@@ -17,6 +17,7 @@ env:
   PACT_BROKER_PASSWORD: ${{ secrets.PACT_BROKER_PASSWORD }}
   PACT_BROKER_URL: ${{ secrets.PACT_BROKER_URL }}
   PACT_BROKER_USERNAME: ${{ secrets.PACT_BROKER_USERNAME }}
+  KNOWIT_EMAIL: ${{ secrets.KNOWIT_EMAIL }}
 jobs:
   generate_typescript:
     name: "Generate typescript types"
@@ -60,7 +61,7 @@ jobs:
       - name: "Commit typescript changes"
         continue-on-error: true
         run: |
-          git config user.email "ndla@knowit.no"
+          git config user.email "$KNOWIT_EMAIL"
           git config user.name "github-actions"
 
           git add typescript/index.ts

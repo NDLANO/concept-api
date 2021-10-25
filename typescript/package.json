@@ -17,10 +17,11 @@
         "lib",
         "src",
         "es",
-        "types"
+        "types",
+        "build"
     ],
     "devDependencies": {
         "typescript": "^4.4.3"
     },
-    "version": "0.0.1"
+    "version": "0.0.3"
 }
