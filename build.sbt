@@ -79,6 +79,24 @@ lazy val concept_api = (project in file("."))
       "vc.inreach.aws" % "aws-signing-request-interceptor" % "0.0.22"
     ) ++ vulnerabilityOverrides
   )
+  .enablePlugins(ScalaTsiPlugin)
+  .settings(
+    // The classes that you want to generate typescript interfaces for
+    typescriptGenerationImports := Seq("no.ndla.conceptapi.model.api._", "no.ndla.conceptapi.model.api.TSTypes._"),
+    typescriptExports := Seq(
+      "Concept",
+      "ConceptSearchParams",
+      "ConceptSearchResult",
+      "ConceptSummary",
+      "DraftConceptSearchParams",
+      "NewConcept",
+      "SubjectTags",
+      "TagsSearchResult",
+      "UpdatedConcept",
+      "ValidationError",
+    ),
+    typescriptOutputFile := baseDirectory.value / "typescript" / "index.ts",
+  )
   .enablePlugins(DockerPlugin)
   .enablePlugins(JettyPlugin)
 
