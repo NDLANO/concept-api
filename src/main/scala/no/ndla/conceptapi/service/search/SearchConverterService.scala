@@ -9,11 +9,10 @@ package no.ndla.conceptapi.service.search
 
 import com.sksamuel.elastic4s.http.search.SearchHit
 import com.typesafe.scalalogging.LazyLogging
-import no.ndla.conceptapi.model.api.{ConceptMetaImage, ConceptSearchResult}
+import no.ndla.conceptapi.model.api.{ConceptSearchResult, SubjectTags}
 import no.ndla.conceptapi.model.{api, domain}
 import no.ndla.conceptapi.model.domain.Language.getSupportedLanguages
 import no.ndla.conceptapi.model.domain.{Concept, Language, SearchResult}
-import no.ndla.conceptapi.model.api
 import no.ndla.conceptapi.model.search._
 import no.ndla.conceptapi.service.ConverterService
 import no.ndla.mapping.ISO639
@@ -70,31 +69,6 @@ trait SearchConverterService {
         .toList
     }
 
-    // To be removed
-    private def getEmbedResourcesToIndex(visualElement: Seq[domain.VisualElement]): SearchableLanguageList = {
-      val visualElementTuples = visualElement.map(v => v.language -> getEmbedResources(v.visualElement))
-      val attrsGroupedByLanguage = visualElementTuples.groupBy(_._1)
-
-      val languageValues = attrsGroupedByLanguage.map {
-        case (language, values) => LanguageValue(language, values.flatMap(_._2))
-      }
-
-      SearchableLanguageList(languageValues.toSeq)
-    }
-    // To be removed
-    private def getEmbedIdsToIndex(visualElement: Seq[domain.VisualElement],
-                                   metaImage: Seq[domain.ConceptMetaImage]): SearchableLanguageList = {
-      val visualElementTuples = visualElement.map(v => v.language -> getEmbedIds(v.visualElement))
-      val metaImageTuples = metaImage.map(m => m.language -> List(m.imageId))
-      val attrsGroupedByLanguage = (visualElementTuples ++ metaImageTuples).groupBy(_._1)
-
-      val languageValues = attrsGroupedByLanguage.map {
-        case (language, values) => LanguageValue(language, values.flatMap(_._2))
-      }
-
-      SearchableLanguageList(languageValues.toSeq)
-    }
-
     private def getEmbedResource(embed: Element): Option[String] = {
 
       embed.attr("data-resource") match {
@@ -133,7 +107,7 @@ trait SearchConverterService {
 
     private def getEmbedResourcesAndIdsToIndex(visualElement: Seq[domain.VisualElement],
                                                metaImage: Seq[domain.ConceptMetaImage]): List[EmbedValues] = {
-      val visualElementTuples = visualElement.map(v => getEmbedValues(v.visualElement, v.language)).flatten
+      val visualElementTuples = visualElement.flatMap(v => getEmbedValues(v.visualElement, v.language))
       val metaImageTuples =
         metaImage.map(m => EmbedValues(id = List(m.imageId), resource = Some("image"), language = m.language))
       (visualElementTuples ++ metaImageTuples).toList
@@ -143,16 +117,11 @@ trait SearchConverterService {
     def asSearchableConcept(c: Concept): SearchableConcept = {
       val defaultTitle = c.title
         .sortBy(title => {
-          val languagePriority = Language.languageAnalyzers.map(la => la.lang).reverse
+          val languagePriority = Language.languageAnalyzers.map(la => la.languageTag.toString()).reverse
           languagePriority.indexOf(title.language)
         })
         .lastOption
       val embedResourcesAndIds = getEmbedResourcesAndIdsToIndex(c.visualElement, c.metaImage)
-
-      // To be removed
-      val embedResources = getEmbedResourcesToIndex(c.visualElement)
-      // To be removed
-      val embedIds = getEmbedIdsToIndex(c.visualElement, c.metaImage)
 
       SearchableConcept(
         id = c.id.get,
@@ -166,11 +135,7 @@ trait SearchConverterService {
         status = Status(c.status.current.toString, c.status.other.map(_.toString).toSeq),
         updatedBy = c.updatedBy,
         license = c.copyright.flatMap(_.license),
-        embedResourcesAndIds = embedResourcesAndIds,
-        // To be removed
-        embedResources = embedResources,
-        // To be removed
-        embedIds = embedIds
+        embedResourcesAndIds = embedResourcesAndIds
       )
     }
 
@@ -186,15 +151,15 @@ trait SearchConverterService {
       val title = Language
         .findByLanguageOrBestEffort(titles, language)
         .map(converterService.toApiConceptTitle)
-        .getOrElse(api.ConceptTitle("", Language.UnknownLanguage))
+        .getOrElse(api.ConceptTitle("", Language.UnknownLanguage.toString()))
       val concept = Language
         .findByLanguageOrBestEffort(contents, language)
         .map(converterService.toApiConceptContent)
-        .getOrElse(api.ConceptContent("", Language.UnknownLanguage))
+        .getOrElse(api.ConceptContent("", Language.UnknownLanguage.toString()))
       val metaImage = Language
         .findByLanguageOrBestEffort(searchableConcept.metaImage, language)
         .map(converterService.toApiMetaImage)
-        .getOrElse(api.ConceptMetaImage("", "", Language.UnknownLanguage))
+        .getOrElse(api.ConceptMetaImage("", "", Language.UnknownLanguage.toString()))
       val tag = Language.findByLanguageOrBestEffort(tags, language).map(converterService.toApiTags)
       val subjectIds = Option(searchableConcept.subjectIds.toSet).filter(_.nonEmpty)
 
@@ -213,14 +178,13 @@ trait SearchConverterService {
       )
     }
 
-    def groupSubjectTagsByLanguage(subjectId: String, tags: List[api.ConceptTags]) =
+    def groupSubjectTagsByLanguage(subjectId: String, tags: List[api.ConceptTags]): List[SubjectTags] =
       tags
         .groupBy(_.language)
         .map {
-          case (lang, conceptTags) => {
+          case (lang, conceptTags) =>
             val tagsForLang = conceptTags.flatMap(_.tags).distinct
             api.SubjectTags(subjectId, tagsForLang, lang)
-          }
         }
         .toList
 

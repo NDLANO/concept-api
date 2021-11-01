@@ -9,7 +9,8 @@ package no.ndla.conceptapi.service.search
 
 import com.sksamuel.elastic4s.http.ElasticDsl.{nestedField, _}
 import com.sksamuel.elastic4s.indexes.IndexRequest
-import com.sksamuel.elastic4s.mappings.MappingDefinition
+import com.sksamuel.elastic4s.mappings.{FieldDefinition, MappingDefinition}
+import com.sksamuel.elastic4s.mappings.dynamictemplate.DynamicTemplateRequest
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.conceptapi.ConceptApiProperties
 import no.ndla.conceptapi.model.api.ConceptMissingIdException
@@ -43,35 +44,31 @@ trait DraftConceptIndexService {
     }
 
     def getMapping: MappingDefinition = {
-      mapping(documentType).fields(
-        List(
-          intField("id"),
-          keywordField("defaultTitle").normalizer("lower"),
-          keywordField("subjectIds"),
-          nestedField("metaImage").fields(
-            keywordField("imageId"),
-            keywordField("altText"),
-            keywordField("language")
-          ),
-          dateField("lastUpdated"),
-          keywordField("status.current"),
-          keywordField("status.other"),
-          keywordField("updatedBy"),
-          keywordField("license"),
-          nestedField("embedResourcesAndIds").fields(
-            keywordField("resource"),
-            keywordField("id"),
-            keywordField("language")
-          )
-        ) ++
-          generateLanguageSupportedFieldList("title", keepRaw = true) ++
-          generateLanguageSupportedFieldList("content") ++
-          generateLanguageSupportedFieldList("tags", keepRaw = true) ++
-          // To be removed
-          generateLanguageSupportedFieldList("embedResources", keepRaw = true) ++
-          // To be removed
-          generateLanguageSupportedFieldList("embedIds", keepRaw = true)
+      val fields: Seq[FieldDefinition] = List(
+        intField("id"),
+        keywordField("defaultTitle").normalizer("lower"),
+        keywordField("subjectIds"),
+        nestedField("metaImage").fields(
+          keywordField("imageId"),
+          keywordField("altText"),
+          keywordField("language")
+        ),
+        dateField("lastUpdated"),
+        keywordField("status.current"),
+        keywordField("status.other"),
+        keywordField("updatedBy"),
+        keywordField("license"),
+        nestedField("embedResourcesAndIds").fields(
+          keywordField("resource"),
+          keywordField("id"),
+          keywordField("language")
+        )
       )
+      val dynamics: Seq[DynamicTemplateRequest] = generateLanguageSupportedDynamicTemplates("title", keepRaw = true) ++
+        generateLanguageSupportedDynamicTemplates("content") ++
+        generateLanguageSupportedDynamicTemplates("tags", keepRaw = true)
+
+      mapping(documentType).fields(fields).dynamicTemplates(dynamics)
     }
 
   }

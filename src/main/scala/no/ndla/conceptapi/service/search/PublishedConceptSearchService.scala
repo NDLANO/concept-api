@@ -101,7 +101,7 @@ trait PublishedConceptSearchService {
 
     def matchingQuery(query: String, settings: SearchSettings): Try[SearchResult[api.ConceptSummary]] = {
       val language =
-        if (settings.searchLanguage == Language.AllLanguages || settings.fallback) "*" else settings.searchLanguage
+        if (settings.fallback) "*" else settings.searchLanguage
 
       val fullQuery = settings.exactTitleMatch match {
         case true =>
@@ -129,7 +129,7 @@ trait PublishedConceptSearchService {
       val tagFilter = languageOrFilter(settings.tagsToFilterBy, "tags", settings.searchLanguage, settings.fallback)
 
       val (languageFilter, searchLanguage) = settings.searchLanguage match {
-        case "" | Language.AllLanguages | "*" =>
+        case "" | Language.AllLanguages =>
           (None, "*")
         case lang =>
           if (settings.fallback)
@@ -178,7 +178,7 @@ trait PublishedConceptSearchService {
                 response.result.totalHits,
                 Some(settings.page),
                 numResults,
-                if (searchLanguage == "*") Language.AllLanguages else searchLanguage,
+                searchLanguage,
                 getHits(response.result, settings.searchLanguage),
                 response.result.scrollId
               ))

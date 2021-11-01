@@ -76,7 +76,7 @@ trait WriteService {
     def newConcept(newConcept: api.NewConcept, userInfo: UserInfo): Try[api.Concept] = {
       for {
         concept <- converterService.toDomainConcept(newConcept, userInfo)
-        _ <- contentValidator.validateConcept(concept, allowUnknownLanguage = false)
+        _ <- contentValidator.validateConcept(concept)
         persistedConcept <- Try(draftConceptRepository.insert(concept))
         _ <- draftConceptIndexService.indexDocument(persistedConcept)
         apiC <- converterService.toApiConcept(persistedConcept, newConcept.language, fallback = true)
@@ -119,7 +119,7 @@ trait WriteService {
 
     private def updateConcept(toUpdate: domain.Concept): Try[domain.Concept] = {
       for {
-        _ <- contentValidator.validateConcept(toUpdate, allowUnknownLanguage = true)
+        _ <- contentValidator.validateConcept(toUpdate)
         domainConcept <- draftConceptRepository.update(toUpdate)
         _ <- draftConceptIndexService.indexDocument(domainConcept)
       } yield domainConcept

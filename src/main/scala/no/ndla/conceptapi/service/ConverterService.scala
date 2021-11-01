@@ -31,17 +31,17 @@ trait ConverterService {
   class ConverterService extends LazyLogging {
 
     def toApiConcept(concept: domain.Concept, language: String, fallback: Boolean): Try[api.Concept] = {
-      val isLanguageNeutral = concept.supportedLanguages.contains(UnknownLanguage) && concept.supportedLanguages.size == 1
+      val isLanguageNeutral = concept.supportedLanguages.contains(UnknownLanguage.toString) && concept.supportedLanguages.size == 1
       if (concept.supportedLanguages.contains(language) || fallback || isLanguageNeutral || language == AllLanguages) {
         val title = findByLanguageOrBestEffort(concept.title, language)
           .map(toApiConceptTitle)
-          .getOrElse(api.ConceptTitle("", UnknownLanguage))
+          .getOrElse(api.ConceptTitle("", UnknownLanguage.toString))
         val content = findByLanguageOrBestEffort(concept.content, language)
           .map(toApiConceptContent)
-          .getOrElse(api.ConceptContent("", UnknownLanguage))
+          .getOrElse(api.ConceptContent("", UnknownLanguage.toString))
         val metaImage = findByLanguageOrBestEffort(concept.metaImage, language)
           .map(toApiMetaImage)
-          .getOrElse(api.ConceptMetaImage("", "", UnknownLanguage))
+          .getOrElse(api.ConceptMetaImage("", "", UnknownLanguage.toString))
 
         val tags = findByLanguageOrBestEffort(concept.tags, language).map(toApiTags)
 

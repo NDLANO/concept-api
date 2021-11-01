@@ -7,8 +7,6 @@
 
 package no.ndla.conceptapi.service.search
 
-import java.util.concurrent.Executors
-
 import cats.implicits._
 import com.sksamuel.elastic4s.http.ElasticDsl._
 import com.sksamuel.elastic4s.searches.queries.BoolQuery
@@ -20,11 +18,11 @@ import no.ndla.conceptapi.model.api.{OperationNotAllowedException, ResultWindowT
 import no.ndla.conceptapi.model.domain.{Language, SearchResult}
 import no.ndla.conceptapi.model.search.DraftSearchSettings
 import no.ndla.conceptapi.service.ConverterService
-import no.ndla.mapping.ISO639
 
+import java.util.concurrent.Executors
 import scala.annotation.tailrec
 import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor, ExecutionContextExecutorService, Future}
+import scala.concurrent._
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
@@ -129,9 +127,9 @@ trait DraftConceptSearchService {
       val userFilter = orFilter(settings.userFilter, "updatedBy")
 
       val (languageFilter, searchLanguage) = settings.searchLanguage match {
-        case "" | Language.AllLanguages | "*" => (None, "*")
-        case lang if settings.fallback        => (None, "*")
-        case lang                             => (Some(existsQuery(s"title.$lang")), lang)
+        case "" | Language.AllLanguages => (None, "*")
+        case _ if settings.fallback     => (None, "*")
+        case lang                       => (Some(existsQuery(s"title.$lang")), lang)
       }
 
       val embedResourceAndIdFilter =
@@ -177,7 +175,7 @@ trait DraftConceptSearchService {
                 response.result.totalHits,
                 Some(settings.page),
                 numResults,
-                if (searchLanguage == "*") Language.AllLanguages else searchLanguage,
+                searchLanguage,
                 getHits(response.result, settings.searchLanguage),
                 response.result.scrollId
               ))

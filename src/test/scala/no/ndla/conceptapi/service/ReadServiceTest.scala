@@ -38,7 +38,7 @@ class ReadServiceTest extends UnitSuite with TestEnvironment {
     val result_nn = service.allTagsFromConcepts("nn", fallback = false)
     val result_en = service.allTagsFromConcepts("en", fallback = false)
     val result_zh = service.allTagsFromConcepts("zh", fallback = false)
-    val result_all = service.allTagsFromConcepts("all", fallback = false)
+    val result_all = service.allTagsFromConcepts("*", fallback = false)
 
     result_nb should equal(List("konge", "bror", "lol", "meme"))
     result_nn should equal(List("konge", "brur", "lel", "meem"))
