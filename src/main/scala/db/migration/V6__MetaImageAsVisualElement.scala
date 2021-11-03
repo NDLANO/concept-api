@@ -52,14 +52,12 @@ class V6__MetaImageAsVisualElement extends BaseJavaMigration {
     sql"select count(*) from publishedconceptdata where document is not NULL"
       .map(rs => rs.long("count"))
       .single()
-      .apply()
   }
 
   def countAllConcepts(implicit session: DBSession): Option[Long] = {
     sql"select count(*) from conceptdata where document is not NULL"
       .map(rs => rs.long("count"))
       .single()
-      .apply()
   }
 
   def allPublishedConcepts(offset: Long)(implicit session: DBSession): Seq[(Long, String)] = {
@@ -68,7 +66,6 @@ class V6__MetaImageAsVisualElement extends BaseJavaMigration {
         (rs.long("id"), rs.string("document"))
       })
       .list()
-      .apply()
   }
 
   def allConcepts(offset: Long)(implicit session: DBSession): Seq[(Long, String)] = {
@@ -77,7 +74,6 @@ class V6__MetaImageAsVisualElement extends BaseJavaMigration {
         (rs.long("id"), rs.string("document"))
       })
       .list()
-      .apply()
   }
 
   def updatePublishedConcept(document: String, id: Long)(implicit session: DBSession): Int = {
@@ -87,7 +83,6 @@ class V6__MetaImageAsVisualElement extends BaseJavaMigration {
 
     sql"update publishedconceptdata set document = $dataObject where id = $id"
       .update()
-      .apply()
   }
 
   def updateConcept(document: String, id: Long)(implicit session: DBSession): Int = {
@@ -97,7 +92,6 @@ class V6__MetaImageAsVisualElement extends BaseJavaMigration {
 
     sql"update conceptdata set document = $dataObject where id = $id"
       .update()
-      .apply()
   }
 
   private def mergeFields(

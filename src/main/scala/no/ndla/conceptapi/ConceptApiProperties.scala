@@ -9,7 +9,6 @@ package no.ndla.conceptapi
 
 import com.typesafe.scalalogging.LazyLogging
 import no.ndla.network.secrets.PropertyKeys
-import no.ndla.network.secrets.Secrets.readSecrets
 import no.ndla.network.{AuthUser, Domains}
 import no.ndla.validation.ResourceType
 
@@ -75,15 +74,6 @@ object ConceptApiProperties extends LazyLogging {
     ).getOrElse(Environment, "https://h5p.ndla.no")
   )
 
-  lazy val secrets = {
-    val SecretsFile = "concept-api.secrets"
-    readSecrets(SecretsFile) match {
-      case Success(values) => values
-      case Failure(exception) =>
-        throw new RuntimeException(s"Unable to load remote secrets from $SecretsFile", exception)
-    }
-  }
-
   val externalApiUrls: Map[String, String] = Map(
     ResourceType.Image.toString -> s"$Domain/image-api/v2/images",
     "raw-image" -> s"$Domain/image-api/raw/id",
@@ -98,9 +88,8 @@ object ConceptApiProperties extends LazyLogging {
 
   def propOpt(key: String): Option[String] = {
     propOrNone(key) match {
-      case Some(prop)            => Some(prop)
-      case None if !IsKubernetes => secrets.get(key).flatten
-      case _                     => None
+      case Some(prop) => Some(prop)
+      case _          => None
     }
   }
 

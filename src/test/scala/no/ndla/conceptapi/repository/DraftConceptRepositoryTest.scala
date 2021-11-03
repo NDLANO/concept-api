@@ -45,7 +45,7 @@ class DraftConceptRepositoryTest
 
   def emptyTestDatabase = {
     DB autoCommit (implicit session => {
-      sql"delete from conceptdata;".execute().apply()(session)
+      sql"delete from conceptdata;".execute()(session)
     })
   }
 

@@ -37,7 +37,7 @@ trait DraftConceptRepository {
         sql"""
         insert into ${Concept.table} (document, revision)
         values (${dataObject}, $newRevision)
-          """.updateAndReturnGeneratedKey().apply()
+          """.updateAndReturnGeneratedKey()
 
       logger.info(s"Inserted new concept: $conceptId")
       concept.copy(
@@ -57,7 +57,7 @@ trait DraftConceptRepository {
         sql"""
         insert into ${Concept.table} (listing_id, document, revision)
         values ($listingId, $dataObject, $newRevision)
-          """.updateAndReturnGeneratedKey().apply()
+          """.updateAndReturnGeneratedKey()
 
       logger.info(s"Inserted new concept: '$conceptId', with listing id '$listingId'")
       concept.copy(id = Some(conceptId))
@@ -71,10 +71,10 @@ trait DraftConceptRepository {
 
       Try(
         sql"""
-           update ${Concept.table} 
-           set document=${dataObject} 
+           update ${Concept.table}
+           set document=${dataObject}
            where listing_id=${listingId}
-         """.updateAndReturnGeneratedKey().apply()
+         """.updateAndReturnGeneratedKey()
       ) match {
         case Success(id) => Success(concept.copy(id = Some(id)))
         case Failure(ex) =>
@@ -90,7 +90,6 @@ trait DraftConceptRepository {
         where jsonb_array_length(document->'subjectIds') != 0;"""
         .map(rs => rs.string("subject_id"))
         .list()
-        .apply()
         .toSet
     }
 
@@ -106,7 +105,6 @@ trait DraftConceptRepository {
           read[List[ConceptTags]](jsonStr)
         })
         .list()
-        .apply()
     }
 
     def withListingId(listingId: Long) =
@@ -125,7 +123,7 @@ trait DraftConceptRepository {
             sql"""
                   insert into ${Concept.table} (id, document, revision)
                   values ($id, ${dataObject}, $newRevision)
-               """.update().apply()
+               """.update()
           )
 
           logger.info(s"Inserted new concept: $id")
@@ -148,14 +146,14 @@ trait DraftConceptRepository {
 
           Try(
             sql"""
-              update ${Concept.table} 
-              set 
-                document=${dataObject}, 
+              update ${Concept.table}
+              set
+                document=${dataObject},
                 revision=$newRevision
               where id=$conceptId
               and revision=$oldRevision
               and revision=(select max(revision) from ${Concept.table} where id=$conceptId)
-            """.update().apply()
+            """.update()
           ) match {
             case Success(updatedRows) => failIfRevisionMismatch(updatedRows, concept, newRevision)
             case Failure(ex) =>
@@ -183,7 +181,6 @@ trait DraftConceptRepository {
       sql"select id from ${Concept.table} where id=${id}"
         .map(rs => rs.long("id"))
         .single()
-        .apply()
         .isDefined
     }
 
@@ -191,7 +188,6 @@ trait DraftConceptRepository {
       sql"select id from ${Concept.table} where $externalId = any(external_id)"
         .map(rs => rs.long("id"))
         .single()
-        .apply()
     }
 
     override def minMaxId(implicit session: DBSession = AutoSession): (Long, Long) = {
@@ -199,8 +195,7 @@ trait DraftConceptRepository {
         .map(rs => {
           (rs.long("mi"), rs.long("ma"))
         })
-        .single()
-        .apply() match {
+        .single() match {
         case Some(minmax) => minmax
         case None         => (0L, 0L)
       }
@@ -215,7 +210,6 @@ trait DraftConceptRepository {
       sql"select ${co.result.*} from ${Concept.as(co)} where co.document is not NULL and $whereClause"
         .map(Concept.fromResultSet(co))
         .single()
-        .apply()
     }
 
     private def conceptsWhere(whereClause: SQLSyntax)(
@@ -224,21 +218,18 @@ trait DraftConceptRepository {
       sql"select ${co.result.*} from ${Concept.as(co)} where co.document is not NULL and $whereClause"
         .map(Concept.fromResultSet(co))
         .list()
-        .apply()
     }
 
     def conceptCount(implicit session: DBSession = ReadOnlyAutoSession): Long =
       sql"select count(*) from ${Concept.table}"
         .map(rs => rs.long("count"))
         .single()
-        .apply()
         .getOrElse(0)
 
     private def getHighestId(implicit session: DBSession = ReadOnlyAutoSession): Long = {
       sql"select id from ${Concept.table} order by id desc limit 1"
         .map(rs => rs.long("id"))
         .single()
-        .apply()
         .getOrElse(0)
     }
 
@@ -247,7 +238,7 @@ trait DraftConceptRepository {
       val sequenceName = SQLSyntax.createUnsafely(
         s"${Concept.schemaName.getOrElse(ConceptApiProperties.MetaSchema)}.${Concept.tableName}_id_seq")
 
-      sql"alter sequence $sequenceName restart with $idToStartAt;".executeUpdate().apply()
+      sql"alter sequence $sequenceName restart with $idToStartAt;".executeUpdate()
     }
 
     def getTags(input: String, pageSize: Int, offset: Int, language: String)(
@@ -256,7 +247,7 @@ trait DraftConceptRepository {
       val sanitizedLanguage = language.replaceAll("%", "")
       val langOrAll = if (sanitizedLanguage == "*" || sanitizedLanguage == "") "%" else sanitizedLanguage
 
-      val tags = sql"""select tags from 
+      val tags = sql"""select tags from
               (select distinct JSONB_ARRAY_ELEMENTS_TEXT(tagObj->'tags') tags from
               (select JSONB_ARRAY_ELEMENTS(document#>'{tags}') tagObj from ${Concept.table}) _
               where tagObj->>'language' like ${langOrAll}
@@ -267,11 +258,10 @@ trait DraftConceptRepository {
                       """
         .map(rs => rs.string("tags"))
         .list()
-        .apply()
 
       val tagsCount =
         sql"""
-              select count(*) from 
+              select count(*) from
               (select distinct JSONB_ARRAY_ELEMENTS_TEXT(tagObj->'tags') tags from
               (select JSONB_ARRAY_ELEMENTS(document#>'{tags}') tagObj from ${Concept.table}) _
               where tagObj->>'language' like  ${langOrAll}) all_tags
@@ -279,7 +269,6 @@ trait DraftConceptRepository {
            """
           .map(rs => rs.int("count"))
           .single()
-          .apply()
           .getOrElse(0)
 
       (tags, tagsCount)
@@ -297,7 +286,6 @@ trait DraftConceptRepository {
       """
         .map(Concept.fromResultSet(co))
         .list()
-        .apply()
     }
   }
 }
