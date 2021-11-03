@@ -32,11 +32,11 @@ trait PublishedConceptRepository {
 
       Try {
         sql"""update ${PublishedConcept.table}
-              set 
+              set
                 document=$dataObject,
                 revision=${concept.revision}
               where id=${concept.id}
-          """.update().apply()
+          """.update()
       } match {
         case Success(count) if count == 1 =>
           logger.info(s"Updated published concept ${concept.id}")
@@ -47,7 +47,7 @@ trait PublishedConceptRepository {
             sql"""
                   insert into ${PublishedConcept.table} (id, document, revision)
                   values (${concept.id}, $dataObject, ${concept.revision})
-              """.updateAndReturnGeneratedKey().apply()
+              """.updateAndReturnGeneratedKey()
           }.map(_ => concept)
         case Failure(ex) => Failure(ex)
       }
@@ -58,7 +58,7 @@ trait PublishedConceptRepository {
         sql"""
             delete from ${PublishedConcept.table}
             where id=$id
-         """.update().apply()
+         """.update()
       ) match {
         case Success(count) if count > 0 => Success(id)
         case Failure(ex)                 => Failure(ex)
@@ -70,20 +70,19 @@ trait PublishedConceptRepository {
 
     def allSubjectIds(implicit session: DBSession = ReadOnlyAutoSession): Set[String] = {
       sql"""
-        select distinct jsonb_array_elements_text(document->'subjectIds') as subject_id 
-        from ${PublishedConcept.table} 
+        select distinct jsonb_array_elements_text(document->'subjectIds') as subject_id
+        from ${PublishedConcept.table}
         where jsonb_array_length(document->'subjectIds') != 0;"""
         .map(rs => rs.string("subject_id"))
         .list()
-        .apply()
         .toSet
     }
 
     def everyTagFromEveryConcept(implicit session: DBSession = ReadOnlyAutoSession) = {
       sql"""
-           select distinct id, document#>'{tags}' as tags 
-           from ${PublishedConcept.table} 
-           where jsonb_array_length(document#>'{tags}') > 0 
+           select distinct id, document#>'{tags}' as tags
+           from ${PublishedConcept.table}
+           where jsonb_array_length(document#>'{tags}') > 0
            order by id
          """
         .map(rs => {
@@ -91,7 +90,6 @@ trait PublishedConceptRepository {
           read[List[ConceptTags]](jsonStr)
         })
         .list()
-        .apply()
     }
 
     private def conceptWhere(whereClause: SQLSyntax)(
@@ -100,14 +98,12 @@ trait PublishedConceptRepository {
       sql"select ${co.result.*} from ${PublishedConcept.as(co)} where co.document is not NULL and $whereClause"
         .map(Concept.fromResultSet(co))
         .single()
-        .apply()
     }
 
     def conceptCount(implicit session: DBSession = ReadOnlyAutoSession): Long =
       sql"select count(*) from ${PublishedConcept.table}"
         .map(rs => rs.long("count"))
         .single()
-        .apply()
         .getOrElse(0)
 
     override def documentsWithIdBetween(min: Long, max: Long): List[Concept] =
@@ -118,8 +114,7 @@ trait PublishedConceptRepository {
         .map(rs => {
           (rs.long("mi"), rs.long("ma"))
         })
-        .single()
-        .apply() match {
+        .single() match {
         case Some(minmax) => minmax
         case None         => (0L, 0L)
       }
@@ -131,7 +126,6 @@ trait PublishedConceptRepository {
       sql"select ${co.result.*} from ${PublishedConcept.as(co)} where co.document is not NULL and $whereClause"
         .map(Concept.fromResultSet(co))
         .list()
-        .apply()
     }
 
     def getByPage(pageSize: Int, offset: Int)(implicit session: DBSession = ReadOnlyAutoSession): Seq[Concept] = {
@@ -145,7 +139,6 @@ trait PublishedConceptRepository {
       """
         .map(Concept.fromResultSet(co))
         .list()
-        .apply()
     }
   }
 }

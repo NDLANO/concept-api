@@ -43,7 +43,6 @@ class V8__PublishedConceptArticleIdsAsList extends BaseJavaMigration {
     sql"select count(*) from publishedconceptdata where document is not NULL"
       .map(rs => rs.long("count"))
       .single()
-      .apply()
   }
 
   def allConcepts(offset: Long)(implicit session: DBSession): Seq[(Long, String)] = {
@@ -52,7 +51,6 @@ class V8__PublishedConceptArticleIdsAsList extends BaseJavaMigration {
         (rs.long("id"), rs.string("document"))
       })
       .list()
-      .apply()
   }
 
   def updateConcept(document: String, id: Long)(implicit session: DBSession): Int = {
@@ -62,7 +60,6 @@ class V8__PublishedConceptArticleIdsAsList extends BaseJavaMigration {
 
     sql"update publishedconceptdata set document = $dataObject where id = $id"
       .update()
-      .apply()
   }
 
   private[migration] def convertToNewConcept(document: String): String = {
