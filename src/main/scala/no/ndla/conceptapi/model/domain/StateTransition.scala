@@ -1,3 +1,10 @@
+/*
+ * Part of NDLA concept-api
+ * Copyright (C) 2020 NDLA
+ *
+ * See LICENSE
+ */
+
 package no.ndla.conceptapi.model.domain
 
 import no.ndla.conceptapi.auth.{Role, UserInfo}
