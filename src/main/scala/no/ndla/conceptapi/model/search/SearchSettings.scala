@@ -1,3 +1,10 @@
+/*
+ * Part of NDLA concept-api
+ * Copyright (C) 2019 NDLA
+ *
+ * See LICENSE
+ */
+
 package no.ndla.conceptapi.model.search
 
 import no.ndla.conceptapi.ConceptApiProperties

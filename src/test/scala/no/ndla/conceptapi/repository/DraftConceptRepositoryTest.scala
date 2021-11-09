@@ -220,7 +220,7 @@ class DraftConceptRepositoryTest
     tags4.length should be(1)
     tagsCount4 should be(6)
 
-    val (tags5, tagsCount5) = repository.getTags("", 10, 0, "all")
+    val (tags5, tagsCount5) = repository.getTags("", 10, 0, "*")
     tags5 should equal(Seq("abc", "asd", "bcd", "cde", "d", "ddd", "def"))
     tags5.length should be(7)
     tagsCount5 should be(7)

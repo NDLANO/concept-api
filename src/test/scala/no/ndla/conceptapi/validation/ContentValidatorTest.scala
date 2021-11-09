@@ -23,7 +23,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
       title = Seq()
     )
 
-    val Failure(exception: ValidationException) = contentValidator.validateConcept(conceptToValidate, false)
+    val Failure(exception: ValidationException) = contentValidator.validateConcept(conceptToValidate)
     exception.errors should be(
       Seq(ValidationMessage("title", "The field does not have any entries, whereas at least one is required."))
     )
@@ -34,7 +34,7 @@ class ContentValidatorTest extends UnitSuite with TestEnvironment {
       title = Seq(domain.ConceptTitle("Amazing title", "nb"))
     )
 
-    val result = contentValidator.validateConcept(conceptToValidate, false)
+    val result = contentValidator.validateConcept(conceptToValidate)
     result should be(Success(conceptToValidate))
   }
 }

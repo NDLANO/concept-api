@@ -10,12 +10,11 @@ package no.ndla.conceptapi.validation
 import no.ndla.conceptapi.model.domain._
 import no.ndla.conceptapi.repository.DraftConceptRepository
 import no.ndla.conceptapi.service.ConverterService
-import no.ndla.mapping.ISO639.get6391CodeFor6392CodeMappings
+import no.ndla.language.model.Iso639
 import no.ndla.mapping.License.getLicense
-import org.joda.time.format.ISODateTimeFormat
 import no.ndla.validation._
+import org.joda.time.format.ISODateTimeFormat
 
-import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
 
 trait ContentValidator {
@@ -36,11 +35,11 @@ trait ContentValidator {
 
     }
 
-    def validateConcept(concept: Concept, allowUnknownLanguage: Boolean): Try[Concept] = {
+    def validateConcept(concept: Concept): Try[Concept] = {
       val validationErrors =
-        concept.content.flatMap(c => validateConceptContent(c, allowUnknownLanguage)) ++
-          concept.visualElement.flatMap(ve => validateVisualElement(ve, allowUnknownLanguage)) ++
-          validateTitles(concept.title, allowUnknownLanguage)
+        concept.content.flatMap(c => validateConceptContent(c)) ++
+          concept.visualElement.flatMap(ve => validateVisualElement(ve)) ++
+          validateTitles(concept.title)
 
       if (validationErrors.isEmpty) {
         Success(concept)
@@ -49,29 +48,26 @@ trait ContentValidator {
       }
     }
 
-    private def validateVisualElement(content: VisualElement, allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
+    private def validateVisualElement(content: VisualElement): Seq[ValidationMessage] = {
       HtmlValidator
         .validate("visualElement", content.visualElement, requiredToOptional = Map("image" -> Seq("data-caption")))
         .toList ++
-        validateLanguage("language", content.language, allowUnknownLanguage)
+        validateLanguage("language", content.language)
     }
 
-    private def validateConceptContent(content: ConceptContent,
-                                       allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
+    private def validateConceptContent(content: ConceptContent): Seq[ValidationMessage] = {
       NoHtmlValidator.validate("content", content.content).toList ++
-        validateLanguage("language", content.language, allowUnknownLanguage)
+        validateLanguage("language", content.language)
     }
 
-    private def validateTitles(titles: Seq[ConceptTitle], allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
-      titles.flatMap(t => validateTitle(t.title, t.language, allowUnknownLanguage)) ++
+    private def validateTitles(titles: Seq[ConceptTitle]): Seq[ValidationMessage] = {
+      titles.flatMap(t => validateTitle(t.title, t.language)) ++
         validateExistingLanguageField("title", titles)
     }
 
-    private def validateTitle(title: String,
-                              language: String,
-                              allowUnknownLanguage: Boolean): Seq[ValidationMessage] = {
+    private def validateTitle(title: String, language: String): Seq[ValidationMessage] = {
       NoHtmlValidator.validate(s"title.$language", title).toList ++
-        validateLanguage("language", language, allowUnknownLanguage) ++
+        validateLanguage("language", language) ++
         validateLength(s"title.$language", title, 256) ++
         validateMinimumLength(s"title.$language", title, 1)
     }
@@ -102,19 +98,17 @@ trait ContentValidator {
         NoHtmlValidator.validate("author.name", author.name).toList
     }
 
-    private def validateLanguage(fieldPath: String,
-                                 languageCode: String,
-                                 allowUnknownLanguage: Boolean): Option[ValidationMessage] = {
-      languageCode.nonEmpty && languageCodeSupported6391(languageCode, allowUnknownLanguage) match {
-        case true => None
-        case false =>
-          Some(ValidationMessage(fieldPath, s"Language '$languageCode' is not a supported value."))
+    private def validateLanguage(fieldPath: String, languageCode: String): Option[ValidationMessage] = {
+      if (languageCode.nonEmpty && languageCodeSupported639(languageCode)) {
+        None
+      } else {
+        Some(ValidationMessage(fieldPath, s"Language '$languageCode' is not a supported value."))
       }
     }
 
     private def validateExistingLanguageField(fieldPath: String,
                                               fields: Seq[LanguageField]): Option[ValidationMessage] = {
-      if (fields.size > 0) None
+      if (fields.nonEmpty) None
       else
         Some(
           ValidationMessage(
@@ -138,13 +132,7 @@ trait ContentValidator {
       else
         None
 
-    private def languageCodeSupported6391(languageCode: String, allowUnknownLanguage: Boolean): Boolean = {
-      val languageCodes = get6391CodeFor6392CodeMappings.values.toSeq ++ (if (allowUnknownLanguage)
-                                                                            Seq("unknown")
-                                                                          else
-                                                                            Seq.empty)
-      languageCodes.contains(languageCode)
-    }
+    private def languageCodeSupported639(languageCode: String) = Iso639.get(languageCode).isSuccess
 
   }
 }

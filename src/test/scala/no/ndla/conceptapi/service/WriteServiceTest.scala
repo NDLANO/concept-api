@@ -42,7 +42,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
     when(draftConceptRepository.update(any[Concept])(any[DBSession]))
       .thenAnswer((invocation: InvocationOnMock) => Try(invocation.getArgument[Concept](0)))
 
-    when(contentValidator.validateConcept(any[Concept], any[Boolean])).thenAnswer((invocation: InvocationOnMock) =>
+    when(contentValidator.validateConcept(any[Concept])).thenAnswer((invocation: InvocationOnMock) =>
       Try(invocation.getArgument[Concept](0)))
 
     when(draftConceptIndexService.indexDocument(any[Concept])).thenAnswer((invocation: InvocationOnMock) =>
@@ -57,7 +57,7 @@ class WriteServiceTest extends UnitSuite with TestEnvironment {
 
   test("newConcept should insert a given Concept") {
     when(draftConceptRepository.insert(any[Concept])(any[DBSession])).thenReturn(domainConcept)
-    when(contentValidator.validateConcept(any[Concept], any[Boolean])).thenReturn(Success(domainConcept))
+    when(contentValidator.validateConcept(any[Concept])).thenReturn(Success(domainConcept))
 
     service.newConcept(TestData.sampleNewConcept, userInfo).get.id.toString should equal(domainConcept.id.get.toString)
     verify(draftConceptRepository, times(1)).insert(any[Concept])

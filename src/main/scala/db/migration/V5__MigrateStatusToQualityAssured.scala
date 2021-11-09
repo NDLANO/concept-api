@@ -1,3 +1,10 @@
+/*
+ * Part of NDLA concept-api
+ * Copyright (C) 2020 NDLA
+ *
+ * See LICENSE
+ */
+
 package db.migration
 
 import org.flywaydb.core.api.migration.{BaseJavaMigration, Context}

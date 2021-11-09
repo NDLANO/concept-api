@@ -385,9 +385,9 @@ class PublishedConceptSearchServiceTest
 
   test("Search should return language it is matched in") {
     val Success(searchEn) =
-      publishedConceptSearchService.matchingQuery("Unrelated", searchSettings.copy(searchLanguage = "all"))
+      publishedConceptSearchService.matchingQuery("Unrelated", searchSettings.copy(searchLanguage = "*"))
     val Success(searchNb) =
-      publishedConceptSearchService.matchingQuery("Urelatert", searchSettings.copy(searchLanguage = "all"))
+      publishedConceptSearchService.matchingQuery("Urelatert", searchSettings.copy(searchLanguage = "*"))
 
     searchEn.totalCount should be(1)
     searchEn.results.head.title.language should be("en")
@@ -446,17 +446,17 @@ class PublishedConceptSearchServiceTest
       publishedConceptSearchService.all(
         searchSettings.copy(
           pageSize = pageSize,
-          searchLanguage = "all",
+          searchLanguage = "*",
           fallback = true,
           shouldScroll = true
         ))
 
-    val Success(scroll1) = publishedConceptSearchService.scroll(initialSearch.scrollId.get, "all")
-    val Success(scroll2) = publishedConceptSearchService.scroll(scroll1.scrollId.get, "all")
-    val Success(scroll3) = publishedConceptSearchService.scroll(scroll2.scrollId.get, "all")
-    val Success(scroll4) = publishedConceptSearchService.scroll(scroll3.scrollId.get, "all")
-    val Success(scroll5) = publishedConceptSearchService.scroll(scroll4.scrollId.get, "all")
-    val Success(scroll6) = publishedConceptSearchService.scroll(scroll5.scrollId.get, "all")
+    val Success(scroll1) = publishedConceptSearchService.scroll(initialSearch.scrollId.get, "*")
+    val Success(scroll2) = publishedConceptSearchService.scroll(scroll1.scrollId.get, "*")
+    val Success(scroll3) = publishedConceptSearchService.scroll(scroll2.scrollId.get, "*")
+    val Success(scroll4) = publishedConceptSearchService.scroll(scroll3.scrollId.get, "*")
+    val Success(scroll5) = publishedConceptSearchService.scroll(scroll4.scrollId.get, "*")
+    val Success(scroll6) = publishedConceptSearchService.scroll(scroll5.scrollId.get, "*")
 
     initialSearch.results.map(_.id) should be(expectedIds.head)
     scroll1.results.map(_.id) should be(expectedIds(1))
@@ -481,7 +481,7 @@ class PublishedConceptSearchServiceTest
     search.results.map(_.id) should be(Seq(10))
 
     val Success(search1) =
-      publishedConceptSearchService.all(searchSettings.copy(tagsToFilterBy = Set("burugle"), searchLanguage = "all"))
+      publishedConceptSearchService.all(searchSettings.copy(tagsToFilterBy = Set("burugle"), searchLanguage = "*"))
     search1.totalCount should be(1)
     search1.results.map(_.id) should be(Seq(10))
 
