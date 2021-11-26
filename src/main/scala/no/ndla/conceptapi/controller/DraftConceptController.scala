@@ -45,6 +45,11 @@ trait DraftConceptController {
     protected implicit override val jsonFormats: Formats = DefaultFormats
     val applicationDescription = "This is the Api for concept drafts"
 
+    after() {
+      // We don't want to cache draft responses in nginx since they could require access
+      response.addHeader("Cache-control", "private")
+    }
+
     private val statuss = Param[String]("STATUS", "Concept status")
     private val statusFilter = Param[Option[Seq[String]]](
       "status",
